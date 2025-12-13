@@ -17,7 +17,7 @@ module.exports = {
         },
         { 
           name: '⚙️ Ayarlar', 
-          value: '`!otorol` `!hoşgeldin` `!log` `!prefix`',
+          value: '`!otorol` `!hoşgeldin` `!log`',
           inline: false 
         },
         { 
