@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Publisher Bot - Sunucu Ayarları</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --discord-blurple: #5865F2;
+      --discord-dark: #23272A;
+      --discord-darker: #1a1d21;
+    }
+    body {
+      background: var(--discord-darker);
+      color: white;
+      min-height: 100vh;
+    }
+    .navbar { background: rgba(0,0,0,0.3) !important; }
+    .sidebar {
+      background: var(--discord-dark);
+      min-height: calc(100vh - 56px);
+      padding: 20px;
+    }
+    .sidebar-link {
+      display: block;
+      padding: 12px 15px;
+      color: #999;
+      text-decoration: none;
+      border-radius: 8px;
+      margin: 5px 0;
+      transition: all 0.3s;
+    }
+    .sidebar-link:hover, .sidebar-link.active {
+      background: rgba(88, 101, 242, 0.2);
+      color: white;
+    }
+    .sidebar-link i { margin-right: 10px; width: 20px; }
+    .content-area {
+      padding: 30px;
+    }
+    .card {
+      background: var(--discord-dark);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 15px;
+      margin-bottom: 20px;
+    }
+    .card-header {
+      background: rgba(0,0,0,0.2);
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      padding: 15px 20px;
+    }
+    .form-control, .form-select {
+      background: rgba(0,0,0,0.3);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: white;
+    }
+    .form-control:focus, .form-select:focus {
+      background: rgba(0,0,0,0.4);
+      border-color: var(--discord-blurple);
+      color: white;
+      box-shadow: none;
+    }
+    .form-check-input:checked {
+      background-color: var(--discord-blurple);
+      border-color: var(--discord-blurple);
+    }
+    .btn-primary {
+      background: var(--discord-blurple);
+      border: none;
+    }
+    .btn-primary:hover {
+      background: #4752c4;
+    }
+    .guild-header {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 30px;
+    }
+    .guild-icon {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+    }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    .toast-container {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 9999;
+    }
+    .command-item {
+      background: rgba(0,0,0,0.2);
+      padding: 15px;
+      border-radius: 10px;
+      margin: 10px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .case-item {
+      background: rgba(0,0,0,0.2);
+      padding: 10px 15px;
+      border-radius: 8px;
+      margin: 5px 0;
+      border-left: 3px solid var(--discord-blurple);
+    }
+    .case-warn { border-left-color: #ffc107; }
+    .case-mute { border-left-color: #ff9800; }
+    .case-kick { border-left-color: #ff5722; }
+    .case-ban { border-left-color: #f44336; }
+  </style>
+</head>
+<body>
+  <nav class="navbar navbar-dark">
+    <div class="container-fluid">
+      <a class="navbar-brand fw-bold" href="/dashboard">
+        <i class="fas fa-arrow-left me-2"></i>Publisher Bot
+      </a>
+    </div>
+  </nav>
+
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-md-3 col-lg-2 sidebar">
+        <div class="guild-header" id="guild-header"></div>
+        
+        <a href="#" class="sidebar-link active" data-tab="general">
+          <i class="fas fa-cog"></i>Genel Ayarlar
+        </a>
+        <a href="#" class="sidebar-link" data-tab="welcome">
+          <i class="fas fa-door-open"></i>Hoş Geldin
+        </a>
+        <a href="#" class="sidebar-link" data-tab="automod">
+          <i class="fas fa-robot"></i>AutoMod
+        </a>
+        <a href="#" class="sidebar-link" data-tab="autopunish">
+          <i class="fas fa-gavel"></i>Otomatik Ceza
+        </a>
+        <a href="#" class="sidebar-link" data-tab="commands">
+          <i class="fas fa-terminal"></i>Özel Komutlar
+        </a>
+        <a href="#" class="sidebar-link" data-tab="modlog">
+          <i class="fas fa-clipboard-list"></i>Mod Logları
+        </a>
+      </div>
+
+      <div class="col-md-9 col-lg-10 content-area">
+        <div id="tab-general" class="tab-content active">
+          <h3 class="mb-4">Genel Ayarlar</h3>
+          <div class="card">
+            <div class="card-header">Log Kanalı</div>
+            <div class="card-body">
+              <select class="form-select" id="logChannel">
+                <option value="">Seçiniz...</option>
+              </select>
+              <small class="text-muted">Moderasyon loglarının gönderileceği kanal</small>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">Oto-Rol</div>
+            <div class="card-body">
+              <select class="form-select" id="autoRole">
+                <option value="">Seçiniz...</option>
+              </select>
+              <small class="text-muted">Yeni üyelere otomatik verilecek rol</small>
+            </div>
+          </div>
+          <button class="btn btn-primary" onclick="saveGeneral()">
+            <i class="fas fa-save me-2"></i>Kaydet
+          </button>
+        </div>
+
+        <div id="tab-welcome" class="tab-content">
+          <h3 class="mb-4">Hoş Geldin Sistemi</h3>
+          <div class="card">
+            <div class="card-header">Hoş Geldin Kanalı</div>
+            <div class="card-body">
+              <select class="form-select" id="welcomeChannel">
+                <option value="">Seçiniz...</option>
+              </select>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">Hoş Geldin Mesajı</div>
+            <div class="card-body">
+              <textarea class="form-control" id="welcomeMessage" rows="3" placeholder="Hoş geldin {user}! Sunucumuza hoş geldin."></textarea>
+              <small class="text-muted">Değişkenler: {user}, {username}, {server}, {membercount}</small>
+            </div>
+          </div>
+          <button class="btn btn-primary" onclick="saveWelcome()">
+            <i class="fas fa-save me-2"></i>Kaydet
+          </button>
+        </div>
+
+        <div id="tab-automod" class="tab-content">
+          <h3 class="mb-4">AutoMod Ayarları</h3>
+          <div class="card">
+            <div class="card-body">
+              <div class="form-check form-switch mb-3">
+                <input class="form-check-input" type="checkbox" id="automodEnabled">
+                <label class="form-check-label" for="automodEnabled">AutoMod Aktif</label>
+              </div>
+              <hr>
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="form-check form-switch mb-2">
+                    <input class="form-check-input" type="checkbox" id="spamFilter">
+                    <label class="form-check-label" for="spamFilter">Spam Filtresi</label>
+                  </div>
+                  <div class="form-check form-switch mb-2">
+                    <input class="form-check-input" type="checkbox" id="capsFilter">
+                    <label class="form-check-label" for="capsFilter">Büyük Harf Filtresi</label>
+                  </div>
+                  <div class="form-check form-switch mb-2">
+                    <input class="form-check-input" type="checkbox" id="linkFilter">
+                    <label class="form-check-label" for="linkFilter">Link Filtresi</label>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-check form-switch mb-2">
+                    <input class="form-check-input" type="checkbox" id="inviteFilter">
+                    <label class="form-check-label" for="inviteFilter">Davet Filtresi</label>
+                  </div>
+                  <div class="form-check form-switch mb-2">
+                    <input class="form-check-input" type="checkbox" id="mentionSpam">
+                    <label class="form-check-label" for="mentionSpam">Etiket Spam Filtresi</label>
+                  </div>
+                  <div class="form-check form-switch mb-2">
+                    <input class="form-check-input" type="checkbox" id="emojiSpam">
+                    <label class="form-check-label" for="emojiSpam">Emoji Spam Filtresi</label>
+                  </div>
+                </div>
+              </div>
+              <hr>
+              <h6>Yasaklı Kelimeler</h6>
+              <textarea class="form-control" id="badWords" rows="2" placeholder="Virgülle ayırarak girin..."></textarea>
+            </div>
+          </div>
+          <button class="btn btn-primary" onclick="saveAutomod()">
+            <i class="fas fa-save me-2"></i>Kaydet
+          </button>
+        </div>
+
+        <div id="tab-autopunish" class="tab-content">
+          <h3 class="mb-4">Otomatik Ceza Sistemi</h3>
+          <div class="card">
+            <div class="card-body">
+              <div class="form-check form-switch mb-3">
+                <input class="form-check-input" type="checkbox" id="autopunishEnabled">
+                <label class="form-check-label" for="autopunishEnabled">Otomatik Ceza Aktif</label>
+              </div>
+              <hr>
+              <p class="text-muted">Uyarı sayısına göre otomatik ceza kuralları:</p>
+              <div id="autopunish-rules"></div>
+              <button class="btn btn-outline-light btn-sm mt-2" onclick="addPunishRule()">
+                <i class="fas fa-plus me-1"></i>Kural Ekle
+              </button>
+            </div>
+          </div>
+          <button class="btn btn-primary" onclick="saveAutopunish()">
+            <i class="fas fa-save me-2"></i>Kaydet
+          </button>
+        </div>
+
+        <div id="tab-commands" class="tab-content">
+          <h3 class="mb-4">Özel Komutlar</h3>
+          <div class="card">
+            <div class="card-header">Yeni Komut Ekle</div>
+            <div class="card-body">
+              <div class="row g-3">
+                <div class="col-md-4">
+                  <input type="text" class="form-control" id="newCmdName" placeholder="Komut adı">
+                </div>
+                <div class="col-md-6">
+                  <input type="text" class="form-control" id="newCmdResponse" placeholder="Yanıt">
+                </div>
+                <div class="col-md-2">
+                  <button class="btn btn-primary w-100" onclick="addCommand()">Ekle</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">Mevcut Komutlar</div>
+            <div class="card-body" id="commands-list">
+              <p class="text-muted">Yükleniyor...</p>
+            </div>
+          </div>
+        </div>
+
+        <div id="tab-modlog" class="tab-content">
+          <h3 class="mb-4">Moderasyon Logları</h3>
+          <div class="card">
+            <div class="card-body" id="modlog-list">
+              <p class="text-muted">Yükleniyor...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-container"></div>
+
+  <script>
+    const guildId = window.location.pathname.split('/').pop();
+    let guildData = null;
+
+    document.querySelectorAll('.sidebar-link').forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        const tab = link.dataset.tab;
+        document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        link.classList.add('active');
+        document.getElementById('tab-' + tab).classList.add('active');
+        
+        if (tab === 'commands') loadCommands();
+        if (tab === 'modlog') loadModlog();
+      });
+    });
+
+    function showToast(message, type = 'success') {
+      const toast = document.createElement('div');
+      toast.className = `alert alert-${type} mb-2`;
+      toast.textContent = message;
+      document.querySelector('.toast-container').appendChild(toast);
+      setTimeout(() => toast.remove(), 3000);
+    }
+
+    async function loadGuild() {
+      try {
+        const res = await fetch(`/api/guild/${guildId}`);
+        if (!res.ok) {
+          window.location.href = '/dashboard';
+          return;
+        }
+        guildData = await res.json();
+        
+        document.getElementById('guild-header').innerHTML = `
+          <img src="${guildData.icon || ''}" class="guild-icon" onerror="this.style.display='none'">
+          <div>
+            <h5 class="mb-0">${guildData.name}</h5>
+            <small class="text-muted">${guildData.memberCount} üye</small>
+          </div>
+        `;
+
+        const channelSelects = ['logChannel', 'welcomeChannel'];
+        channelSelects.forEach(id => {
+          const select = document.getElementById(id);
+          guildData.channels.forEach(ch => {
+            const opt = document.createElement('option');
+            opt.value = ch.id;
+            opt.textContent = '#' + ch.name;
+            select.appendChild(opt);
+          });
+        });
+
+        const roleSelect = document.getElementById('autoRole');
+        guildData.roles.forEach(role => {
+          const opt = document.createElement('option');
+          opt.value = role.id;
+          opt.textContent = role.name;
+          roleSelect.appendChild(opt);
+        });
+
+        const settings = guildData.settings || {};
+        document.getElementById('logChannel').value = settings.logChannel || '';
+        document.getElementById('autoRole').value = settings.autoRole || '';
+        document.getElementById('welcomeChannel').value = settings.welcomeChannel || '';
+        document.getElementById('welcomeMessage').value = settings.welcomeMessage || '';
+
+        const automod = settings.automodConfig || {};
+        document.getElementById('automodEnabled').checked = automod.enabled || false;
+        document.getElementById('spamFilter').checked = automod.spamFilter?.enabled || false;
+        document.getElementById('capsFilter').checked = automod.capsFilter?.enabled || false;
+        document.getElementById('linkFilter').checked = automod.linkFilter?.enabled || false;
+        document.getElementById('inviteFilter').checked = automod.inviteFilter?.enabled || false;
+        document.getElementById('mentionSpam').checked = automod.mentionSpam?.enabled || false;
+        document.getElementById('emojiSpam').checked = automod.emojiSpam?.enabled || false;
+        document.getElementById('badWords').value = (automod.badWords?.words || []).join(', ');
+
+        const autopunish = settings.autoPunishments || { enabled: false, rules: [] };
+        document.getElementById('autopunishEnabled').checked = autopunish.enabled;
+        renderPunishRules(autopunish.rules || []);
+
+      } catch (error) {
+        console.error(error);
+        showToast('Sunucu yüklenemedi', 'danger');
+      }
+    }
+
+    async function saveGeneral() {
+      try {
+        await fetch(`/api/guild/${guildId}/settings`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            logChannel: document.getElementById('logChannel').value || null,
+            autoRole: document.getElementById('autoRole').value || null
+          })
+        });
+        showToast('Ayarlar kaydedildi!');
+      } catch (error) {
+        showToast('Kaydetme hatası', 'danger');
+      }
+    }
+
+    async function saveWelcome() {
+      try {
+        await fetch(`/api/guild/${guildId}/settings`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            welcomeChannel: document.getElementById('welcomeChannel').value || null,
+            welcomeMessage: document.getElementById('welcomeMessage').value || null
+          })
+        });
+        showToast('Hoş geldin ayarları kaydedildi!');
+      } catch (error) {
+        showToast('Kaydetme hatası', 'danger');
+      }
+    }
+
+    async function saveAutomod() {
+      const words = document.getElementById('badWords').value.split(',').map(w => w.trim()).filter(w => w);
+      try {
+        await fetch(`/api/guild/${guildId}/settings`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            automodConfig: {
+              enabled: document.getElementById('automodEnabled').checked,
+              spamFilter: { enabled: document.getElementById('spamFilter').checked, maxMessages: 5, interval: 5000, action: 'warn' },
+              capsFilter: { enabled: document.getElementById('capsFilter').checked, threshold: 70, minLength: 10, action: 'delete' },
+              linkFilter: { enabled: document.getElementById('linkFilter').checked, whitelist: [], action: 'delete' },
+              inviteFilter: { enabled: document.getElementById('inviteFilter').checked, action: 'delete' },
+              mentionSpam: { enabled: document.getElementById('mentionSpam').checked, maxMentions: 5, action: 'warn' },
+              emojiSpam: { enabled: document.getElementById('emojiSpam').checked, maxEmojis: 10, action: 'delete' },
+              badWords: { enabled: words.length > 0, words, action: 'delete' }
+            }
+          })
+        });
+        showToast('AutoMod ayarları kaydedildi!');
+      } catch (error) {
+        showToast('Kaydetme hatası', 'danger');
+      }
+    }
+
+    function renderPunishRules(rules) {
+      const container = document.getElementById('autopunish-rules');
+      container.innerHTML = rules.map((r, i) => `
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <input type="number" class="form-control" style="width:80px" value="${r.warnings}" data-index="${i}" data-field="warnings">
+          <span>uyarıda</span>
+          <select class="form-select" style="width:120px" data-index="${i}" data-field="action">
+            <option value="mute" ${r.action === 'mute' ? 'selected' : ''}>Sustur</option>
+            <option value="kick" ${r.action === 'kick' ? 'selected' : ''}>At</option>
+            <option value="ban" ${r.action === 'ban' ? 'selected' : ''}>Yasakla</option>
+          </select>
+          <button class="btn btn-outline-danger btn-sm" onclick="removePunishRule(${i})"><i class="fas fa-trash"></i></button>
+        </div>
+      `).join('');
+    }
+
+    function addPunishRule() {
+      const container = document.getElementById('autopunish-rules');
+      const rules = getPunishRules();
+      rules.push({ warnings: 3, action: 'mute' });
+      renderPunishRules(rules);
+    }
+
+    function removePunishRule(index) {
+      const rules = getPunishRules();
+      rules.splice(index, 1);
+      renderPunishRules(rules);
+    }
+
+    function getPunishRules() {
+      const rules = [];
+      document.querySelectorAll('#autopunish-rules .d-flex').forEach((row, i) => {
+        rules.push({
+          warnings: parseInt(row.querySelector('[data-field="warnings"]').value),
+          action: row.querySelector('[data-field="action"]').value
+        });
+      });
+      return rules;
+    }
+
+    async function saveAutopunish() {
+      try {
+        await fetch(`/api/guild/${guildId}/settings`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            autoPunishments: {
+              enabled: document.getElementById('autopunishEnabled').checked,
+              rules: getPunishRules()
+            }
+          })
+        });
+        showToast('Otomatik ceza ayarları kaydedildi!');
+      } catch (error) {
+        showToast('Kaydetme hatası', 'danger');
+      }
+    }
+
+    async function loadCommands() {
+      try {
+        const res = await fetch(`/api/guild/${guildId}/commands`);
+        const commands = await res.json();
+        const container = document.getElementById('commands-list');
+        
+        if (commands.length === 0) {
+          container.innerHTML = '<p class="text-muted">Henüz özel komut yok.</p>';
+          return;
+        }
+        
+        container.innerHTML = commands.map(cmd => `
+          <div class="command-item">
+            <div>
+              <strong>${cmd.name}</strong>
+              <p class="text-muted mb-0 small">${cmd.response}</p>
+            </div>
+            <button class="btn btn-outline-danger btn-sm" onclick="deleteCommand('${cmd.name}')">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+        `).join('');
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
+    async function addCommand() {
+      const name = document.getElementById('newCmdName').value.trim();
+      const response = document.getElementById('newCmdResponse').value.trim();
+      
+      if (!name || !response) {
+        showToast('Komut adı ve yanıt gerekli!', 'warning');
+        return;
+      }
+      
+      try {
+        await fetch(`/api/guild/${guildId}/commands`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, response })
+        });
+        document.getElementById('newCmdName').value = '';
+        document.getElementById('newCmdResponse').value = '';
+        loadCommands();
+        showToast('Komut eklendi!');
+      } catch (error) {
+        showToast('Ekleme hatası', 'danger');
+      }
+    }
+
+    async function deleteCommand(name) {
+      try {
+        await fetch(`/api/guild/${guildId}/commands/${name}`, { method: 'DELETE' });
+        loadCommands();
+        showToast('Komut silindi!');
+      } catch (error) {
+        showToast('Silme hatası', 'danger');
+      }
+    }
+
+    async function loadModlog() {
+      try {
+        const res = await fetch(`/api/guild/${guildId}/cases`);
+        const cases = await res.json();
+        const container = document.getElementById('modlog-list');
+        
+        if (cases.length === 0) {
+          container.innerHTML = '<p class="text-muted">Henüz moderasyon vakası yok.</p>';
+          return;
+        }
+        
+        const typeNames = { warn: 'Uyarı', mute: 'Susturma', kick: 'Atma', ban: 'Yasaklama' };
+        
+        container.innerHTML = cases.map(c => `
+          <div class="case-item case-${c.type}">
+            <div class="d-flex justify-content-between">
+              <span><strong>#${c.caseNumber}</strong> ${typeNames[c.type] || c.type}</span>
+              <small class="text-muted">${new Date(c.createdAt).toLocaleString('tr-TR')}</small>
+            </div>
+            <small class="text-muted">Kullanıcı: ${c.userId} | Sebep: ${c.reason || 'Belirtilmedi'}</small>
+          </div>
+        `).join('');
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
+    loadGuild();
+  </script>
+</body>
+</html>

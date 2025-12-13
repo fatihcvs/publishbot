@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Publisher Bot - Discord Bot</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --discord-blurple: #5865F2;
+      --discord-dark: #23272A;
+      --discord-darker: #1a1d21;
+    }
+    body {
+      background: linear-gradient(135deg, var(--discord-darker) 0%, var(--discord-dark) 100%);
+      color: white;
+      min-height: 100vh;
+    }
+    .navbar {
+      background: rgba(0,0,0,0.3) !important;
+      backdrop-filter: blur(10px);
+    }
+    .hero {
+      padding: 100px 0;
+      text-align: center;
+    }
+    .hero h1 {
+      font-size: 4rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--discord-blurple), #ff69b4);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .btn-discord {
+      background: var(--discord-blurple);
+      color: white;
+      padding: 15px 40px;
+      font-size: 1.2rem;
+      border-radius: 50px;
+      border: none;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .btn-discord:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 30px rgba(88, 101, 242, 0.4);
+      color: white;
+    }
+    .feature-card {
+      background: rgba(255,255,255,0.05);
+      border-radius: 20px;
+      padding: 30px;
+      margin: 20px 0;
+      border: 1px solid rgba(255,255,255,0.1);
+      transition: transform 0.3s;
+    }
+    .feature-card:hover {
+      transform: translateY(-5px);
+    }
+    .feature-icon {
+      font-size: 3rem;
+      margin-bottom: 20px;
+      color: var(--discord-blurple);
+    }
+    .stats {
+      background: rgba(88, 101, 242, 0.1);
+      padding: 50px 0;
+      margin: 50px 0;
+    }
+    .stat-number {
+      font-size: 3rem;
+      font-weight: 800;
+      color: var(--discord-blurple);
+    }
+    footer {
+      background: rgba(0,0,0,0.3);
+      padding: 30px 0;
+      margin-top: 50px;
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg navbar-dark">
+    <div class="container">
+      <a class="navbar-brand fw-bold" href="/">
+        <i class="fas fa-robot me-2"></i>Publisher Bot
+      </a>
+      <div class="navbar-nav ms-auto">
+        <a class="nav-link" href="#features">Özellikler</a>
+        <a class="nav-link" href="#commands">Komutlar</a>
+        <a class="btn btn-discord ms-3" href="/auth/discord">
+          <i class="fab fa-discord me-2"></i>Giriş Yap
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <section class="hero">
+    <div class="container">
+      <h1>Publisher Bot</h1>
+      <p class="lead mb-5">Dyno benzeri tam donanımlı Discord botu. Moderasyon, AutoMod, özel komutlar ve çok daha fazlası!</p>
+      <a href="/auth/discord" class="btn btn-discord">
+        <i class="fab fa-discord me-2"></i>Dashboard'a Giriş Yap
+      </a>
+    </div>
+  </section>
+
+  <section id="features" class="container">
+    <h2 class="text-center mb-5">Özellikler</h2>
+    <div class="row">
+      <div class="col-md-4">
+        <div class="feature-card text-center">
+          <div class="feature-icon"><i class="fas fa-shield-alt"></i></div>
+          <h4>Moderasyon</h4>
+          <p>Kick, ban, mute, warn ve daha fazlası. Sunucunuzu güvende tutun.</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="feature-card text-center">
+          <div class="feature-icon"><i class="fas fa-robot"></i></div>
+          <h4>AutoMod</h4>
+          <p>Spam, kötü kelime, link ve davet filtreleri ile otomatik moderasyon.</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="feature-card text-center">
+          <div class="feature-icon"><i class="fas fa-user-plus"></i></div>
+          <h4>Hoş Geldin</h4>
+          <p>Özelleştirilebilir hoş geldin mesajları ve otomatik rol sistemi.</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="feature-card text-center">
+          <div class="feature-icon"><i class="fas fa-gift"></i></div>
+          <h4>Çekilişler</h4>
+          <p>Kolay çekiliş oluşturma ve otomatik kazanan seçimi.</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="feature-card text-center">
+          <div class="feature-icon"><i class="fas fa-smile"></i></div>
+          <h4>Tepki Rolleri</h4>
+          <p>Emoji tepkileriyle kullanıcıların rol almasını sağlayın.</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="feature-card text-center">
+          <div class="feature-icon"><i class="fas fa-cog"></i></div>
+          <h4>Web Dashboard</h4>
+          <p>Tüm ayarları web üzerinden kolayca yönetin.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="stats" id="stats">
+    <div class="container">
+      <div class="row text-center">
+        <div class="col-md-4">
+          <div class="stat-number" id="guild-count">-</div>
+          <p>Sunucu</p>
+        </div>
+        <div class="col-md-4">
+          <div class="stat-number" id="user-count">-</div>
+          <p>Kullanıcı</p>
+        </div>
+        <div class="col-md-4">
+          <div class="stat-number" id="uptime">-</div>
+          <p>Uptime</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="commands" class="container">
+    <h2 class="text-center mb-5">Popüler Komutlar</h2>
+    <div class="row">
+      <div class="col-md-6">
+        <div class="feature-card">
+          <h5><i class="fas fa-ban text-danger me-2"></i>!ban @kullanıcı [sebep]</h5>
+          <p class="text-muted mb-0">Kullanıcıyı sunucudan yasaklar</p>
+        </div>
+        <div class="feature-card">
+          <h5><i class="fas fa-volume-mute text-warning me-2"></i>!mute @kullanıcı [süre]</h5>
+          <p class="text-muted mb-0">Kullanıcıyı susturur</p>
+        </div>
+        <div class="feature-card">
+          <h5><i class="fas fa-exclamation-triangle text-info me-2"></i>!warn @kullanıcı [sebep]</h5>
+          <p class="text-muted mb-0">Kullanıcıyı uyarır</p>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="feature-card">
+          <h5><i class="fas fa-gift text-success me-2"></i>!çekiliş başlat [süre] [kazanan] [ödül]</h5>
+          <p class="text-muted mb-0">Çekiliş başlatır</p>
+        </div>
+        <div class="feature-card">
+          <h5><i class="fas fa-poll text-primary me-2"></i>!anket "Soru" "Seçenek1" "Seçenek2"</h5>
+          <p class="text-muted mb-0">Anket oluşturur</p>
+        </div>
+        <div class="feature-card">
+          <h5><i class="fas fa-robot text-secondary me-2"></i>!automod</h5>
+          <p class="text-muted mb-0">AutoMod ayarlarını yönetir</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="container text-center">
+      <p>&copy; 2024 Publisher Bot. Tüm hakları saklıdır.</p>
+    </div>
+  </footer>
+
+  <script>
+    fetch('/api/status')
+      .then(r => r.json())
+      .then(data => {
+        document.getElementById('guild-count').textContent = data.guilds;
+        document.getElementById('user-count').textContent = data.users.toLocaleString();
+        const hours = Math.floor(data.uptime / 3600000);
+        const minutes = Math.floor((data.uptime % 3600000) / 60000);
+        document.getElementById('uptime').textContent = `${hours}s ${minutes}dk`;
+      });
+  </script>
+</body>
+</html>

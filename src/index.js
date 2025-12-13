@@ -1,6 +1,10 @@
 const { Client, GatewayIntentBits, Partials, Collection, EmbedBuilder, PermissionFlagsBits, Events } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
+const { storage } = require('./database/storage');
+const { checkAutomod } = require('./modules/automod');
+const { checkAutoPunishment } = require('./modules/autoPunish');
+const { Scheduler } = require('./modules/scheduler');
 
 const client = new Client({
   intents: [
@@ -9,75 +13,47 @@ const client = new Client({
     GatewayIntentBits.GuildMessages,
     GatewayIntentBits.MessageContent,
     GatewayIntentBits.GuildModeration,
-    GatewayIntentBits.GuildPresences
+    GatewayIntentBits.GuildPresences,
+    GatewayIntentBits.GuildMessageReactions
   ],
-  partials: [Partials.Message, Partials.Channel, Partials.GuildMember]
+  partials: [Partials.Message, Partials.Channel, Partials.GuildMember, Partials.Reaction]
 });
 
 client.commands = new Collection();
-
-const dataPath = path.join(__dirname, '../data');
-if (!fs.existsSync(dataPath)) {
-  fs.mkdirSync(dataPath, { recursive: true });
-}
-
-const configPath = path.join(dataPath, 'config.json');
-const customCommandsPath = path.join(dataPath, 'customCommands.json');
-const warningsPath = path.join(dataPath, 'warnings.json');
-
-function loadJSON(filePath, defaultData = {}) {
-  try {
-    if (fs.existsSync(filePath)) {
-      return JSON.parse(fs.readFileSync(filePath, 'utf8'));
-    }
-  } catch (error) {
-    console.error(`Error loading ${filePath}:`, error);
-  }
-  return defaultData;
-}
-
-function saveJSON(filePath, data) {
-  try {
-    fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
-  } catch (error) {
-    console.error(`Error saving ${filePath}:`, error);
-  }
-}
-
-let config = loadJSON(configPath, {});
-let customCommands = loadJSON(customCommandsPath, {});
-let warnings = loadJSON(warningsPath, {});
+client.storage = storage;
 
 const PREFIX = '!';
 
 const commandFiles = fs.readdirSync(path.join(__dirname, 'commands')).filter(file => file.endsWith('.js'));
 for (const file of commandFiles) {
-  const command = require(`./commands/${file}`);
-  client.commands.set(command.name, command);
-  if (command.aliases) {
-    command.aliases.forEach(alias => client.commands.set(alias, command));
+  try {
+    const command = require(`./commands/${file}`);
+    client.commands.set(command.name, command);
+    if (command.aliases) {
+      command.aliases.forEach(alias => client.commands.set(alias, command));
+    }
+  } catch (error) {
+    console.error(`Error loading command ${file}:`, error);
   }
 }
 
-client.config = config;
-client.customCommands = customCommands;
-client.warnings = warnings;
-client.saveConfig = () => saveJSON(configPath, client.config);
-client.saveCustomCommands = () => saveJSON(customCommandsPath, client.customCommands);
-client.saveWarnings = () => saveJSON(warningsPath, client.warnings);
+let scheduler;
 
 client.once(Events.ClientReady, () => {
   console.log(`Publisher Bot online! ${client.user.tag} olarak giriş yapıldı.`);
   console.log(`${client.guilds.cache.size} sunucuda aktif.`);
   client.user.setActivity('!yardım | Publisher Bot', { type: 3 });
+  
+  scheduler = new Scheduler(client, storage);
+  scheduler.start();
 });
 
 client.on(Events.GuildMemberAdd, async (member) => {
-  const guildConfig = client.config[member.guild.id] || {};
+  const guildData = await storage.getGuild(member.guild.id);
   
-  if (guildConfig.autoRole) {
+  if (guildData?.autoRole) {
     try {
-      const role = member.guild.roles.cache.get(guildConfig.autoRole);
+      const role = member.guild.roles.cache.get(guildData.autoRole);
       if (role) {
         await member.roles.add(role);
         console.log(`Oto-rol verildi: ${member.user.tag}`);
@@ -87,11 +63,11 @@ client.on(Events.GuildMemberAdd, async (member) => {
     }
   }
   
-  if (guildConfig.welcomeChannel && guildConfig.welcomeMessage) {
+  if (guildData?.welcomeChannel && guildData?.welcomeMessage) {
     try {
-      const channel = member.guild.channels.cache.get(guildConfig.welcomeChannel);
+      const channel = member.guild.channels.cache.get(guildData.welcomeChannel);
       if (channel) {
-        const welcomeMsg = guildConfig.welcomeMessage
+        const welcomeMsg = guildData.welcomeMessage
           .replace(/{user}/g, member.toString())
           .replace(/{username}/g, member.user.username)
           .replace(/{server}/g, member.guild.name)
@@ -111,9 +87,9 @@ client.on(Events.GuildMemberAdd, async (member) => {
     }
   }
   
-  if (guildConfig.logChannel) {
+  if (guildData?.logChannel) {
     try {
-      const logChannel = member.guild.channels.cache.get(guildConfig.logChannel);
+      const logChannel = member.guild.channels.cache.get(guildData.logChannel);
       if (logChannel) {
         const embed = new EmbedBuilder()
           .setColor('#00ff00')
@@ -135,11 +111,11 @@ client.on(Events.GuildMemberAdd, async (member) => {
 });
 
 client.on(Events.GuildMemberRemove, async (member) => {
-  const guildConfig = client.config[member.guild.id] || {};
+  const guildData = await storage.getGuild(member.guild.id);
   
-  if (guildConfig.logChannel) {
+  if (guildData?.logChannel) {
     try {
-      const logChannel = member.guild.channels.cache.get(guildConfig.logChannel);
+      const logChannel = member.guild.channels.cache.get(guildData.logChannel);
       if (logChannel) {
         const embed = new EmbedBuilder()
           .setColor('#ff0000')
@@ -147,7 +123,6 @@ client.on(Events.GuildMemberRemove, async (member) => {
           .setDescription(`${member.user.tag} sunucudan ayrıldı.`)
           .setThumbnail(member.user.displayAvatarURL({ dynamic: true }))
           .addFields(
-            { name: 'Sunucuda Kalma Süresi', value: `<t:${Math.floor(member.joinedTimestamp / 1000)}:R>`, inline: true },
             { name: 'Üye Sayısı', value: `${member.guild.memberCount}`, inline: true }
           )
           .setTimestamp();
@@ -163,11 +138,11 @@ client.on(Events.GuildMemberRemove, async (member) => {
 client.on(Events.MessageDelete, async (message) => {
   if (!message.guild || message.author?.bot) return;
   
-  const guildConfig = client.config[message.guild.id] || {};
+  const guildData = await storage.getGuild(message.guild.id);
   
-  if (guildConfig.logChannel) {
+  if (guildData?.logChannel) {
     try {
-      const logChannel = message.guild.channels.cache.get(guildConfig.logChannel);
+      const logChannel = message.guild.channels.cache.get(guildData.logChannel);
       if (logChannel) {
         const embed = new EmbedBuilder()
           .setColor('#ff9900')
@@ -187,13 +162,72 @@ client.on(Events.MessageDelete, async (message) => {
   }
 });
 
+client.on(Events.MessageReactionAdd, async (reaction, user) => {
+  if (user.bot) return;
+  
+  try {
+    if (reaction.partial) {
+      await reaction.fetch();
+    }
+    
+    const reactionRole = await storage.getReactionRole(reaction.message.id, reaction.emoji.name);
+    if (reactionRole) {
+      const member = await reaction.message.guild.members.fetch(user.id);
+      const role = reaction.message.guild.roles.cache.get(reactionRole.roleId);
+      if (role && member) {
+        await member.roles.add(role);
+      }
+    }
+  } catch (error) {
+    console.error('Reaction role add error:', error);
+  }
+});
+
+client.on(Events.MessageReactionRemove, async (reaction, user) => {
+  if (user.bot) return;
+  
+  try {
+    if (reaction.partial) {
+      await reaction.fetch();
+    }
+    
+    const reactionRole = await storage.getReactionRole(reaction.message.id, reaction.emoji.name);
+    if (reactionRole) {
+      const member = await reaction.message.guild.members.fetch(user.id);
+      const role = reaction.message.guild.roles.cache.get(reactionRole.roleId);
+      if (role && member) {
+        await member.roles.remove(role);
+      }
+    }
+  } catch (error) {
+    console.error('Reaction role remove error:', error);
+  }
+});
+
 client.on(Events.MessageCreate, async (message) => {
   if (message.author.bot || !message.guild) return;
   
-  const guildCustomCommands = client.customCommands[message.guild.id] || {};
-  const customCmd = guildCustomCommands[message.content.toLowerCase()];
+  const afk = await storage.getAfk(message.guild.id, message.author.id);
+  if (afk) {
+    await storage.removeAfk(message.guild.id, message.author.id);
+    const reply = await message.reply(`Tekrar hoş geldin! AFK durumun kaldırıldı. (<t:${Math.floor(new Date(afk.createdAt).getTime() / 1000)}:R> önce AFK oldunuz)`);
+    setTimeout(() => reply.delete().catch(() => {}), 5000);
+  }
+  
+  const mentionedUsers = message.mentions.users;
+  for (const [userId, user] of mentionedUsers) {
+    const userAfk = await storage.getAfk(message.guild.id, userId);
+    if (userAfk) {
+      message.reply(`${user.tag} şu anda AFK: ${userAfk.reason}`);
+    }
+  }
+  
+  const blocked = await checkAutomod(message, client, storage);
+  if (blocked) return;
+  
+  const customCmd = await storage.getCustomCommand(message.guild.id, message.content.toLowerCase());
   if (customCmd) {
-    return message.reply(customCmd);
+    return message.reply(customCmd.response);
   }
   
   if (!message.content.startsWith(PREFIX)) return;
@@ -226,3 +260,5 @@ if (!token) {
 }
 
 client.login(token);
+
+module.exports = { client };

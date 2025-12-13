@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Publisher Bot - Dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --discord-blurple: #5865F2;
+      --discord-dark: #23272A;
+      --discord-darker: #1a1d21;
+    }
+    body {
+      background: var(--discord-darker);
+      color: white;
+      min-height: 100vh;
+    }
+    .navbar {
+      background: rgba(0,0,0,0.3) !important;
+    }
+    .sidebar {
+      background: var(--discord-dark);
+      min-height: calc(100vh - 56px);
+      padding: 20px;
+    }
+    .guild-card {
+      background: rgba(255,255,255,0.05);
+      border-radius: 15px;
+      padding: 20px;
+      margin: 15px;
+      border: 1px solid rgba(255,255,255,0.1);
+      cursor: pointer;
+      transition: transform 0.3s, background 0.3s;
+      text-decoration: none;
+      color: white;
+      display: block;
+    }
+    .guild-card:hover {
+      transform: translateY(-5px);
+      background: rgba(88, 101, 242, 0.2);
+      color: white;
+    }
+    .guild-icon {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: var(--discord-blurple);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      font-weight: bold;
+    }
+    .guild-icon img {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .user-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+    }
+    .loading {
+      text-align: center;
+      padding: 50px;
+    }
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 3px solid rgba(255,255,255,0.1);
+      border-top-color: var(--discord-blurple);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar navbar-dark">
+    <div class="container-fluid">
+      <a class="navbar-brand fw-bold" href="/">
+        <i class="fas fa-robot me-2"></i>Publisher Bot
+      </a>
+      <div class="user-info" id="user-info">
+        <span id="username"></span>
+        <a href="/auth/logout" class="btn btn-outline-light btn-sm">Çıkış</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-12 py-4">
+        <h2 class="mb-4">Sunucularınız</h2>
+        <p class="text-muted">Yönetmek istediğiniz sunucuyu seçin</p>
+        
+        <div id="loading" class="loading">
+          <div class="spinner mx-auto mb-3"></div>
+          <p>Yükleniyor...</p>
+        </div>
+        
+        <div class="row" id="guilds"></div>
+        
+        <div id="no-guilds" class="text-center py-5" style="display: none;">
+          <i class="fas fa-server fa-3x mb-3 text-muted"></i>
+          <h4>Sunucu Bulunamadı</h4>
+          <p class="text-muted">Publisher Bot'un bulunduğu ve yönetim yetkiniz olan sunucu yok.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    async function loadUser() {
+      try {
+        const res = await fetch('/api/user');
+        if (!res.ok) {
+          window.location.href = '/';
+          return;
+        }
+        const user = await res.json();
+        document.getElementById('username').textContent = user.username;
+      } catch (error) {
+        window.location.href = '/';
+      }
+    }
+
+    async function loadGuilds() {
+      try {
+        const res = await fetch('/api/guilds');
+        if (!res.ok) throw new Error('Failed to load guilds');
+        
+        const guilds = await res.json();
+        document.getElementById('loading').style.display = 'none';
+        
+        if (guilds.length === 0) {
+          document.getElementById('no-guilds').style.display = 'block';
+          return;
+        }
+        
+        const container = document.getElementById('guilds');
+        guilds.forEach(guild => {
+          const iconUrl = guild.icon 
+            ? `https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png`
+            : null;
+          
+          container.innerHTML += `
+            <div class="col-md-4 col-lg-3">
+              <a href="/dashboard/${guild.id}" class="guild-card">
+                <div class="d-flex align-items-center gap-3">
+                  <div class="guild-icon">
+                    ${iconUrl ? `<img src="${iconUrl}" alt="">` : guild.name.charAt(0)}
+                  </div>
+                  <div>
+                    <h5 class="mb-0">${guild.name}</h5>
+                    <small class="text-muted">Yönet</small>
+                  </div>
+                </div>
+              </a>
+            </div>
+          `;
+        });
+      } catch (error) {
+        console.error(error);
+        document.getElementById('loading').innerHTML = '<p class="text-danger">Sunucular yüklenemedi</p>';
+      }
+    }
+
+    loadUser();
+    loadGuilds();
+  </script>
+</body>
+</html>
