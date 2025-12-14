@@ -1,6 +1,6 @@
 const { db } = require('./db');
 const { eq, and, desc, sql, lte } = require('drizzle-orm');
-const { guilds, warnings, modCases, customCommands, reactionRoles, giveaways, reminders, afkUsers, userLevels, levelRewards, scheduledMessages, userAchievements, inviteTracking } = require('../../shared/schema');
+const { guilds, warnings, modCases, customCommands, reactionRoles, giveaways, reminders, afkUsers, userLevels, levelRewards, scheduledMessages, userAchievements, inviteTracking, socialNotifications, userBirthdays, birthdayConfig, userEconomy, economyConfig, shopItems, tickets, ticketConfig, polls, tempVoiceChannels } = require('../../shared/schema');
 const fs = require('fs');
 const path = require('path');
 
@@ -407,6 +407,245 @@ class DatabaseStorage {
       LIMIT ${limit}
     `);
     return result.rows || [];
+  }
+
+  async addSocialNotification(guildId, platform, username, channelId, customMessage = null) {
+    if (!db) return null;
+    const [notification] = await db.insert(socialNotifications).values({
+      guildId, platform, username, channelId, customMessage
+    }).returning();
+    return notification;
+  }
+
+  async getSocialNotifications(guildId, platform = null) {
+    if (!db) return [];
+    if (platform) {
+      return db.select().from(socialNotifications).where(
+        and(eq(socialNotifications.guildId, guildId), eq(socialNotifications.platform, platform))
+      );
+    }
+    return db.select().from(socialNotifications).where(eq(socialNotifications.guildId, guildId));
+  }
+
+  async deleteSocialNotification(id) {
+    if (!db) return;
+    await db.delete(socialNotifications).where(eq(socialNotifications.id, id));
+  }
+
+  async updateSocialNotification(id, data) {
+    if (!db) return;
+    await db.update(socialNotifications).set(data).where(eq(socialNotifications.id, id));
+  }
+
+  async setBirthday(guildId, userId, day, month, timezone = 'UTC') {
+    if (!db) return null;
+    await db.delete(userBirthdays).where(
+      and(eq(userBirthdays.guildId, guildId), eq(userBirthdays.userId, userId))
+    );
+    const [birthday] = await db.insert(userBirthdays).values({
+      guildId, userId, day, month, timezone
+    }).returning();
+    return birthday;
+  }
+
+  async getBirthday(guildId, userId) {
+    if (!db) return null;
+    const [birthday] = await db.select().from(userBirthdays).where(
+      and(eq(userBirthdays.guildId, guildId), eq(userBirthdays.userId, userId))
+    );
+    return birthday || null;
+  }
+
+  async getTodaysBirthdays(guildId) {
+    if (!db) return [];
+    const today = new Date();
+    return db.select().from(userBirthdays).where(
+      and(
+        eq(userBirthdays.guildId, guildId),
+        eq(userBirthdays.day, today.getDate()),
+        eq(userBirthdays.month, today.getMonth() + 1)
+      )
+    );
+  }
+
+  async getBirthdayConfig(guildId) {
+    if (!db) return null;
+    const [config] = await db.select().from(birthdayConfig).where(eq(birthdayConfig.guildId, guildId));
+    return config || null;
+  }
+
+  async upsertBirthdayConfig(guildId, data) {
+    if (!db) return null;
+    const existing = await this.getBirthdayConfig(guildId);
+    if (existing) {
+      await db.update(birthdayConfig).set(data).where(eq(birthdayConfig.guildId, guildId));
+    } else {
+      await db.insert(birthdayConfig).values({ guildId, ...data });
+    }
+    return this.getBirthdayConfig(guildId);
+  }
+
+  async getUserEconomy(guildId, userId) {
+    if (!db) return null;
+    const [user] = await db.select().from(userEconomy).where(
+      and(eq(userEconomy.guildId, guildId), eq(userEconomy.userId, userId))
+    );
+    return user || null;
+  }
+
+  async createUserEconomy(guildId, userId) {
+    if (!db) return null;
+    const existing = await this.getUserEconomy(guildId, userId);
+    if (existing) return existing;
+    const [user] = await db.insert(userEconomy).values({ guildId, userId }).returning();
+    return user;
+  }
+
+  async updateUserBalance(guildId, userId, amount, isBank = false) {
+    if (!db) return null;
+    let user = await this.getUserEconomy(guildId, userId);
+    if (!user) user = await this.createUserEconomy(guildId, userId);
+    
+    const updateData = isBank 
+      ? { bank: user.bank + amount }
+      : { balance: user.balance + amount };
+    
+    await db.update(userEconomy).set(updateData).where(
+      and(eq(userEconomy.guildId, guildId), eq(userEconomy.userId, userId))
+    );
+    return this.getUserEconomy(guildId, userId);
+  }
+
+  async getEconomyLeaderboard(guildId, limit = 10) {
+    if (!db) return [];
+    return db.select().from(userEconomy)
+      .where(eq(userEconomy.guildId, guildId))
+      .orderBy(desc(sql`${userEconomy.balance} + ${userEconomy.bank}`))
+      .limit(limit);
+  }
+
+  async getEconomyConfig(guildId) {
+    if (!db) return null;
+    const [config] = await db.select().from(economyConfig).where(eq(economyConfig.guildId, guildId));
+    return config || null;
+  }
+
+  async upsertEconomyConfig(guildId, data) {
+    if (!db) return null;
+    const existing = await this.getEconomyConfig(guildId);
+    if (existing) {
+      await db.update(economyConfig).set(data).where(eq(economyConfig.guildId, guildId));
+    } else {
+      await db.insert(economyConfig).values({ guildId, ...data });
+    }
+    return this.getEconomyConfig(guildId);
+  }
+
+  async getShopItems(guildId) {
+    if (!db) return [];
+    return db.select().from(shopItems).where(eq(shopItems.guildId, guildId));
+  }
+
+  async addShopItem(guildId, name, description, price, roleId = null, stock = -1) {
+    if (!db) return null;
+    const [item] = await db.insert(shopItems).values({
+      guildId, name, description, price, roleId, stock
+    }).returning();
+    return item;
+  }
+
+  async deleteShopItem(id) {
+    if (!db) return;
+    await db.delete(shopItems).where(eq(shopItems.id, id));
+  }
+
+  async createTicket(guildId, channelId, userId, subject = null) {
+    if (!db) return null;
+    const [ticket] = await db.insert(tickets).values({
+      guildId, channelId, userId, subject
+    }).returning();
+    return ticket;
+  }
+
+  async getTickets(guildId, status = null) {
+    if (!db) return [];
+    if (status) {
+      return db.select().from(tickets).where(
+        and(eq(tickets.guildId, guildId), eq(tickets.status, status))
+      );
+    }
+    return db.select().from(tickets).where(eq(tickets.guildId, guildId));
+  }
+
+  async closeTicket(id, closedBy) {
+    if (!db) return;
+    await db.update(tickets).set({ 
+      status: 'closed', 
+      closedBy, 
+      closedAt: new Date() 
+    }).where(eq(tickets.id, id));
+  }
+
+  async getTicketConfig(guildId) {
+    if (!db) return null;
+    const [config] = await db.select().from(ticketConfig).where(eq(ticketConfig.guildId, guildId));
+    return config || null;
+  }
+
+  async upsertTicketConfig(guildId, data) {
+    if (!db) return null;
+    const existing = await this.getTicketConfig(guildId);
+    if (existing) {
+      await db.update(ticketConfig).set(data).where(eq(ticketConfig.guildId, guildId));
+    } else {
+      await db.insert(ticketConfig).values({ guildId, ...data });
+    }
+    return this.getTicketConfig(guildId);
+  }
+
+  async createPoll(guildId, channelId, question, options, createdBy, endsAt = null) {
+    if (!db) return null;
+    const [poll] = await db.insert(polls).values({
+      guildId, channelId, question, options, createdBy, endsAt
+    }).returning();
+    return poll;
+  }
+
+  async getPoll(id) {
+    if (!db) return null;
+    const [poll] = await db.select().from(polls).where(eq(polls.id, id));
+    return poll || null;
+  }
+
+  async updatePoll(id, data) {
+    if (!db) return;
+    await db.update(polls).set(data).where(eq(polls.id, id));
+  }
+
+  async getActivePolls(guildId) {
+    if (!db) return [];
+    return db.select().from(polls).where(
+      and(eq(polls.guildId, guildId), eq(polls.ended, false))
+    );
+  }
+
+  async addTempVoiceChannel(guildId, channelId, ownerId) {
+    if (!db) return null;
+    const [channel] = await db.insert(tempVoiceChannels).values({
+      guildId, channelId, ownerId
+    }).returning();
+    return channel;
+  }
+
+  async getTempVoiceChannel(channelId) {
+    if (!db) return null;
+    const [channel] = await db.select().from(tempVoiceChannels).where(eq(tempVoiceChannels.channelId, channelId));
+    return channel || null;
+  }
+
+  async deleteTempVoiceChannel(channelId) {
+    if (!db) return;
+    await db.delete(tempVoiceChannels).where(eq(tempVoiceChannels.channelId, channelId));
   }
 }
 

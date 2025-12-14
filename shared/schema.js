@@ -144,6 +144,117 @@ const inviteTracking = pgTable('invite_tracking', {
   joinedAt: timestamp('joined_at').defaultNow()
 });
 
+const socialNotifications = pgTable('social_notifications', {
+  id: serial('id').primaryKey(),
+  guildId: text('guild_id').notNull(),
+  platform: text('platform').notNull(),
+  username: text('username').notNull(),
+  channelId: text('channel_id').notNull(),
+  customMessage: text('custom_message'),
+  lastPostId: text('last_post_id'),
+  enabled: boolean('enabled').default(true),
+  createdAt: timestamp('created_at').defaultNow()
+});
+
+const userBirthdays = pgTable('user_birthdays', {
+  id: serial('id').primaryKey(),
+  guildId: text('guild_id').notNull(),
+  userId: text('user_id').notNull(),
+  day: integer('day').notNull(),
+  month: integer('month').notNull(),
+  timezone: text('timezone').default('UTC'),
+  createdAt: timestamp('created_at').defaultNow()
+});
+
+const birthdayConfig = pgTable('birthday_config', {
+  id: serial('id').primaryKey(),
+  guildId: text('guild_id').notNull().unique(),
+  channelId: text('channel_id'),
+  roleId: text('role_id'),
+  message: text('message').default('Doğum günün kutlu olsun {user}! 🎂🎉'),
+  enabled: boolean('enabled').default(true),
+  createdAt: timestamp('created_at').defaultNow()
+});
+
+const userEconomy = pgTable('user_economy', {
+  id: serial('id').primaryKey(),
+  guildId: text('guild_id').notNull(),
+  userId: text('user_id').notNull(),
+  balance: integer('balance').default(0),
+  bank: integer('bank').default(0),
+  lastDaily: timestamp('last_daily'),
+  lastWork: timestamp('last_work'),
+  createdAt: timestamp('created_at').defaultNow()
+});
+
+const economyConfig = pgTable('economy_config', {
+  id: serial('id').primaryKey(),
+  guildId: text('guild_id').notNull().unique(),
+  currencyName: text('currency_name').default('💰'),
+  currencySymbol: text('currency_symbol').default('$'),
+  dailyAmount: integer('daily_amount').default(100),
+  workMinAmount: integer('work_min_amount').default(50),
+  workMaxAmount: integer('work_max_amount').default(200),
+  enabled: boolean('enabled').default(true),
+  createdAt: timestamp('created_at').defaultNow()
+});
+
+const shopItems = pgTable('shop_items', {
+  id: serial('id').primaryKey(),
+  guildId: text('guild_id').notNull(),
+  name: text('name').notNull(),
+  description: text('description'),
+  price: integer('price').notNull(),
+  roleId: text('role_id'),
+  stock: integer('stock').default(-1),
+  createdAt: timestamp('created_at').defaultNow()
+});
+
+const tickets = pgTable('tickets', {
+  id: serial('id').primaryKey(),
+  guildId: text('guild_id').notNull(),
+  channelId: text('channel_id').notNull(),
+  userId: text('user_id').notNull(),
+  status: text('status').default('open'),
+  subject: text('subject'),
+  closedBy: text('closed_by'),
+  closedAt: timestamp('closed_at'),
+  createdAt: timestamp('created_at').defaultNow()
+});
+
+const ticketConfig = pgTable('ticket_config', {
+  id: serial('id').primaryKey(),
+  guildId: text('guild_id').notNull().unique(),
+  categoryId: text('category_id'),
+  supportRoleId: text('support_role_id'),
+  welcomeMessage: text('welcome_message').default('Merhaba! Destek ekibimiz en kısa sürede size yardımcı olacaktır.'),
+  logChannelId: text('log_channel_id'),
+  enabled: boolean('enabled').default(true),
+  createdAt: timestamp('created_at').defaultNow()
+});
+
+const polls = pgTable('polls', {
+  id: serial('id').primaryKey(),
+  guildId: text('guild_id').notNull(),
+  channelId: text('channel_id').notNull(),
+  messageId: text('message_id'),
+  question: text('question').notNull(),
+  options: jsonb('options').default([]),
+  votes: jsonb('votes').default({}),
+  endsAt: timestamp('ends_at'),
+  ended: boolean('ended').default(false),
+  createdBy: text('created_by').notNull(),
+  createdAt: timestamp('created_at').defaultNow()
+});
+
+const tempVoiceChannels = pgTable('temp_voice_channels', {
+  id: serial('id').primaryKey(),
+  guildId: text('guild_id').notNull(),
+  channelId: text('channel_id').notNull(),
+  ownerId: text('owner_id').notNull(),
+  createdAt: timestamp('created_at').defaultNow()
+});
+
 module.exports = {
   guilds,
   warnings,
@@ -157,5 +268,15 @@ module.exports = {
   levelRewards,
   scheduledMessages,
   userAchievements,
-  inviteTracking
+  inviteTracking,
+  socialNotifications,
+  userBirthdays,
+  birthdayConfig,
+  userEconomy,
+  economyConfig,
+  shopItems,
+  tickets,
+  ticketConfig,
+  polls,
+  tempVoiceChannels
 };

@@ -60,6 +60,51 @@ function isAuthenticated(req, res, next) {
   res.status(401).json({ error: 'Unauthorized' });
 }
 
+function hasManagerAccess(req, guildId) {
+  const userGuilds = req.user?.guilds || [];
+  return userGuilds.some(g => g.id === guildId && (parseInt(g.permissions) & 0x20) === 0x20);
+}
+
+function requireManagerAccess(req, res, next) {
+  const { guildId } = req.params;
+  if (!hasManagerAccess(req, guildId)) {
+    return res.status(403).json({ error: 'Access denied' });
+  }
+  next();
+}
+
+function validateInput(rules) {
+  return (req, res, next) => {
+    for (const [field, validation] of Object.entries(rules)) {
+      const value = req.body[field];
+      if (validation.required && (value === undefined || value === null || value === '')) {
+        return res.status(400).json({ error: `Missing required field: ${field}` });
+      }
+      if (value !== undefined && value !== null) {
+        if (validation.type === 'string' && typeof value !== 'string') {
+          return res.status(400).json({ error: `Invalid type for ${field}: expected string` });
+        }
+        if (validation.type === 'number' && typeof value !== 'number') {
+          return res.status(400).json({ error: `Invalid type for ${field}: expected number` });
+        }
+        if (validation.maxLength && typeof value === 'string' && value.length > validation.maxLength) {
+          return res.status(400).json({ error: `${field} exceeds maximum length of ${validation.maxLength}` });
+        }
+        if (validation.minLength && typeof value === 'string' && value.length < validation.minLength) {
+          return res.status(400).json({ error: `${field} must be at least ${validation.minLength} characters` });
+        }
+        if (validation.min !== undefined && typeof value === 'number' && value < validation.min) {
+          return res.status(400).json({ error: `${field} must be at least ${validation.min}` });
+        }
+        if (validation.max !== undefined && typeof value === 'number' && value > validation.max) {
+          return res.status(400).json({ error: `${field} must be at most ${validation.max}` });
+        }
+      }
+    }
+    next();
+  };
+}
+
 let discordClient = null;
 
 function setDiscordClient(client) {
@@ -118,15 +163,8 @@ app.get('/api/guilds', isAuthenticated, (req, res) => {
   res.json(managableGuilds);
 });
 
-app.get('/api/guild/:guildId', isAuthenticated, async (req, res) => {
+app.get('/api/guild/:guildId', isAuthenticated, requireManagerAccess, async (req, res) => {
   const { guildId } = req.params;
-  
-  const userGuilds = req.user.guilds || [];
-  const hasAccess = userGuilds.some(g => g.id === guildId && (parseInt(g.permissions) & 0x20) === 0x20);
-  
-  if (!hasAccess) {
-    return res.status(403).json({ error: 'Access denied' });
-  }
   
   const guild = discordClient?.guilds.cache.get(guildId);
   if (!guild) {
@@ -151,16 +189,9 @@ app.get('/api/guild/:guildId', isAuthenticated, async (req, res) => {
   });
 });
 
-app.post('/api/guild/:guildId/settings', isAuthenticated, async (req, res) => {
+app.post('/api/guild/:guildId/settings', isAuthenticated, requireManagerAccess, async (req, res) => {
   const { guildId } = req.params;
   const settings = req.body;
-  
-  const userGuilds = req.user.guilds || [];
-  const hasAccess = userGuilds.some(g => g.id === guildId && (parseInt(g.permissions) & 0x20) === 0x20);
-  
-  if (!hasAccess) {
-    return res.status(403).json({ error: 'Access denied' });
-  }
   
   try {
     await storage.upsertGuild(guildId, settings);
@@ -171,7 +202,7 @@ app.post('/api/guild/:guildId/settings', isAuthenticated, async (req, res) => {
   }
 });
 
-app.get('/api/guild/:guildId/commands', isAuthenticated, async (req, res) => {
+app.get('/api/guild/:guildId/commands', isAuthenticated, requireManagerAccess, async (req, res) => {
   const { guildId } = req.params;
   
   try {
@@ -182,7 +213,10 @@ app.get('/api/guild/:guildId/commands', isAuthenticated, async (req, res) => {
   }
 });
 
-app.post('/api/guild/:guildId/commands', isAuthenticated, async (req, res) => {
+app.post('/api/guild/:guildId/commands', isAuthenticated, requireManagerAccess, validateInput({
+  name: { required: true, type: 'string', minLength: 1, maxLength: 32 },
+  response: { required: true, type: 'string', minLength: 1, maxLength: 2000 }
+}), async (req, res) => {
   const { guildId } = req.params;
   const { name, response } = req.body;
   
@@ -194,7 +228,7 @@ app.post('/api/guild/:guildId/commands', isAuthenticated, async (req, res) => {
   }
 });
 
-app.delete('/api/guild/:guildId/commands/:name', isAuthenticated, async (req, res) => {
+app.delete('/api/guild/:guildId/commands/:name', isAuthenticated, requireManagerAccess, async (req, res) => {
   const { guildId, name } = req.params;
   
   try {
@@ -205,7 +239,7 @@ app.delete('/api/guild/:guildId/commands/:name', isAuthenticated, async (req, re
   }
 });
 
-app.get('/api/guild/:guildId/cases', isAuthenticated, async (req, res) => {
+app.get('/api/guild/:guildId/cases', isAuthenticated, requireManagerAccess, async (req, res) => {
   const { guildId } = req.params;
   
   try {
@@ -216,7 +250,7 @@ app.get('/api/guild/:guildId/cases', isAuthenticated, async (req, res) => {
   }
 });
 
-app.get('/api/guild/:guildId/warnings/:userId', isAuthenticated, async (req, res) => {
+app.get('/api/guild/:guildId/warnings/:userId', isAuthenticated, requireManagerAccess, async (req, res) => {
   const { guildId, userId } = req.params;
   
   try {
@@ -246,7 +280,7 @@ app.get('/api/invite', (req, res) => {
   res.json({ url: inviteUrl });
 });
 
-app.get('/api/guild/:guildId/logconfig', isAuthenticated, async (req, res) => {
+app.get('/api/guild/:guildId/logconfig', isAuthenticated, requireManagerAccess, async (req, res) => {
   const { guildId } = req.params;
   
   try {
@@ -257,16 +291,9 @@ app.get('/api/guild/:guildId/logconfig', isAuthenticated, async (req, res) => {
   }
 });
 
-app.post('/api/guild/:guildId/logconfig', isAuthenticated, async (req, res) => {
+app.post('/api/guild/:guildId/logconfig', isAuthenticated, requireManagerAccess, async (req, res) => {
   const { guildId } = req.params;
   const logConfig = req.body;
-  
-  const userGuilds = req.user.guilds || [];
-  const hasAccess = userGuilds.some(g => g.id === guildId && (parseInt(g.permissions) & 0x20) === 0x20);
-  
-  if (!hasAccess) {
-    return res.status(403).json({ error: 'Access denied' });
-  }
   
   try {
     await storage.upsertGuild(guildId, { logConfig });
@@ -277,7 +304,7 @@ app.post('/api/guild/:guildId/logconfig', isAuthenticated, async (req, res) => {
   }
 });
 
-app.get('/api/guild/:guildId/leaderboard', isAuthenticated, async (req, res) => {
+app.get('/api/guild/:guildId/leaderboard', isAuthenticated, requireManagerAccess, async (req, res) => {
   const { guildId } = req.params;
   
   try {
@@ -310,7 +337,7 @@ app.get('/api/guild/:guildId/leaderboard', isAuthenticated, async (req, res) => 
   }
 });
 
-app.get('/api/guild/:guildId/leveling/stats', isAuthenticated, async (req, res) => {
+app.get('/api/guild/:guildId/leveling/stats', isAuthenticated, requireManagerAccess, async (req, res) => {
   const { guildId } = req.params;
   
   try {
@@ -333,7 +360,7 @@ app.get('/api/guild/:guildId/leveling/stats', isAuthenticated, async (req, res) 
   }
 });
 
-app.get('/api/guild/:guildId/levelrewards', isAuthenticated, async (req, res) => {
+app.get('/api/guild/:guildId/levelrewards', isAuthenticated, requireManagerAccess, async (req, res) => {
   const { guildId } = req.params;
   
   try {
@@ -344,16 +371,12 @@ app.get('/api/guild/:guildId/levelrewards', isAuthenticated, async (req, res) =>
   }
 });
 
-app.post('/api/guild/:guildId/levelrewards', isAuthenticated, async (req, res) => {
+app.post('/api/guild/:guildId/levelrewards', isAuthenticated, requireManagerAccess, validateInput({
+  level: { required: true, type: 'number', min: 1, max: 100 },
+  roleId: { required: true, type: 'string', minLength: 1 }
+}), async (req, res) => {
   const { guildId } = req.params;
   const { level, roleId } = req.body;
-  
-  const userGuilds = req.user.guilds || [];
-  const hasAccess = userGuilds.some(g => g.id === guildId && (parseInt(g.permissions) & 0x20) === 0x20);
-  
-  if (!hasAccess) {
-    return res.status(403).json({ error: 'Access denied' });
-  }
   
   try {
     await storage.addLevelReward(guildId, level, roleId);
@@ -363,15 +386,8 @@ app.post('/api/guild/:guildId/levelrewards', isAuthenticated, async (req, res) =
   }
 });
 
-app.delete('/api/guild/:guildId/levelrewards/:level', isAuthenticated, async (req, res) => {
+app.delete('/api/guild/:guildId/levelrewards/:level', isAuthenticated, requireManagerAccess, async (req, res) => {
   const { guildId, level } = req.params;
-  
-  const userGuilds = req.user.guilds || [];
-  const hasAccess = userGuilds.some(g => g.id === guildId && (parseInt(g.permissions) & 0x20) === 0x20);
-  
-  if (!hasAccess) {
-    return res.status(403).json({ error: 'Access denied' });
-  }
   
   try {
     await storage.removeLevelReward(guildId, parseInt(level));
@@ -381,15 +397,8 @@ app.delete('/api/guild/:guildId/levelrewards/:level', isAuthenticated, async (re
   }
 });
 
-app.get('/api/guild/:guildId/scheduledmessages', isAuthenticated, async (req, res) => {
+app.get('/api/guild/:guildId/scheduledmessages', isAuthenticated, requireManagerAccess, async (req, res) => {
   const { guildId } = req.params;
-  
-  const userGuilds = req.user.guilds || [];
-  const hasAccess = userGuilds.some(g => g.id === guildId && (parseInt(g.permissions) & 0x20) === 0x20);
-  
-  if (!hasAccess) {
-    return res.status(403).json({ error: 'Access denied' });
-  }
   
   try {
     const messages = await storage.getScheduledMessages(guildId);
@@ -399,20 +408,13 @@ app.get('/api/guild/:guildId/scheduledmessages', isAuthenticated, async (req, re
   }
 });
 
-app.post('/api/guild/:guildId/scheduledmessages', isAuthenticated, async (req, res) => {
+app.post('/api/guild/:guildId/scheduledmessages', isAuthenticated, requireManagerAccess, validateInput({
+  channelId: { required: true, type: 'string', minLength: 1 },
+  message: { required: true, type: 'string', minLength: 1, maxLength: 2000 },
+  intervalMinutes: { required: true, type: 'number', min: 1, max: 10080 }
+}), async (req, res) => {
   const { guildId } = req.params;
   const { channelId, message, intervalMinutes } = req.body;
-  
-  const userGuilds = req.user.guilds || [];
-  const hasAccess = userGuilds.some(g => g.id === guildId && (parseInt(g.permissions) & 0x20) === 0x20);
-  
-  if (!hasAccess) {
-    return res.status(403).json({ error: 'Access denied' });
-  }
-  
-  if (!channelId || !message || !intervalMinutes || intervalMinutes < 1) {
-    return res.status(400).json({ error: 'Invalid input' });
-  }
   
   try {
     await storage.addScheduledMessage(guildId, channelId, message, intervalMinutes, req.user.id);
@@ -422,21 +424,253 @@ app.post('/api/guild/:guildId/scheduledmessages', isAuthenticated, async (req, r
   }
 });
 
-app.delete('/api/guild/:guildId/scheduledmessages/:id', isAuthenticated, async (req, res) => {
+app.delete('/api/guild/:guildId/scheduledmessages/:id', isAuthenticated, requireManagerAccess, async (req, res) => {
   const { guildId, id } = req.params;
-  
-  const userGuilds = req.user.guilds || [];
-  const hasAccess = userGuilds.some(g => g.id === guildId && (parseInt(g.permissions) & 0x20) === 0x20);
-  
-  if (!hasAccess) {
-    return res.status(403).json({ error: 'Access denied' });
-  }
   
   try {
     await storage.deleteScheduledMessage(parseInt(id));
     res.json({ success: true });
   } catch (error) {
     res.status(500).json({ error: 'Failed to delete scheduled message' });
+  }
+});
+
+app.get('/api/guild/:guildId/reactionroles', isAuthenticated, requireManagerAccess, async (req, res) => {
+  const { guildId } = req.params;
+  
+  try {
+    const roles = await storage.getReactionRoles(guildId);
+    res.json(roles);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get reaction roles' });
+  }
+});
+
+app.post('/api/guild/:guildId/reactionroles', isAuthenticated, requireManagerAccess, validateInput({
+  channelId: { required: true, type: 'string', minLength: 1 },
+  messageId: { required: true, type: 'string', minLength: 1 },
+  emoji: { required: true, type: 'string', minLength: 1, maxLength: 64 },
+  roleId: { required: true, type: 'string', minLength: 1 }
+}), async (req, res) => {
+  const { guildId } = req.params;
+  const { channelId, messageId, emoji, roleId } = req.body;
+  
+  try {
+    await storage.addReactionRole(guildId, channelId, messageId, emoji, roleId);
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to add reaction role' });
+  }
+});
+
+app.delete('/api/guild/:guildId/reactionroles/:id', isAuthenticated, requireManagerAccess, async (req, res) => {
+  const { guildId, id } = req.params;
+  
+  try {
+    await storage.deleteReactionRole(parseInt(id));
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to delete reaction role' });
+  }
+});
+
+app.get('/api/guild/:guildId/giveaways', isAuthenticated, requireManagerAccess, async (req, res) => {
+  const { guildId } = req.params;
+  
+  try {
+    const giveaways = await storage.getActiveGiveaways();
+    res.json(giveaways.filter(g => g.guildId === guildId));
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get giveaways' });
+  }
+});
+
+app.get('/api/guild/:guildId/social', isAuthenticated, requireManagerAccess, async (req, res) => {
+  const { guildId } = req.params;
+  const { platform } = req.query;
+  
+  try {
+    const notifications = await storage.getSocialNotifications(guildId, platform);
+    res.json(notifications);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get social notifications' });
+  }
+});
+
+app.post('/api/guild/:guildId/social', isAuthenticated, requireManagerAccess, validateInput({
+  platform: { required: true, type: 'string', minLength: 1, maxLength: 32 },
+  username: { required: true, type: 'string', minLength: 1, maxLength: 100 },
+  channelId: { required: true, type: 'string', minLength: 1 },
+  customMessage: { type: 'string', maxLength: 2000 }
+}), async (req, res) => {
+  const { guildId } = req.params;
+  const { platform, username, channelId, customMessage } = req.body;
+  
+  try {
+    await storage.addSocialNotification(guildId, platform, username, channelId, customMessage);
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to add social notification' });
+  }
+});
+
+app.delete('/api/guild/:guildId/social/:id', isAuthenticated, requireManagerAccess, async (req, res) => {
+  const { guildId, id } = req.params;
+  
+  try {
+    await storage.deleteSocialNotification(parseInt(id));
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to delete social notification' });
+  }
+});
+
+app.get('/api/guild/:guildId/birthday/config', isAuthenticated, requireManagerAccess, async (req, res) => {
+  const { guildId } = req.params;
+  
+  try {
+    const config = await storage.getBirthdayConfig(guildId);
+    res.json(config || {});
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get birthday config' });
+  }
+});
+
+app.post('/api/guild/:guildId/birthday/config', isAuthenticated, requireManagerAccess, async (req, res) => {
+  const { guildId } = req.params;
+  
+  try {
+    await storage.upsertBirthdayConfig(guildId, req.body);
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update birthday config' });
+  }
+});
+
+app.get('/api/guild/:guildId/economy/config', isAuthenticated, requireManagerAccess, async (req, res) => {
+  const { guildId } = req.params;
+  
+  try {
+    const config = await storage.getEconomyConfig(guildId);
+    res.json(config || {});
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get economy config' });
+  }
+});
+
+app.post('/api/guild/:guildId/economy/config', isAuthenticated, requireManagerAccess, async (req, res) => {
+  const { guildId } = req.params;
+  
+  try {
+    await storage.upsertEconomyConfig(guildId, req.body);
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update economy config' });
+  }
+});
+
+app.get('/api/guild/:guildId/economy/leaderboard', isAuthenticated, requireManagerAccess, async (req, res) => {
+  const { guildId } = req.params;
+  
+  try {
+    const leaderboard = await storage.getEconomyLeaderboard(guildId, 25);
+    res.json(leaderboard);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get economy leaderboard' });
+  }
+});
+
+app.get('/api/guild/:guildId/shop', isAuthenticated, requireManagerAccess, async (req, res) => {
+  const { guildId } = req.params;
+  
+  try {
+    const items = await storage.getShopItems(guildId);
+    res.json(items);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get shop items' });
+  }
+});
+
+app.post('/api/guild/:guildId/shop', isAuthenticated, requireManagerAccess, validateInput({
+  name: { required: true, type: 'string', minLength: 1, maxLength: 64 },
+  description: { type: 'string', maxLength: 256 },
+  price: { required: true, type: 'number', min: 0 }
+}), async (req, res) => {
+  const { guildId } = req.params;
+  const { name, description, price, roleId, stock } = req.body;
+  
+  try {
+    await storage.addShopItem(guildId, name, description, price, roleId, stock);
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to add shop item' });
+  }
+});
+
+app.delete('/api/guild/:guildId/shop/:id', isAuthenticated, requireManagerAccess, async (req, res) => {
+  const { guildId, id } = req.params;
+  
+  try {
+    await storage.deleteShopItem(parseInt(id));
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to delete shop item' });
+  }
+});
+
+app.get('/api/guild/:guildId/tickets/config', isAuthenticated, requireManagerAccess, async (req, res) => {
+  const { guildId } = req.params;
+  
+  try {
+    const config = await storage.getTicketConfig(guildId);
+    res.json(config || {});
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get ticket config' });
+  }
+});
+
+app.post('/api/guild/:guildId/tickets/config', isAuthenticated, requireManagerAccess, async (req, res) => {
+  const { guildId } = req.params;
+  
+  try {
+    await storage.upsertTicketConfig(guildId, req.body);
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update ticket config' });
+  }
+});
+
+app.get('/api/guild/:guildId/tickets', isAuthenticated, requireManagerAccess, async (req, res) => {
+  const { guildId } = req.params;
+  const { status } = req.query;
+  
+  try {
+    const tickets = await storage.getTickets(guildId, status);
+    res.json(tickets);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get tickets' });
+  }
+});
+
+app.get('/api/guild/:guildId/invites/leaderboard', isAuthenticated, requireManagerAccess, async (req, res) => {
+  const { guildId } = req.params;
+  
+  try {
+    const leaderboard = await storage.getInviteLeaderboard(guildId, 25);
+    
+    const enrichedLeaderboard = await Promise.all(leaderboard.map(async (entry) => {
+      let username = 'Bilinmeyen Kullanıcı';
+      try {
+        const member = await discordClient?.guilds.cache.get(guildId)?.members.fetch(entry.inviter_id);
+        if (member) username = member.user.username;
+      } catch (e) {}
+      
+      return { ...entry, username };
+    }));
+    
+    res.json(enrichedLeaderboard);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get invite leaderboard' });
   }
 });
 
