@@ -6,6 +6,7 @@ const { checkAutomod } = require('./modules/automod');
 const { checkAutoPunishment } = require('./modules/autoPunish');
 const { Scheduler } = require('./modules/scheduler');
 const { LogSystem } = require('./modules/logSystem');
+const { chat: chatGPT } = require('./modules/chatgpt');
 
 const client = new Client({
   intents: [
@@ -216,6 +217,20 @@ client.on(Events.MessageCreate, async (message) => {
     const userAfk = await storage.getAfk(message.guild.id, userId);
     if (userAfk) {
       message.reply(`${user.tag} şu anda AFK: ${userAfk.reason}`);
+    }
+  }
+
+  if (message.mentions.has(client.user) && !message.mentions.everyone) {
+    const userMessage = message.content.replace(/<@!?\d+>/g, '').trim();
+    if (userMessage.length > 0) {
+      try {
+        await message.channel.sendTyping();
+        const response = await chatGPT(message.author.id, userMessage);
+        await message.reply(response);
+      } catch (error) {
+        console.error('ChatGPT reply error:', error);
+      }
+      return;
     }
   }
   
