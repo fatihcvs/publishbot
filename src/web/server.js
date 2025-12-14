@@ -30,8 +30,8 @@ app.use(passport.session());
 
 const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID;
 const DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET;
-const CALLBACK_URL = process.env.REPL_SLUG 
-  ? `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co/auth/discord/callback`
+const CALLBACK_URL = process.env.REPLIT_DEV_DOMAIN 
+  ? `https://${process.env.REPLIT_DEV_DOMAIN}/auth/discord/callback`
   : 'http://localhost:5000/auth/discord/callback';
 
 if (DISCORD_CLIENT_ID && DISCORD_CLIENT_SECRET) {
