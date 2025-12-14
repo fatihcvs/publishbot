@@ -90,7 +90,7 @@ module.exports = {
         { name: '📝 Özel Komutlar', value: '`!komutekle` `!komutsil` `!komutlar`', inline: false },
         { name: 'ℹ️ Bilgi', value: '`!sunucu` `!kullanıcı` `!avatar` `!ping`', inline: false }
       )
-      .setFooter({ text: 'Publisher Bot | Dyno Benzeri Discord Botu' })
+      .setFooter({ text: 'Publisher Bot | Gelişmiş Discord Moderasyon Botu' })
       .setTimestamp();
 
     await message.reply({ embeds: [embed] });

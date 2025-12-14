@@ -1,7 +1,7 @@
 {
   "name": "publisher-discord-bot",
   "version": "1.0.0",
-  "description": "Publisher - Dyno benzeri Discord botu",
+  "description": "Publisher - Gelişmiş Discord moderasyon botu",
   "main": "src/main.js",
   "scripts": {
     "start": "node src/main.js",

@@ -1,6 +1,6 @@
 # Publisher Discord Bot
 
-Dyno benzeri tam donanımlı Discord botu + Web Dashboard.
+Güçlü ve tam donanımlı Discord moderasyon botu + Web Dashboard.
 
 ## Özellikler
 
