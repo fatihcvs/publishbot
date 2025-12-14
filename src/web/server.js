@@ -34,8 +34,10 @@ const CALLBACK_URL = process.env.REPLIT_DEV_DOMAIN
   ? `https://${process.env.REPLIT_DEV_DOMAIN}/auth/discord/callback`
   : 'http://localhost:5000/auth/discord/callback';
 
+let discordAuthEnabled = false;
+
 if (DISCORD_CLIENT_ID && DISCORD_CLIENT_SECRET) {
-  passport.use(new DiscordStrategy({
+  passport.use('discord', new DiscordStrategy({
     clientID: DISCORD_CLIENT_ID,
     clientSecret: DISCORD_CLIENT_SECRET,
     callbackURL: CALLBACK_URL,
@@ -44,6 +46,10 @@ if (DISCORD_CLIENT_ID && DISCORD_CLIENT_SECRET) {
     profile.accessToken = accessToken;
     return done(null, profile);
   }));
+  discordAuthEnabled = true;
+  console.log('Discord OAuth configured with callback:', CALLBACK_URL);
+} else {
+  console.log('Discord OAuth not configured - missing DISCORD_CLIENT_ID or DISCORD_CLIENT_SECRET');
 }
 
 passport.serializeUser((user, done) => done(null, user));
@@ -64,14 +70,21 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-app.get('/auth/discord', passport.authenticate('discord'));
-
-app.get('/auth/discord/callback',
-  passport.authenticate('discord', { failureRedirect: '/' }),
-  (req, res) => {
-    res.redirect('/dashboard');
+app.get('/auth/discord', (req, res, next) => {
+  if (!discordAuthEnabled) {
+    return res.status(503).json({ error: 'Discord OAuth not configured' });
   }
-);
+  passport.authenticate('discord')(req, res, next);
+});
+
+app.get('/auth/discord/callback', (req, res, next) => {
+  if (!discordAuthEnabled) {
+    return res.redirect('/');
+  }
+  passport.authenticate('discord', { failureRedirect: '/' })(req, res, () => {
+    res.redirect('/dashboard');
+  });
+});
 
 app.get('/auth/logout', (req, res) => {
   req.logout(() => {
