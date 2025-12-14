@@ -277,6 +277,110 @@ app.post('/api/guild/:guildId/logconfig', isAuthenticated, async (req, res) => {
   }
 });
 
+app.get('/api/guild/:guildId/leaderboard', isAuthenticated, async (req, res) => {
+  const { guildId } = req.params;
+  
+  try {
+    const leaderboard = await storage.getLeaderboard(guildId, 25);
+    
+    const enrichedLeaderboard = await Promise.all(leaderboard.map(async (entry) => {
+      let username = 'Bilinmeyen Kullanıcı';
+      try {
+        const member = await discordClient?.guilds.cache.get(guildId)?.members.fetch(entry.userId);
+        if (member) {
+          username = member.user.username;
+        }
+      } catch (e) {}
+      
+      const currentLevelXp = Math.floor(100 * Math.pow(entry.level - 1, 1.5));
+      const nextLevelXp = Math.floor(100 * Math.pow(entry.level, 1.5));
+      
+      return {
+        ...entry,
+        username,
+        currentLevelXp,
+        nextLevelXp
+      };
+    }));
+    
+    res.json(enrichedLeaderboard);
+  } catch (error) {
+    console.error('Leaderboard error:', error);
+    res.status(500).json({ error: 'Failed to get leaderboard' });
+  }
+});
+
+app.get('/api/guild/:guildId/leveling/stats', isAuthenticated, async (req, res) => {
+  const { guildId } = req.params;
+  
+  try {
+    const leaderboard = await storage.getLeaderboard(guildId, 1000);
+    const levelRewards = await storage.getLevelRewards(guildId);
+    
+    const totalXp = leaderboard.reduce((sum, u) => sum + (u.xp || 0), 0);
+    const activeUsers = leaderboard.length;
+    const avgLevel = activeUsers > 0 ? Math.round(leaderboard.reduce((sum, u) => sum + (u.level || 1), 0) / activeUsers) : 0;
+    
+    res.json({
+      totalXp,
+      activeUsers,
+      avgLevel,
+      levelRoles: levelRewards.length
+    });
+  } catch (error) {
+    console.error('Leveling stats error:', error);
+    res.status(500).json({ error: 'Failed to get leveling stats' });
+  }
+});
+
+app.get('/api/guild/:guildId/levelrewards', isAuthenticated, async (req, res) => {
+  const { guildId } = req.params;
+  
+  try {
+    const rewards = await storage.getLevelRewards(guildId);
+    res.json(rewards);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get level rewards' });
+  }
+});
+
+app.post('/api/guild/:guildId/levelrewards', isAuthenticated, async (req, res) => {
+  const { guildId } = req.params;
+  const { level, roleId } = req.body;
+  
+  const userGuilds = req.user.guilds || [];
+  const hasAccess = userGuilds.some(g => g.id === guildId && (parseInt(g.permissions) & 0x20) === 0x20);
+  
+  if (!hasAccess) {
+    return res.status(403).json({ error: 'Access denied' });
+  }
+  
+  try {
+    await storage.addLevelReward(guildId, level, roleId);
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to add level reward' });
+  }
+});
+
+app.delete('/api/guild/:guildId/levelrewards/:level', isAuthenticated, async (req, res) => {
+  const { guildId, level } = req.params;
+  
+  const userGuilds = req.user.guilds || [];
+  const hasAccess = userGuilds.some(g => g.id === guildId && (parseInt(g.permissions) & 0x20) === 0x20);
+  
+  if (!hasAccess) {
+    return res.status(403).json({ error: 'Access denied' });
+  }
+  
+  try {
+    await storage.removeLevelReward(guildId, parseInt(level));
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to remove level reward' });
+  }
+});
+
 app.get('/dashboard', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
 });
