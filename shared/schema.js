@@ -87,6 +87,38 @@ const afkUsers = pgTable('afk_users', {
   createdAt: timestamp('created_at').defaultNow()
 });
 
+const userLevels = pgTable('user_levels', {
+  id: serial('id').primaryKey(),
+  guildId: text('guild_id').notNull(),
+  userId: text('user_id').notNull(),
+  xp: integer('xp').default(0),
+  level: integer('level').default(0),
+  totalMessages: integer('total_messages').default(0),
+  lastXpTime: timestamp('last_xp_time').defaultNow(),
+  createdAt: timestamp('created_at').defaultNow()
+});
+
+const levelRewards = pgTable('level_rewards', {
+  id: serial('id').primaryKey(),
+  guildId: text('guild_id').notNull(),
+  level: integer('level').notNull(),
+  roleId: text('role_id').notNull(),
+  createdAt: timestamp('created_at').defaultNow()
+});
+
+const scheduledMessages = pgTable('scheduled_messages', {
+  id: serial('id').primaryKey(),
+  guildId: text('guild_id').notNull(),
+  channelId: text('channel_id').notNull(),
+  message: text('message').notNull(),
+  cronExpression: text('cron_expression'),
+  intervalMinutes: integer('interval_minutes'),
+  nextRun: timestamp('next_run').notNull(),
+  enabled: boolean('enabled').default(true),
+  createdBy: text('created_by'),
+  createdAt: timestamp('created_at').defaultNow()
+});
+
 module.exports = {
   guilds,
   warnings,
@@ -95,5 +127,8 @@ module.exports = {
   reactionRoles,
   giveaways,
   reminders,
-  afkUsers
+  afkUsers,
+  userLevels,
+  levelRewards,
+  scheduledMessages
 };

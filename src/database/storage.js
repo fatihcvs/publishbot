@@ -1,6 +1,6 @@
 const { db } = require('./db');
-const { eq, and, desc, sql } = require('drizzle-orm');
-const { guilds, warnings, modCases, customCommands, reactionRoles, giveaways, reminders, afkUsers } = require('../../shared/schema');
+const { eq, and, desc, sql, lte } = require('drizzle-orm');
+const { guilds, warnings, modCases, customCommands, reactionRoles, giveaways, reminders, afkUsers, userLevels, levelRewards, scheduledMessages } = require('../../shared/schema');
 const fs = require('fs');
 const path = require('path');
 
@@ -198,6 +198,151 @@ class DatabaseStorage {
     await db.delete(afkUsers).where(
       and(eq(afkUsers.guildId, guildId), eq(afkUsers.userId, userId))
     );
+  }
+
+  async getUserLevel(guildId, userId) {
+    if (!db) return null;
+    const [user] = await db.select().from(userLevels).where(
+      and(eq(userLevels.guildId, guildId), eq(userLevels.userId, userId))
+    );
+    return user || null;
+  }
+
+  async updateUserXp(guildId, userId, xpToAdd) {
+    if (!db) return null;
+    const existing = await this.getUserLevel(guildId, userId);
+    
+    if (existing) {
+      const newXp = existing.xp + xpToAdd;
+      const newLevel = this.calculateLevel(newXp);
+      const leveledUp = newLevel > existing.level;
+      
+      await db.update(userLevels).set({
+        xp: newXp,
+        level: newLevel,
+        totalMessages: existing.totalMessages + 1,
+        lastXpTime: new Date()
+      }).where(and(eq(userLevels.guildId, guildId), eq(userLevels.userId, userId)));
+      
+      return { xp: newXp, level: newLevel, leveledUp, oldLevel: existing.level };
+    } else {
+      const newLevel = this.calculateLevel(xpToAdd);
+      await db.insert(userLevels).values({
+        guildId, userId, xp: xpToAdd, level: newLevel, totalMessages: 1
+      });
+      return { xp: xpToAdd, level: newLevel, leveledUp: newLevel > 0, oldLevel: 0 };
+    }
+  }
+
+  calculateLevel(xp) {
+    let level = 0;
+    let requiredXp = 100;
+    let totalRequired = 0;
+    
+    while (xp >= totalRequired + requiredXp) {
+      totalRequired += requiredXp;
+      level++;
+      requiredXp = Math.floor(100 * Math.pow(1.5, level));
+    }
+    return level;
+  }
+
+  getXpForLevel(level) {
+    let totalXp = 0;
+    for (let i = 0; i < level; i++) {
+      totalXp += Math.floor(100 * Math.pow(1.5, i));
+    }
+    return totalXp;
+  }
+
+  async getLeaderboard(guildId, limit = 10) {
+    if (!db) return [];
+    return db.select().from(userLevels)
+      .where(eq(userLevels.guildId, guildId))
+      .orderBy(desc(userLevels.xp))
+      .limit(limit);
+  }
+
+  async getUserRank(guildId, userId) {
+    if (!db) return null;
+    const result = await db.execute(sql`
+      SELECT COUNT(*) + 1 as rank FROM user_levels 
+      WHERE guild_id = ${guildId} AND xp > (
+        SELECT COALESCE(xp, 0) FROM user_levels WHERE guild_id = ${guildId} AND user_id = ${userId}
+      )
+    `);
+    return result.rows[0]?.rank || null;
+  }
+
+  async addLevelReward(guildId, level, roleId) {
+    if (!db) return null;
+    await db.delete(levelRewards).where(
+      and(eq(levelRewards.guildId, guildId), eq(levelRewards.level, level))
+    );
+    const [reward] = await db.insert(levelRewards).values({
+      guildId, level, roleId
+    }).returning();
+    return reward;
+  }
+
+  async getLevelRewards(guildId) {
+    if (!db) return [];
+    return db.select().from(levelRewards)
+      .where(eq(levelRewards.guildId, guildId))
+      .orderBy(levelRewards.level);
+  }
+
+  async getLevelReward(guildId, level) {
+    if (!db) return null;
+    const [reward] = await db.select().from(levelRewards).where(
+      and(eq(levelRewards.guildId, guildId), eq(levelRewards.level, level))
+    );
+    return reward || null;
+  }
+
+  async removeLevelReward(guildId, level) {
+    if (!db) return;
+    await db.delete(levelRewards).where(
+      and(eq(levelRewards.guildId, guildId), eq(levelRewards.level, level))
+    );
+  }
+
+  async getRewardsForLevel(guildId, level) {
+    if (!db) return [];
+    return db.select().from(levelRewards)
+      .where(and(eq(levelRewards.guildId, guildId), lte(levelRewards.level, level)))
+      .orderBy(levelRewards.level);
+  }
+
+  async addScheduledMessage(guildId, channelId, message, intervalMinutes, createdBy) {
+    if (!db) return null;
+    const nextRun = new Date(Date.now() + intervalMinutes * 60 * 1000);
+    const [scheduled] = await db.insert(scheduledMessages).values({
+      guildId, channelId, message, intervalMinutes, nextRun, createdBy
+    }).returning();
+    return scheduled;
+  }
+
+  async getScheduledMessages(guildId) {
+    if (!db) return [];
+    return db.select().from(scheduledMessages).where(eq(scheduledMessages.guildId, guildId));
+  }
+
+  async getPendingScheduledMessages() {
+    if (!db) return [];
+    return db.select().from(scheduledMessages).where(
+      and(eq(scheduledMessages.enabled, true), lte(scheduledMessages.nextRun, new Date()))
+    );
+  }
+
+  async updateScheduledMessageNextRun(id, nextRun) {
+    if (!db) return;
+    await db.update(scheduledMessages).set({ nextRun }).where(eq(scheduledMessages.id, id));
+  }
+
+  async deleteScheduledMessage(id) {
+    if (!db) return;
+    await db.delete(scheduledMessages).where(eq(scheduledMessages.id, id));
   }
 }
 
@@ -412,6 +557,146 @@ class JSONStorage {
       delete afks[guildId][userId];
       this.saveJSON('afk.json', afks);
     }
+  }
+
+  calculateLevel(xp) {
+    let level = 0;
+    let requiredXp = 100;
+    let totalRequired = 0;
+    while (xp >= totalRequired + requiredXp) {
+      totalRequired += requiredXp;
+      level++;
+      requiredXp = Math.floor(100 * Math.pow(1.5, level));
+    }
+    return level;
+  }
+
+  getXpForLevel(level) {
+    let totalXp = 0;
+    for (let i = 0; i < level; i++) {
+      totalXp += Math.floor(100 * Math.pow(1.5, i));
+    }
+    return totalXp;
+  }
+
+  async getUserLevel(guildId, userId) {
+    const levels = this.loadJSON('levels.json', {});
+    return levels[guildId]?.[userId] || null;
+  }
+
+  async updateUserXp(guildId, userId, xpToAdd) {
+    const levels = this.loadJSON('levels.json', {});
+    if (!levels[guildId]) levels[guildId] = {};
+    
+    const existing = levels[guildId][userId] || { xp: 0, level: 0, totalMessages: 0 };
+    const newXp = existing.xp + xpToAdd;
+    const newLevel = this.calculateLevel(newXp);
+    const leveledUp = newLevel > existing.level;
+    
+    levels[guildId][userId] = {
+      xp: newXp,
+      level: newLevel,
+      totalMessages: existing.totalMessages + 1,
+      lastXpTime: new Date().toISOString()
+    };
+    this.saveJSON('levels.json', levels);
+    return { xp: newXp, level: newLevel, leveledUp, oldLevel: existing.level };
+  }
+
+  async getLeaderboard(guildId, limit = 10) {
+    const levels = this.loadJSON('levels.json', {});
+    const guildLevels = levels[guildId] || {};
+    return Object.entries(guildLevels)
+      .map(([userId, data]) => ({ userId, ...data }))
+      .sort((a, b) => b.xp - a.xp)
+      .slice(0, limit);
+  }
+
+  async getUserRank(guildId, userId) {
+    const levels = this.loadJSON('levels.json', {});
+    const guildLevels = levels[guildId] || {};
+    const sorted = Object.entries(guildLevels)
+      .map(([uid, data]) => ({ userId: uid, ...data }))
+      .sort((a, b) => b.xp - a.xp);
+    const index = sorted.findIndex(u => u.userId === userId);
+    return index !== -1 ? index + 1 : null;
+  }
+
+  async addLevelReward(guildId, level, roleId) {
+    const rewards = this.loadJSON('levelRewards.json', {});
+    if (!rewards[guildId]) rewards[guildId] = {};
+    rewards[guildId][level] = { roleId, createdAt: new Date().toISOString() };
+    this.saveJSON('levelRewards.json', rewards);
+    return { guildId, level, roleId };
+  }
+
+  async getLevelRewards(guildId) {
+    const rewards = this.loadJSON('levelRewards.json', {});
+    const guildRewards = rewards[guildId] || {};
+    return Object.entries(guildRewards)
+      .map(([level, data]) => ({ level: parseInt(level), ...data }))
+      .sort((a, b) => a.level - b.level);
+  }
+
+  async getLevelReward(guildId, level) {
+    const rewards = this.loadJSON('levelRewards.json', {});
+    return rewards[guildId]?.[level] || null;
+  }
+
+  async removeLevelReward(guildId, level) {
+    const rewards = this.loadJSON('levelRewards.json', {});
+    if (rewards[guildId]) {
+      delete rewards[guildId][level];
+      this.saveJSON('levelRewards.json', rewards);
+    }
+  }
+
+  async getRewardsForLevel(guildId, level) {
+    const rewards = this.loadJSON('levelRewards.json', {});
+    const guildRewards = rewards[guildId] || {};
+    return Object.entries(guildRewards)
+      .filter(([lvl]) => parseInt(lvl) <= level)
+      .map(([lvl, data]) => ({ level: parseInt(lvl), ...data }))
+      .sort((a, b) => a.level - b.level);
+  }
+
+  async addScheduledMessage(guildId, channelId, message, intervalMinutes, createdBy) {
+    const scheduled = this.loadJSON('scheduledMessages.json', []);
+    const newMsg = {
+      id: Date.now(),
+      guildId, channelId, message, intervalMinutes, createdBy,
+      nextRun: new Date(Date.now() + intervalMinutes * 60 * 1000).toISOString(),
+      enabled: true
+    };
+    scheduled.push(newMsg);
+    this.saveJSON('scheduledMessages.json', scheduled);
+    return newMsg;
+  }
+
+  async getScheduledMessages(guildId) {
+    const scheduled = this.loadJSON('scheduledMessages.json', []);
+    return scheduled.filter(s => s.guildId === guildId);
+  }
+
+  async getPendingScheduledMessages() {
+    const scheduled = this.loadJSON('scheduledMessages.json', []);
+    const now = new Date();
+    return scheduled.filter(s => s.enabled && new Date(s.nextRun) <= now);
+  }
+
+  async updateScheduledMessageNextRun(id, nextRun) {
+    const scheduled = this.loadJSON('scheduledMessages.json', []);
+    const index = scheduled.findIndex(s => s.id === id);
+    if (index !== -1) {
+      scheduled[index].nextRun = nextRun.toISOString();
+      this.saveJSON('scheduledMessages.json', scheduled);
+    }
+  }
+
+  async deleteScheduledMessage(id) {
+    let scheduled = this.loadJSON('scheduledMessages.json', []);
+    scheduled = scheduled.filter(s => s.id !== id);
+    this.saveJSON('scheduledMessages.json', scheduled);
   }
 }
 

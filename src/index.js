@@ -6,6 +6,7 @@ const { checkAutomod } = require('./modules/automod');
 const { checkAutoPunishment } = require('./modules/autoPunish');
 const { Scheduler } = require('./modules/scheduler');
 const { LogSystem } = require('./modules/logSystem');
+const { LevelingSystem } = require('./modules/leveling');
 const { chat: chatGPT } = require('./modules/chatgpt');
 
 const client = new Client({
@@ -43,6 +44,7 @@ for (const file of commandFiles) {
 
 let scheduler;
 let logSystem;
+let levelingSystem;
 
 client.once(Events.ClientReady, () => {
   console.log(`Publisher online! ${client.user.tag} olarak giriş yapıldı.`);
@@ -53,6 +55,8 @@ client.once(Events.ClientReady, () => {
   scheduler.start();
   
   logSystem = new LogSystem(client, storage);
+  levelingSystem = new LevelingSystem(client, storage);
+  console.log('Leveling system started');
 });
 
 client.on(Events.GuildMemberAdd, async (member) => {
@@ -236,6 +240,10 @@ client.on(Events.MessageCreate, async (message) => {
   
   const blocked = await checkAutomod(message, client, storage);
   if (blocked) return;
+
+  if (levelingSystem) {
+    await levelingSystem.handleMessage(message);
+  }
   
   const customCmd = await storage.getCustomCommand(message.guild.id, message.content.toLowerCase());
   if (customCmd) {
