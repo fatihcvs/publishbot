@@ -45,9 +45,9 @@ let scheduler;
 let logSystem;
 
 client.once(Events.ClientReady, () => {
-  console.log(`Publisher Bot online! ${client.user.tag} olarak giriş yapıldı.`);
+  console.log(`Publisher online! ${client.user.tag} olarak giriş yapıldı.`);
   console.log(`${client.guilds.cache.size} sunucuda aktif.`);
-  client.user.setActivity('!yardım | Publisher Bot', { type: 3 });
+  client.user.setActivity('!yardım | Publisher', { type: 3 });
   
   scheduler = new Scheduler(client, storage);
   scheduler.start();
