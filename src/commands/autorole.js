@@ -6,22 +6,19 @@ module.exports = {
   description: 'Yeni üyelere verilecek otomatik rolü ayarlar',
   permissions: [PermissionFlagsBits.ManageRoles],
   async execute(message, args, client) {
+    const { storage } = require('../database/storage');
     const subCommand = args[0]?.toLowerCase();
     
-    if (!client.config[message.guild.id]) {
-      client.config[message.guild.id] = {};
-    }
-    
-    if (subCommand === 'kapat' || subCommand === 'off') {
-      delete client.config[message.guild.id].autoRole;
-      client.saveConfig();
+    if (subCommand === 'kapat' || subCommand === 'off' || subCommand === 'disable') {
+      await storage.upsertGuild(message.guild.id, { autoRole: null });
       return message.reply('Oto-rol sistemi kapatıldı.');
     }
     
     const role = message.mentions.roles.first() || message.guild.roles.cache.get(args[0]);
     
     if (!role) {
-      const currentRole = client.config[message.guild.id].autoRole;
+      const guildData = await storage.getGuild(message.guild.id);
+      const currentRole = guildData?.autoRole;
       if (currentRole) {
         const r = message.guild.roles.cache.get(currentRole);
         return message.reply(`Mevcut oto-rol: ${r ? r.name : 'Silinmiş rol'}\n\nDeğiştirmek için: \`!otorol @rol\`\nKapatmak için: \`!otorol kapat\``);
@@ -33,8 +30,7 @@ module.exports = {
       return message.reply('Bu rolü veremiyorum, çünkü benim rolümden yüksek!');
     }
     
-    client.config[message.guild.id].autoRole = role.id;
-    client.saveConfig();
+    await storage.upsertGuild(message.guild.id, { autoRole: role.id });
     
     const embed = new EmbedBuilder()
       .setColor('#00ff00')

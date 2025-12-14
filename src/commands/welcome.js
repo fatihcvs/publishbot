@@ -6,59 +6,78 @@ module.exports = {
   description: 'Hoş geldin mesajı sistemini ayarlar',
   permissions: [PermissionFlagsBits.ManageGuild],
   async execute(message, args, client) {
+    const { storage } = require('../database/storage');
     const subCommand = args[0]?.toLowerCase();
     
-    if (!client.config[message.guild.id]) {
-      client.config[message.guild.id] = {};
+    if (!subCommand) {
+      const guildData = await storage.getGuild(message.guild.id);
+      const embed = new EmbedBuilder()
+        .setColor('#5865F2')
+        .setTitle('Hoş Geldin Sistemi')
+        .addFields(
+          { name: 'Kanal', value: guildData?.welcomeChannel ? `<#${guildData.welcomeChannel}>` : 'Ayarlanmamış', inline: true },
+          { name: 'Mesaj', value: guildData?.welcomeMessage || 'Varsayılan mesaj', inline: false }
+        )
+        .setDescription('**Komutlar:**\n`!hoşgeldin kanal #kanal` - Kanal ayarla\n`!hoşgeldin mesaj <mesaj>` - Mesaj ayarla\n`!hoşgeldin kapat` - Sistemi kapat\n`!hoşgeldin test` - Test mesajı gönder\n\n**Değişkenler:**\n`{user}` - Kullanıcı etiketi\n`{username}` - Kullanıcı adı\n`{server}` - Sunucu adı\n`{membercount}` - Üye sayısı')
+        .setTimestamp();
+
+      return message.reply({ embeds: [embed] });
     }
     
-    if (subCommand === 'kapat' || subCommand === 'off') {
-      delete client.config[message.guild.id].welcomeChannel;
-      delete client.config[message.guild.id].welcomeMessage;
-      client.saveConfig();
+    if (subCommand === 'kapat' || subCommand === 'off' || subCommand === 'disable') {
+      await storage.upsertGuild(message.guild.id, { welcomeChannel: null, welcomeMessage: null });
       return message.reply('Hoş geldin mesajları kapatıldı.');
     }
     
-    if (subCommand === 'kanal') {
+    if (subCommand === 'kanal' || subCommand === 'channel') {
       const channel = message.mentions.channels.first() || message.guild.channels.cache.get(args[1]);
       if (!channel) {
         return message.reply('Lütfen bir kanal belirtin: `!hoşgeldin kanal #kanal`');
       }
       
-      client.config[message.guild.id].welcomeChannel = channel.id;
-      client.saveConfig();
-      
+      await storage.upsertGuild(message.guild.id, { welcomeChannel: channel.id });
       return message.reply(`Hoş geldin mesajları ${channel} kanalına gönderilecek.`);
     }
     
-    if (subCommand === 'mesaj') {
+    if (subCommand === 'mesaj' || subCommand === 'message') {
       const welcomeMessage = args.slice(1).join(' ');
       if (!welcomeMessage) {
         return message.reply('Lütfen bir mesaj belirtin: `!hoşgeldin mesaj Hoş geldin {user}!`\n\nKullanılabilir değişkenler:\n`{user}` - Kullanıcı etiketi\n`{username}` - Kullanıcı adı\n`{server}` - Sunucu adı\n`{membercount}` - Üye sayısı');
       }
       
-      client.config[message.guild.id].welcomeMessage = welcomeMessage;
-      client.saveConfig();
-      
+      await storage.upsertGuild(message.guild.id, { welcomeMessage });
       return message.reply(`Hoş geldin mesajı ayarlandı:\n${welcomeMessage}`);
     }
     
-    const currentChannel = client.config[message.guild.id].welcomeChannel;
-    const currentMessage = client.config[message.guild.id].welcomeMessage;
-    
-    const embed = new EmbedBuilder()
-      .setColor('#5865F2')
-      .setTitle('Hoş Geldin Sistemi')
-      .setDescription('Aşağıdaki komutlarla hoş geldin sistemini yapılandırabilirsiniz.')
-      .addFields(
-        { name: 'Kanal Ayarla', value: '`!hoşgeldin kanal #kanal`', inline: false },
-        { name: 'Mesaj Ayarla', value: '`!hoşgeldin mesaj Mesajınız`', inline: false },
-        { name: 'Kapat', value: '`!hoşgeldin kapat`', inline: false },
-        { name: 'Mevcut Kanal', value: currentChannel ? `<#${currentChannel}>` : 'Ayarlanmadı', inline: true },
-        { name: 'Mevcut Mesaj', value: currentMessage || 'Ayarlanmadı', inline: true }
-      )
-      .setTimestamp();
-    
-    await message.reply({ embeds: [embed] });
+    if (subCommand === 'test') {
+      const guildData = await storage.getGuild(message.guild.id);
+      if (!guildData?.welcomeChannel) {
+        return message.reply('Önce hoş geldin kanalını ayarlayın!');
+      }
+
+      const channel = message.guild.channels.cache.get(guildData.welcomeChannel);
+      if (!channel) {
+        return message.reply('Hoş geldin kanalı bulunamadı!');
+      }
+
+      let welcomeText = guildData.welcomeMessage || 'Hoş geldin {user}! Sunucumuz {server}\'a hoş geldin!';
+      welcomeText = welcomeText
+        .replace(/{user}/g, message.author.toString())
+        .replace(/{username}/g, message.author.username)
+        .replace(/{server}/g, message.guild.name)
+        .replace(/{membercount}/g, message.guild.memberCount);
+
+      const embed = new EmbedBuilder()
+        .setColor('#00ff00')
+        .setTitle('Hoş Geldin!')
+        .setDescription(welcomeText)
+        .setThumbnail(message.author.displayAvatarURL({ dynamic: true }))
+        .setTimestamp();
+
+      await channel.send({ embeds: [embed] });
+      return message.reply('Test mesajı gönderildi!');
+    }
+
+    return message.reply('Geçersiz komut. `!hoşgeldin` yazarak kullanılabilir komutları görün.');
   }
 };
