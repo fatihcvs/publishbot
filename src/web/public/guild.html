@@ -3,1643 +3,769 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Publisher - Sunucu Ayarları</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <title>Publisher - Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
-  <style>
-    :root {
-      --discord-blurple: #5865F2;
-      --discord-dark: #23272A;
-      --discord-darker: #1a1d21;
-      --discord-green: #43b581;
-      --discord-yellow: #faa61a;
-      --discord-red: #f04747;
-    }
-    * { box-sizing: border-box; }
-    body {
-      background: var(--discord-darker);
-      color: white;
-      min-height: 100vh;
-      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-    }
-    .navbar { 
-      background: linear-gradient(135deg, #1a1d21 0%, #2c2f33 100%) !important;
-      border-bottom: 1px solid rgba(255,255,255,0.05);
-      padding: 12px 20px;
-    }
-    .navbar-brand {
-      font-weight: 700;
-      font-size: 1.25rem;
-    }
-    
-    .main-container {
-      display: flex;
-      min-height: calc(100vh - 60px);
-    }
-    
-    .sidebar {
-      width: 280px;
-      background: linear-gradient(180deg, #2c2f33 0%, var(--discord-dark) 100%);
-      min-height: calc(100vh - 60px);
-      padding: 20px 15px;
-      border-right: 1px solid rgba(255,255,255,0.05);
-      overflow-y: auto;
-      position: fixed;
-      left: 0;
-      top: 60px;
-      bottom: 0;
-    }
-    
-    .content-area {
-      flex: 1;
-      margin-left: 280px;
-      padding: 30px 40px;
-      max-width: calc(100% - 280px);
-    }
-    
-    .guild-header {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 15px;
-      background: rgba(0,0,0,0.2);
-      border-radius: 12px;
-      margin-bottom: 25px;
-    }
-    .guild-icon {
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      background: var(--discord-blurple);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.2rem;
-      font-weight: bold;
-    }
-    .guild-icon img {
-      width: 100%;
-      height: 100%;
-      border-radius: 50%;
-      object-fit: cover;
-    }
-    .guild-name {
-      font-weight: 600;
-      font-size: 1rem;
-      margin-bottom: 2px;
-    }
-    .guild-members {
-      font-size: 0.75rem;
-      color: #72767d;
-    }
-    
-    .sidebar-section {
-      margin-bottom: 20px;
-    }
-    .sidebar-section-title {
-      font-size: 0.7rem;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      color: #72767d;
-      padding: 0 12px;
-      margin-bottom: 8px;
-      font-weight: 600;
-    }
-    
-    .plugin-card {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 12px;
-      border-radius: 10px;
-      margin-bottom: 6px;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      background: transparent;
-      border: none;
-      width: 100%;
-      text-align: left;
-      color: #b9bbbe;
-    }
-    .plugin-card:hover {
-      background: rgba(255,255,255,0.05);
-      color: white;
-    }
-    .plugin-card.active {
-      background: rgba(88, 101, 242, 0.2);
-      color: white;
-      border-left: 3px solid var(--discord-blurple);
-    }
-    .plugin-icon {
-      width: 40px;
-      height: 40px;
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.1rem;
-      flex-shrink: 0;
-    }
-    .plugin-icon.blue { background: linear-gradient(135deg, #5865F2 0%, #7289da 100%); }
-    .plugin-icon.green { background: linear-gradient(135deg, #43b581 0%, #3ca374 100%); }
-    .plugin-icon.yellow { background: linear-gradient(135deg, #faa61a 0%, #f79b0a 100%); }
-    .plugin-icon.red { background: linear-gradient(135deg, #f04747 0%, #d83c3c 100%); }
-    .plugin-icon.purple { background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%); }
-    .plugin-icon.cyan { background: linear-gradient(135deg, #00d4ff 0%, #0ea5e9 100%); }
-    .plugin-icon.teal { background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%); }
-    .plugin-icon.orange { background: linear-gradient(135deg, #ff9500 0%, #f97316 100%); }
-    .plugin-icon.pink { background: linear-gradient(135deg, #ec4899 0%, #db2777 100%); }
-    
-    .plugin-info {
-      flex: 1;
-      min-width: 0;
-    }
-    .plugin-name {
-      font-weight: 600;
-      font-size: 0.9rem;
-      margin-bottom: 2px;
-    }
-    .plugin-desc {
-      font-size: 0.72rem;
-      color: #72767d;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    
-    .plugin-toggle {
-      flex-shrink: 0;
-    }
-    .toggle-switch {
-      width: 36px;
-      height: 20px;
-      background: #4f545c;
-      border-radius: 10px;
-      position: relative;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-    .toggle-switch.active {
-      background: var(--discord-green);
-    }
-    .toggle-switch::after {
-      content: '';
-      position: absolute;
-      width: 16px;
-      height: 16px;
-      background: white;
-      border-radius: 50%;
-      top: 2px;
-      left: 2px;
-      transition: transform 0.2s;
-    }
-    .toggle-switch.active::after {
-      transform: translateX(16px);
-    }
-    
-    .card {
-      background: var(--discord-dark);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 12px;
-      margin-bottom: 20px;
-      overflow: hidden;
-    }
-    .card-header {
-      background: rgba(0,0,0,0.25);
-      border-bottom: 1px solid rgba(255,255,255,0.08);
-      padding: 16px 20px;
-      font-weight: 600;
-      font-size: 0.95rem;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    .card-body {
-      padding: 20px;
-    }
-    
-    .form-control, .form-select {
-      background: rgba(0,0,0,0.3);
-      border: 1px solid rgba(255,255,255,0.1);
-      color: white !important;
-      border-radius: 8px;
-      padding: 10px 14px;
-    }
-    .form-control:focus, .form-select:focus {
-      background: rgba(0,0,0,0.4);
-      border-color: var(--discord-blurple);
-      box-shadow: 0 0 0 3px rgba(88, 101, 242, 0.15);
-    }
-    .form-control::placeholder { color: #72767d !important; }
-    
-    .form-check-input:checked {
-      background-color: var(--discord-blurple);
-      border-color: var(--discord-blurple);
-    }
-    
-    .btn-primary {
-      background: var(--discord-blurple);
-      border: none;
-      padding: 10px 24px;
-      border-radius: 8px;
-      font-weight: 600;
-      transition: all 0.2s;
-    }
-    .btn-primary:hover {
-      background: #4752c4;
-      transform: translateY(-1px);
-    }
-    
-    .tab-content { display: none; }
-    .tab-content.active { display: block; }
-    
-    .page-title {
-      font-size: 1.5rem;
-      font-weight: 700;
-      margin-bottom: 8px;
-    }
-    .page-desc {
-      color: #b9bbbe;
-      margin-bottom: 25px;
-    }
-    
-    .toast-container {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      z-index: 9999;
-    }
-    
-    .command-item {
-      background: rgba(0,0,0,0.2);
-      padding: 15px 18px;
-      border-radius: 10px;
-      margin: 10px 0;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border: 1px solid rgba(255,255,255,0.05);
-    }
-    
-    .case-item {
-      background: rgba(0,0,0,0.2);
-      padding: 12px 16px;
-      border-radius: 8px;
-      margin: 8px 0;
-      border-left: 3px solid var(--discord-blurple);
-    }
-    .case-warn { border-left-color: #ffc107; }
-    .case-mute { border-left-color: #ff9800; }
-    .case-kick { border-left-color: #ff5722; }
-    .case-ban { border-left-color: #f44336; }
-    
-    .text-muted { color: #72767d !important; }
-    label { color: #dcddde; font-weight: 500; }
-    small { color: #72767d; }
-    
-    .stat-box {
-      background: rgba(0,0,0,0.2);
-      border-radius: 12px;
-      padding: 20px;
-      text-align: center;
-      border: 1px solid rgba(255,255,255,0.05);
-    }
-    .stat-value {
-      font-size: 2rem;
-      font-weight: 700;
-      color: var(--discord-blurple);
-    }
-    .stat-label {
-      font-size: 0.8rem;
-      color: #72767d;
-      margin-top: 5px;
-    }
-    
-    .leaderboard-item {
-      display: flex;
-      align-items: center;
-      gap: 15px;
-      padding: 12px 16px;
-      background: rgba(0,0,0,0.15);
-      border-radius: 10px;
-      margin-bottom: 8px;
-      transition: background 0.2s;
-    }
-    .leaderboard-item:hover {
-      background: rgba(0,0,0,0.25);
-    }
-    .leaderboard-rank {
-      width: 30px;
-      height: 30px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 700;
-      font-size: 0.9rem;
-    }
-    .leaderboard-rank.gold { background: linear-gradient(135deg, #ffd700 0%, #ffb800 100%); color: #000; }
-    .leaderboard-rank.silver { background: linear-gradient(135deg, #c0c0c0 0%, #a8a8a8 100%); color: #000; }
-    .leaderboard-rank.bronze { background: linear-gradient(135deg, #cd7f32 0%, #b5722c 100%); color: #fff; }
-    .leaderboard-rank.normal { background: rgba(255,255,255,0.1); color: #b9bbbe; }
-    
-    .leaderboard-avatar {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      background: var(--discord-blurple);
-    }
-    .leaderboard-info { flex: 1; }
-    .leaderboard-name { font-weight: 600; }
-    .leaderboard-stats { font-size: 0.8rem; color: #72767d; }
-    
-    .level-badge {
-      background: var(--discord-blurple);
-      padding: 4px 12px;
-      border-radius: 20px;
-      font-weight: 600;
-      font-size: 0.85rem;
-    }
-    
-    .xp-bar {
-      height: 8px;
-      background: rgba(255,255,255,0.1);
-      border-radius: 4px;
-      overflow: hidden;
-      margin-top: 8px;
-    }
-    .xp-progress {
-      height: 100%;
-      background: linear-gradient(90deg, var(--discord-blurple) 0%, #7289da 100%);
-      border-radius: 4px;
-      transition: width 0.3s;
-    }
-    
-    .level-role-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 12px 16px;
-      background: rgba(0,0,0,0.15);
-      border-radius: 10px;
-      margin-bottom: 8px;
-    }
-    
-    @media (max-width: 768px) {
-      .sidebar {
-        width: 100%;
-        position: relative;
-        top: 0;
-      }
-      .content-area {
-        margin-left: 0;
-        max-width: 100%;
-        padding: 20px;
-      }
-      .main-container {
-        flex-direction: column;
-      }
-    }
-  </style>
+  <link href="/css/dashboard.css" rel="stylesheet">
 </head>
 <body>
-  <nav class="navbar navbar-dark">
-    <div class="container-fluid">
-      <a class="navbar-brand" href="/dashboard">
-        <i class="fas fa-arrow-left me-2"></i>Publisher Bot
-      </a>
-      <div class="d-flex align-items-center gap-3">
-        <a href="/dashboard" class="btn btn-outline-light btn-sm">
-          <i class="fas fa-th-large me-1"></i>Sunucular
+  <div class="dashboard-container">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="bot-logo">
+          <i class="fas fa-robot"></i>
+        </div>
+        <span class="bot-name">Publisher</span>
+      </div>
+      
+      <div class="guild-selector">
+        <div class="guild-dropdown" id="guildDropdown">
+          <div class="guild-icon-small" id="guildIconSmall"></div>
+          <span id="guildNameSmall">Yükleniyor...</span>
+          <i class="fas fa-chevron-down" style="margin-left: auto;"></i>
+        </div>
+      </div>
+      
+      <nav class="nav-section">
+        <div class="nav-section-title">Genel</div>
+        <a class="nav-item active" data-page="features">
+          <i class="fas fa-th-large"></i>
+          <span>Kontrol Paneli</span>
         </a>
-      </div>
-    </div>
-  </nav>
-
-  <div class="main-container">
-    <div class="sidebar">
-      <div class="guild-header" id="guild-header">
-        <div class="guild-icon">P</div>
-        <div>
-          <div class="guild-name">Yükleniyor...</div>
-          <div class="guild-members">0 üye</div>
-        </div>
-      </div>
+        <a class="nav-item" data-page="leaderboard">
+          <i class="fas fa-trophy"></i>
+          <span>Sıralama</span>
+        </a>
+        <a class="nav-item" data-page="settings">
+          <i class="fas fa-cog"></i>
+          <span>Ayarlar</span>
+        </a>
+      </nav>
       
-      <div class="sidebar-section">
-        <div class="sidebar-section-title">Genel</div>
-        <button class="plugin-card active" data-tab="general">
-          <div class="plugin-icon blue"><i class="fas fa-cog"></i></div>
-          <div class="plugin-info">
-            <div class="plugin-name">Genel Ayarlar</div>
-            <div class="plugin-desc">Temel bot ayarları</div>
-          </div>
-        </button>
-      </div>
+      <nav class="nav-section">
+        <div class="nav-section-title">Temel</div>
+        <a class="nav-item" data-feature="welcome">
+          <i class="fas fa-hand-wave"></i>
+          <span>Hoşgeldin & Hoşçakal</span>
+        </a>
+        <a class="nav-item" data-feature="reactionroles">
+          <i class="fas fa-icons"></i>
+          <span>Tepki Rol</span>
+        </a>
+        <a class="nav-item" data-feature="automod">
+          <i class="fas fa-shield-halved"></i>
+          <span>Moderatör</span>
+        </a>
+        <a class="nav-item" data-feature="leveling">
+          <i class="fas fa-arrow-up-right-dots"></i>
+          <span>Seviye</span>
+        </a>
+        <a class="nav-item" data-feature="achievements">
+          <i class="fas fa-medal"></i>
+          <span>Başarımlar</span>
+        </a>
+      </nav>
       
-      <div class="sidebar-section">
-        <div class="sidebar-section-title">Özellikler</div>
-        
-        <button class="plugin-card" data-tab="leveling">
-          <div class="plugin-icon purple"><i class="fas fa-chart-line"></i></div>
-          <div class="plugin-info">
-            <div class="plugin-name">Seviye Sistemi</div>
-            <div class="plugin-desc">XP ve seviye ödülleri</div>
-          </div>
-          <div class="plugin-toggle">
-            <div class="toggle-switch" id="toggle-leveling" onclick="event.stopPropagation(); togglePlugin('leveling')"></div>
-          </div>
-        </button>
-        
-        <button class="plugin-card" data-tab="welcome">
-          <div class="plugin-icon green"><i class="fas fa-door-open"></i></div>
-          <div class="plugin-info">
-            <div class="plugin-name">Hoş Geldin</div>
-            <div class="plugin-desc">Karşılama mesajları</div>
-          </div>
-          <div class="plugin-toggle">
-            <div class="toggle-switch" id="toggle-welcome" onclick="event.stopPropagation(); togglePlugin('welcome')"></div>
-          </div>
-        </button>
-        
-        <button class="plugin-card" data-tab="automod">
-          <div class="plugin-icon yellow"><i class="fas fa-shield-alt"></i></div>
-          <div class="plugin-info">
-            <div class="plugin-name">AutoMod</div>
-            <div class="plugin-desc">Otomatik moderasyon</div>
-          </div>
-          <div class="plugin-toggle">
-            <div class="toggle-switch" id="toggle-automod" onclick="event.stopPropagation(); togglePlugin('automod')"></div>
-          </div>
-        </button>
-        
-        <button class="plugin-card" data-tab="autopunish">
-          <div class="plugin-icon red"><i class="fas fa-gavel"></i></div>
-          <div class="plugin-info">
-            <div class="plugin-name">Otomatik Ceza</div>
-            <div class="plugin-desc">Uyarı bazlı cezalar</div>
-          </div>
-          <div class="plugin-toggle">
-            <div class="toggle-switch" id="toggle-autopunish" onclick="event.stopPropagation(); togglePlugin('autopunish')"></div>
-          </div>
-        </button>
-        
-        <button class="plugin-card" data-tab="commands">
-          <div class="plugin-icon cyan"><i class="fas fa-terminal"></i></div>
-          <div class="plugin-info">
-            <div class="plugin-name">Özel Komutlar</div>
-            <div class="plugin-desc">Özelleştirilmiş komutlar</div>
-          </div>
-        </button>
-        
-        <button class="plugin-card" data-tab="scheduled">
-          <div class="plugin-icon teal"><i class="fas fa-clock"></i></div>
-          <div class="plugin-info">
-            <div class="plugin-name">Zamanlı Mesajlar</div>
-            <div class="plugin-desc">Otomatik mesaj gönderimi</div>
-          </div>
-        </button>
-      </div>
+      <nav class="nav-section">
+        <div class="nav-section-title">Sunucu Yönetimi</div>
+        <a class="nav-item" data-feature="automation">
+          <i class="fas fa-robot"></i>
+          <span>Otomasyon</span>
+        </a>
+        <a class="nav-item" data-feature="customcommands">
+          <i class="fas fa-terminal"></i>
+          <span>Özel Komutlar</span>
+        </a>
+        <a class="nav-item" data-feature="invitetracker">
+          <i class="fas fa-user-plus"></i>
+          <span>Davet Takibi</span>
+        </a>
+        <a class="nav-item" data-feature="tickets">
+          <i class="fas fa-ticket"></i>
+          <span>Talep</span>
+        </a>
+      </nav>
       
-      <div class="sidebar-section">
-        <div class="sidebar-section-title">İzleme</div>
-        
-        <button class="plugin-card" data-tab="leaderboard">
-          <div class="plugin-icon orange"><i class="fas fa-trophy"></i></div>
-          <div class="plugin-info">
-            <div class="plugin-name">Liderlik Tablosu</div>
-            <div class="plugin-desc">En aktif üyeler</div>
+      <nav class="nav-section">
+        <div class="nav-section-title">Araçlar</div>
+        <a class="nav-item" data-feature="embed">
+          <i class="fas fa-code"></i>
+          <span>Gömülü Mesaj</span>
+        </a>
+        <a class="nav-item" data-feature="polls">
+          <i class="fas fa-poll"></i>
+          <span>Anket</span>
+        </a>
+        <a class="nav-item" data-feature="reminders">
+          <i class="fas fa-bell"></i>
+          <span>Hatırlatıcı</span>
+        </a>
+        <a class="nav-item" data-feature="statchannels">
+          <i class="fas fa-chart-line"></i>
+          <span>İstatistik Kanalları</span>
+        </a>
+        <a class="nav-item" data-feature="tempvoice">
+          <i class="fas fa-headphones"></i>
+          <span>Geçici Kanallar</span>
+        </a>
+        <a class="nav-item" data-feature="logging">
+          <i class="fas fa-scroll"></i>
+          <span>Kayıt</span>
+        </a>
+      </nav>
+      
+      <nav class="nav-section">
+        <div class="nav-section-title">Sosyal Medya Bildirimleri</div>
+        <a class="nav-item" data-feature="twitch">
+          <i class="fab fa-twitch"></i>
+          <span>Twitch Bildirimleri</span>
+        </a>
+        <a class="nav-item" data-feature="youtube">
+          <i class="fab fa-youtube"></i>
+          <span>YouTube Bildirimleri</span>
+        </a>
+        <a class="nav-item" data-feature="tiktok">
+          <i class="fab fa-tiktok"></i>
+          <span>TikTok Bildirimleri</span>
+        </a>
+        <a class="nav-item" data-feature="twitter">
+          <i class="fab fa-x-twitter"></i>
+          <span>X Bildirimleri</span>
+        </a>
+        <a class="nav-item" data-feature="instagram">
+          <i class="fab fa-instagram"></i>
+          <span>Instagram Bildirimleri</span>
+        </a>
+        <a class="nav-item" data-feature="rss">
+          <i class="fas fa-rss"></i>
+          <span>RSS Bildirimleri</span>
+        </a>
+      </nav>
+      
+      <nav class="nav-section">
+        <div class="nav-section-title">Oyun & Eğlence</div>
+        <a class="nav-item" data-feature="giveaway">
+          <i class="fas fa-gift"></i>
+          <span>Çekiliş</span>
+        </a>
+        <a class="nav-item" data-feature="birthday">
+          <i class="fas fa-cake-candles"></i>
+          <span>Doğum Günü</span>
+        </a>
+        <a class="nav-item" data-feature="economy">
+          <i class="fas fa-coins"></i>
+          <span>Ekonomi</span>
+        </a>
+      </nav>
+    </aside>
+    
+    <main class="main-content">
+      <header class="top-bar">
+        <h1 class="top-bar-title" id="pageTitle">Özellikler</h1>
+        <div class="top-bar-actions">
+          <a href="#" class="premium-button">
+            <i class="fas fa-crown"></i>
+            Premium'a Yükselt
+          </a>
+          <div class="user-menu" id="userMenu">
+            <img src="" alt="" class="user-avatar" id="userAvatar">
+            <i class="fas fa-chevron-down"></i>
           </div>
-        </button>
+        </div>
+      </header>
+      
+      <div class="content-area" id="contentArea">
+        <div class="loading-container" id="loadingContainer">
+          <div class="loading-spinner"></div>
+          <p>Yükleniyor...</p>
+        </div>
         
-        <button class="plugin-card" data-tab="modlog">
-          <div class="plugin-icon red"><i class="fas fa-clipboard-list"></i></div>
-          <div class="plugin-info">
-            <div class="plugin-name">Mod Logları</div>
-            <div class="plugin-desc">Moderasyon geçmişi</div>
+        <div id="featuresPage" style="display: none;">
+          <div class="tabs-container">
+            <button class="tab-btn active" data-tab="all">Tüm Özellikler</button>
+            <button class="tab-btn" data-tab="basic">Temel</button>
+            <button class="tab-btn" data-tab="popular">Popüler Özellikler</button>
+            <button class="tab-btn" data-tab="management">Sunucu Yönetimi</button>
+            <button class="tab-btn" data-tab="tools">Araçlar</button>
+            <button class="tab-btn" data-tab="social">Sosyal Medya</button>
+            <button class="tab-btn" data-tab="games">Oyun & Eğlence</button>
           </div>
-        </button>
-        
-        <button class="plugin-card" data-tab="logsystem">
-          <div class="plugin-icon pink"><i class="fas fa-history"></i></div>
-          <div class="plugin-info">
-            <div class="plugin-name">Log Sistemi</div>
-            <div class="plugin-desc">Detaylı kayıtlar</div>
+          
+          <div id="basicSection">
+            <h2 class="section-title">Temel</h2>
+            <div class="features-grid" id="basicFeatures"></div>
           </div>
-        </button>
-      </div>
-    </div>
-
-    <div class="content-area">
-      <div id="tab-general" class="tab-content active">
-        <h2 class="page-title">Genel Ayarlar</h2>
-        <p class="page-desc">Botun temel yapılandırma ayarları</p>
-        
-        <div class="card">
-          <div class="card-header">Log Kanalı</div>
-          <div class="card-body">
-            <select class="form-select" id="logChannel">
-              <option value="">Kanal seçiniz...</option>
-            </select>
-            <small>Moderasyon loglarının gönderileceği kanal</small>
+          
+          <div id="managementSection">
+            <h2 class="section-title">Sunucu Yönetimi</h2>
+            <div class="features-grid" id="managementFeatures"></div>
+          </div>
+          
+          <div id="toolsSection">
+            <h2 class="section-title">Araçlar</h2>
+            <div class="features-grid" id="toolsFeatures"></div>
+          </div>
+          
+          <div id="socialSection">
+            <h2 class="section-title">Sosyal Medya Bildirimleri</h2>
+            <div class="features-grid" id="socialFeatures"></div>
+          </div>
+          
+          <div id="gamesSection">
+            <h2 class="section-title">Oyun & Eğlence</h2>
+            <div class="features-grid" id="gamesFeatures"></div>
           </div>
         </div>
         
-        <div class="card">
-          <div class="card-header">Oto-Rol</div>
-          <div class="card-body">
-            <select class="form-select" id="autoRole">
-              <option value="">Rol seçiniz...</option>
-            </select>
-            <small>Yeni üyelere otomatik verilecek rol</small>
-          </div>
+        <div id="leaderboardPage" style="display: none;">
+          <h2 class="section-title">Liderlik Tablosu</h2>
+          <div id="leaderboardContent"></div>
         </div>
         
-        <button class="btn btn-primary" onclick="saveGeneral()">
-          <i class="fas fa-save me-2"></i>Değişiklikleri Kaydet
-        </button>
-      </div>
-
-      <div id="tab-leveling" class="tab-content">
-        <h2 class="page-title">Seviye Sistemi</h2>
-        <p class="page-desc">XP kazanma ve seviye atlama ayarları</p>
-        
-        <div class="row g-4 mb-4">
-          <div class="col-md-3">
-            <div class="stat-box">
-              <div class="stat-value" id="stat-total-xp">0</div>
-              <div class="stat-label">Toplam XP</div>
+        <div id="settingsPage" style="display: none;">
+          <h2 class="section-title">Genel Ayarlar</h2>
+          <div class="feature-card" style="max-width: 600px;">
+            <div class="form-group">
+              <label class="form-label">Log Kanalı</label>
+              <select class="form-select" id="settingsLogChannel"></select>
             </div>
-          </div>
-          <div class="col-md-3">
-            <div class="stat-box">
-              <div class="stat-value" id="stat-active-users">0</div>
-              <div class="stat-label">Aktif Üye</div>
+            <div class="form-group">
+              <label class="form-label">Otomatik Rol</label>
+              <select class="form-select" id="settingsAutoRole"></select>
             </div>
-          </div>
-          <div class="col-md-3">
-            <div class="stat-box">
-              <div class="stat-value" id="stat-avg-level">0</div>
-              <div class="stat-label">Ortalama Seviye</div>
+            <div class="form-group">
+              <label class="form-label">Mute Rolü</label>
+              <select class="form-select" id="settingsMuteRole"></select>
             </div>
-          </div>
-          <div class="col-md-3">
-            <div class="stat-box">
-              <div class="stat-value" id="stat-level-roles">0</div>
-              <div class="stat-label">Seviye Rolü</div>
-            </div>
-          </div>
-        </div>
-        
-        <div class="card">
-          <div class="card-header">
-            <span>XP Ayarları</span>
-            <div class="form-check form-switch">
-              <input class="form-check-input" type="checkbox" id="levelingEnabled">
-              <label class="form-check-label" for="levelingEnabled">Aktif</label>
-            </div>
-          </div>
-          <div class="card-body">
-            <div class="row g-4">
-              <div class="col-md-6">
-                <label class="form-label">Mesaj Başına XP (Min)</label>
-                <input type="number" class="form-control" id="xpMin" value="15" min="1" max="100">
-              </div>
-              <div class="col-md-6">
-                <label class="form-label">Mesaj Başına XP (Max)</label>
-                <input type="number" class="form-control" id="xpMax" value="25" min="1" max="100">
-              </div>
-              <div class="col-md-6">
-                <label class="form-label">XP Cooldown (saniye)</label>
-                <input type="number" class="form-control" id="xpCooldown" value="60" min="0" max="300">
-              </div>
-              <div class="col-md-6">
-                <label class="form-label">Duyuru Kanalı</label>
-                <select class="form-select" id="levelUpChannel">
-                  <option value="">Aynı kanalda</option>
-                </select>
-              </div>
-            </div>
-            <div class="mt-3">
-              <div class="form-check">
-                <input class="form-check-input" type="checkbox" id="levelUpDM">
-                <label class="form-check-label" for="levelUpDM">Seviye atlama mesajını DM olarak gönder</label>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <div class="card">
-          <div class="card-header">
-            <span>Seviye Mesajı</span>
-          </div>
-          <div class="card-body">
-            <textarea class="form-control" id="levelUpMessage" rows="2" placeholder="Tebrikler {user}! Seviye {level}'e ulaştın!"></textarea>
-            <small>Değişkenler: {user}, {username}, {level}, {xp}</small>
-          </div>
-        </div>
-        
-        <div class="card">
-          <div class="card-header">
-            <span><i class="fas fa-gift me-2"></i>Seviye Rol Ödülleri</span>
-            <button class="btn btn-outline-light btn-sm" onclick="loadLevelRewards()">
-              <i class="fas fa-sync-alt"></i>
-            </button>
-          </div>
-          <div class="card-body">
-            <div class="row g-3 align-items-end mb-4">
-              <div class="col-md-3">
-                <label class="form-label">Seviye</label>
-                <input type="number" class="form-control" id="newRewardLevel" min="1" max="100" placeholder="5">
-              </div>
-              <div class="col-md-7">
-                <label class="form-label">Verilecek Rol</label>
-                <select class="form-select" id="newRewardRole">
-                  <option value="">Rol seçiniz...</option>
-                </select>
-              </div>
-              <div class="col-md-2">
-                <button class="btn btn-primary w-100" onclick="addLevelReward()">
-                  <i class="fas fa-plus"></i>
-                </button>
-              </div>
-            </div>
-            <div id="level-rewards-list">
-              <p class="text-muted text-center">Yükleniyor...</p>
-            </div>
-          </div>
-        </div>
-        
-        <button class="btn btn-primary" onclick="saveLeveling()">
-          <i class="fas fa-save me-2"></i>Değişiklikleri Kaydet
-        </button>
-      </div>
-
-      <div id="tab-leaderboard" class="tab-content">
-        <h2 class="page-title">Liderlik Tablosu</h2>
-        <p class="page-desc">Sunucunuzun en aktif üyeleri</p>
-        
-        <div class="card">
-          <div class="card-header">
-            <span>Top 25 Üye</span>
-            <button class="btn btn-outline-light btn-sm" onclick="loadLeaderboard()">
-              <i class="fas fa-sync-alt"></i>
-            </button>
-          </div>
-          <div class="card-body" id="leaderboard-list">
-            <p class="text-muted text-center py-4">Yükleniyor...</p>
-          </div>
-        </div>
-      </div>
-
-      <div id="tab-welcome" class="tab-content">
-        <h2 class="page-title">Hoş Geldin Sistemi</h2>
-        <p class="page-desc">Yeni üyeleri karşılama ayarları</p>
-        
-        <div class="card">
-          <div class="card-header">
-            <span>Hoş Geldin Ayarları</span>
-            <div class="form-check form-switch">
-              <input class="form-check-input" type="checkbox" id="welcomeEnabled">
-              <label class="form-check-label" for="welcomeEnabled">Aktif</label>
-            </div>
-          </div>
-          <div class="card-body">
-            <div class="mb-3">
-              <label class="form-label">Hoş Geldin Kanalı</label>
-              <select class="form-select" id="welcomeChannel">
-                <option value="">Kanal seçiniz...</option>
-              </select>
-            </div>
-            <div class="mb-3">
-              <label class="form-label">Hoş Geldin Mesajı</label>
-              <textarea class="form-control" id="welcomeMessage" rows="3" placeholder="Hoş geldin {user}! Sunucumuza hoş geldin."></textarea>
-              <small>Değişkenler: {user}, {username}, {server}, {membercount}</small>
-            </div>
-          </div>
-        </div>
-        
-        <button class="btn btn-primary" onclick="saveWelcome()">
-          <i class="fas fa-save me-2"></i>Değişiklikleri Kaydet
-        </button>
-      </div>
-
-      <div id="tab-automod" class="tab-content">
-        <h2 class="page-title">AutoMod</h2>
-        <p class="page-desc">Otomatik moderasyon filtreleri</p>
-        
-        <div class="card">
-          <div class="card-header">
-            <span>Filtreler</span>
-            <div class="form-check form-switch">
-              <input class="form-check-input" type="checkbox" id="automodEnabled">
-              <label class="form-check-label" for="automodEnabled">Aktif</label>
-            </div>
-          </div>
-          <div class="card-body">
-            <div class="row g-3">
-              <div class="col-md-6">
-                <div class="form-check form-switch mb-3">
-                  <input class="form-check-input" type="checkbox" id="spamFilter">
-                  <label class="form-check-label" for="spamFilter">Spam Filtresi</label>
-                </div>
-                <div class="form-check form-switch mb-3">
-                  <input class="form-check-input" type="checkbox" id="capsFilter">
-                  <label class="form-check-label" for="capsFilter">Büyük Harf Filtresi</label>
-                </div>
-                <div class="form-check form-switch mb-3">
-                  <input class="form-check-input" type="checkbox" id="linkFilter">
-                  <label class="form-check-label" for="linkFilter">Link Filtresi</label>
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="form-check form-switch mb-3">
-                  <input class="form-check-input" type="checkbox" id="inviteFilter">
-                  <label class="form-check-label" for="inviteFilter">Davet Filtresi</label>
-                </div>
-                <div class="form-check form-switch mb-3">
-                  <input class="form-check-input" type="checkbox" id="mentionSpam">
-                  <label class="form-check-label" for="mentionSpam">Etiket Spam Filtresi</label>
-                </div>
-                <div class="form-check form-switch mb-3">
-                  <input class="form-check-input" type="checkbox" id="emojiSpam">
-                  <label class="form-check-label" for="emojiSpam">Emoji Spam Filtresi</label>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <div class="card">
-          <div class="card-header">Yasaklı Kelimeler</div>
-          <div class="card-body">
-            <textarea class="form-control" id="badWords" rows="2" placeholder="Virgülle ayırarak girin..."></textarea>
-          </div>
-        </div>
-        
-        <button class="btn btn-primary" onclick="saveAutomod()">
-          <i class="fas fa-save me-2"></i>Değişiklikleri Kaydet
-        </button>
-      </div>
-
-      <div id="tab-autopunish" class="tab-content">
-        <h2 class="page-title">Otomatik Ceza</h2>
-        <p class="page-desc">Uyarı sayısına göre otomatik ceza kuralları</p>
-        
-        <div class="card">
-          <div class="card-header">
-            <span>Ceza Kuralları</span>
-            <div class="form-check form-switch">
-              <input class="form-check-input" type="checkbox" id="autopunishEnabled">
-              <label class="form-check-label" for="autopunishEnabled">Aktif</label>
-            </div>
-          </div>
-          <div class="card-body">
-            <div id="autopunish-rules"></div>
-            <button class="btn btn-outline-light btn-sm mt-3" onclick="addPunishRule()">
-              <i class="fas fa-plus me-1"></i>Kural Ekle
+            <button class="btn btn-primary" onclick="saveGeneralSettings()">
+              <i class="fas fa-save"></i> Kaydet
             </button>
           </div>
         </div>
-        
-        <button class="btn btn-primary" onclick="saveAutopunish()">
-          <i class="fas fa-save me-2"></i>Değişiklikleri Kaydet
-        </button>
       </div>
-
-      <div id="tab-commands" class="tab-content">
-        <h2 class="page-title">Özel Komutlar</h2>
-        <p class="page-desc">Sunucunuza özel komutlar oluşturun</p>
-        
-        <div class="card">
-          <div class="card-header">Yeni Komut Ekle</div>
-          <div class="card-body">
-            <div class="row g-3 align-items-end">
-              <div class="col-md-4">
-                <label class="form-label">Komut Adı</label>
-                <input type="text" class="form-control" id="newCmdName" placeholder="!komut">
-              </div>
-              <div class="col-md-6">
-                <label class="form-label">Yanıt</label>
-                <input type="text" class="form-control" id="newCmdResponse" placeholder="Bot yanıtı...">
-              </div>
-              <div class="col-md-2">
-                <button class="btn btn-primary w-100" onclick="addCommand()">
-                  <i class="fas fa-plus"></i>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <div class="card">
-          <div class="card-header">Mevcut Komutlar</div>
-          <div class="card-body" id="commands-list">
-            <p class="text-muted text-center">Yükleniyor...</p>
-          </div>
-        </div>
+    </main>
+  </div>
+  
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal" id="modal">
+      <div class="modal-header">
+        <h2 id="modalTitle">Ayarlar</h2>
+        <button class="modal-close" onclick="closeModal()">&times;</button>
       </div>
-
-      <div id="tab-scheduled" class="tab-content">
-        <h2 class="page-title">Zamanlı Mesajlar</h2>
-        <p class="page-desc">Belirlenen aralıklarla otomatik mesaj gönderimi</p>
-        
-        <div class="card">
-          <div class="card-header">
-            <span><i class="fas fa-plus me-2"></i>Yeni Zamanlı Mesaj</span>
-          </div>
-          <div class="card-body">
-            <div class="row g-3 align-items-end">
-              <div class="col-md-4">
-                <label class="form-label">Kanal</label>
-                <select class="form-select" id="scheduledChannel">
-                  <option value="">Kanal seçiniz...</option>
-                </select>
-              </div>
-              <div class="col-md-3">
-                <label class="form-label">Tekrar Süresi (dakika)</label>
-                <input type="number" class="form-control" id="scheduledInterval" min="1" max="10080" value="60" placeholder="60">
-              </div>
-              <div class="col-md-5">
-                <label class="form-label">Mesaj</label>
-                <input type="text" class="form-control" id="scheduledMessage" placeholder="Gönderilecek mesaj...">
-              </div>
-            </div>
-            <div class="mt-3">
-              <button class="btn btn-primary" onclick="addScheduledMessage()">
-                <i class="fas fa-plus me-2"></i>Mesaj Ekle
-              </button>
-            </div>
-          </div>
-        </div>
-        
-        <div class="card">
-          <div class="card-header">
-            <span>Mevcut Zamanlı Mesajlar</span>
-            <button class="btn btn-outline-light btn-sm" onclick="loadScheduledMessages()">
-              <i class="fas fa-sync-alt"></i>
-            </button>
-          </div>
-          <div class="card-body" id="scheduled-list">
-            <p class="text-muted text-center">Yükleniyor...</p>
-          </div>
-        </div>
-      </div>
-
-      <div id="tab-modlog" class="tab-content">
-        <h2 class="page-title">Moderasyon Logları</h2>
-        <p class="page-desc">Son moderasyon işlemleri</p>
-        
-        <div class="card">
-          <div class="card-header">
-            <span>Son 50 İşlem</span>
-            <button class="btn btn-outline-light btn-sm" onclick="loadModlog()">
-              <i class="fas fa-sync-alt"></i>
-            </button>
-          </div>
-          <div class="card-body" id="modlog-list">
-            <p class="text-muted text-center">Yükleniyor...</p>
-          </div>
-        </div>
-      </div>
-
-      <div id="tab-logsystem" class="tab-content">
-        <h2 class="page-title">Log Sistemi</h2>
-        <p class="page-desc">Sunucu aktivitelerini kayıt altına alın</p>
-        
-        <div class="row g-3">
-          <div class="col-md-4">
-            <div class="card">
-              <div class="card-header d-flex justify-content-between align-items-center">
-                <span>Kanal Silme</span>
-                <div class="form-check form-switch m-0">
-                  <input class="form-check-input" type="checkbox" id="log-channelDelete-enabled">
-                </div>
-              </div>
-              <div class="card-body py-2">
-                <select class="form-select form-select-sm" id="log-channelDelete-channel"></select>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div class="card">
-              <div class="card-header d-flex justify-content-between align-items-center">
-                <span>Kanal Ekleme</span>
-                <div class="form-check form-switch m-0">
-                  <input class="form-check-input" type="checkbox" id="log-channelCreate-enabled">
-                </div>
-              </div>
-              <div class="card-body py-2">
-                <select class="form-select form-select-sm" id="log-channelCreate-channel"></select>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div class="card">
-              <div class="card-header d-flex justify-content-between align-items-center">
-                <span>Kanal Güncelleme</span>
-                <div class="form-check form-switch m-0">
-                  <input class="form-check-input" type="checkbox" id="log-channelUpdate-enabled">
-                </div>
-              </div>
-              <div class="card-body py-2">
-                <select class="form-select form-select-sm" id="log-channelUpdate-channel"></select>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div class="card">
-              <div class="card-header d-flex justify-content-between align-items-center">
-                <span>Sunucu Ayarları</span>
-                <div class="form-check form-switch m-0">
-                  <input class="form-check-input" type="checkbox" id="log-guildUpdate-enabled">
-                </div>
-              </div>
-              <div class="card-body py-2">
-                <select class="form-select form-select-sm" id="log-guildUpdate-channel"></select>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div class="card">
-              <div class="card-header d-flex justify-content-between align-items-center">
-                <span>Rol Ekleme</span>
-                <div class="form-check form-switch m-0">
-                  <input class="form-check-input" type="checkbox" id="log-roleCreate-enabled">
-                </div>
-              </div>
-              <div class="card-body py-2">
-                <select class="form-select form-select-sm" id="log-roleCreate-channel"></select>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div class="card">
-              <div class="card-header d-flex justify-content-between align-items-center">
-                <span>Rol Güncelleme</span>
-                <div class="form-check form-switch m-0">
-                  <input class="form-check-input" type="checkbox" id="log-roleUpdate-enabled">
-                </div>
-              </div>
-              <div class="card-body py-2">
-                <select class="form-select form-select-sm" id="log-roleUpdate-channel"></select>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div class="card">
-              <div class="card-header d-flex justify-content-between align-items-center">
-                <span>Rol Silme</span>
-                <div class="form-check form-switch m-0">
-                  <input class="form-check-input" type="checkbox" id="log-roleDelete-enabled">
-                </div>
-              </div>
-              <div class="card-body py-2">
-                <select class="form-select form-select-sm" id="log-roleDelete-channel"></select>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div class="card">
-              <div class="card-header d-flex justify-content-between align-items-center">
-                <span>Mesaj Düzenleme</span>
-                <div class="form-check form-switch m-0">
-                  <input class="form-check-input" type="checkbox" id="log-messageUpdate-enabled">
-                </div>
-              </div>
-              <div class="card-body py-2">
-                <select class="form-select form-select-sm" id="log-messageUpdate-channel"></select>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div class="card">
-              <div class="card-header d-flex justify-content-between align-items-center">
-                <span>Ses Aktiviteleri</span>
-                <div class="form-check form-switch m-0">
-                  <input class="form-check-input" type="checkbox" id="log-voiceActivity-enabled">
-                </div>
-              </div>
-              <div class="card-body py-2">
-                <select class="form-select form-select-sm" id="log-voiceActivity-channel"></select>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div class="card">
-              <div class="card-header d-flex justify-content-between align-items-center">
-                <span>Silinen Mesajlar</span>
-                <div class="form-check form-switch m-0">
-                  <input class="form-check-input" type="checkbox" id="log-messageDelete-enabled">
-                </div>
-              </div>
-              <div class="card-body py-2">
-                <select class="form-select form-select-sm" id="log-messageDelete-channel"></select>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div class="card">
-              <div class="card-header d-flex justify-content-between align-items-center">
-                <span>Üye Güncellemeleri</span>
-                <div class="form-check form-switch m-0">
-                  <input class="form-check-input" type="checkbox" id="log-memberUpdate-enabled">
-                </div>
-              </div>
-              <div class="card-body py-2">
-                <select class="form-select form-select-sm" id="log-memberUpdate-channel"></select>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div class="card">
-              <div class="card-header d-flex justify-content-between align-items-center">
-                <span>Ban Kayıtları</span>
-                <div class="form-check form-switch m-0">
-                  <input class="form-check-input" type="checkbox" id="log-banAdd-enabled">
-                </div>
-              </div>
-              <div class="card-body py-2">
-                <select class="form-select form-select-sm" id="log-banAdd-channel"></select>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div class="card">
-              <div class="card-header d-flex justify-content-between align-items-center">
-                <span>Unban Kayıtları</span>
-                <div class="form-check form-switch m-0">
-                  <input class="form-check-input" type="checkbox" id="log-banRemove-enabled">
-                </div>
-              </div>
-              <div class="card-body py-2">
-                <select class="form-select form-select-sm" id="log-banRemove-channel"></select>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div class="card">
-              <div class="card-header d-flex justify-content-between align-items-center">
-                <span>Üye Giriş</span>
-                <div class="form-check form-switch m-0">
-                  <input class="form-check-input" type="checkbox" id="log-memberJoin-enabled">
-                </div>
-              </div>
-              <div class="card-body py-2">
-                <select class="form-select form-select-sm" id="log-memberJoin-channel"></select>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div class="card">
-              <div class="card-header d-flex justify-content-between align-items-center">
-                <span>Üye Çıkış</span>
-                <div class="form-check form-switch m-0">
-                  <input class="form-check-input" type="checkbox" id="log-memberLeave-enabled">
-                </div>
-              </div>
-              <div class="card-body py-2">
-                <select class="form-select form-select-sm" id="log-memberLeave-channel"></select>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div class="card">
-              <div class="card-header d-flex justify-content-between align-items-center">
-                <span>Davet Kayıtları</span>
-                <div class="form-check form-switch m-0">
-                  <input class="form-check-input" type="checkbox" id="log-inviteCreate-enabled">
-                </div>
-              </div>
-              <div class="card-body py-2">
-                <select class="form-select form-select-sm" id="log-inviteCreate-channel"></select>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <button class="btn btn-primary mt-4" onclick="saveLogConfig()">
-          <i class="fas fa-save me-2"></i>Değişiklikleri Kaydet
-        </button>
-      </div>
+      <div class="modal-body" id="modalBody"></div>
+      <div class="modal-footer" id="modalFooter"></div>
     </div>
   </div>
-
-  <div class="toast-container"></div>
-
+  
+  <div class="toast" id="toast">
+    <i class="fas fa-check-circle"></i>
+    <span id="toastMessage">Başarılı!</span>
+  </div>
+  
   <script>
     const guildId = window.location.pathname.split('/').pop();
     let guildData = null;
-    let pluginStates = {
-      leveling: false,
-      welcome: false,
-      automod: false,
-      autopunish: false
+    let settings = {};
+    let modules = {};
+    
+    const features = {
+      basic: [
+        { id: 'welcome', name: 'Hoşgeldin & Hoşçakal', description: 'Yeni üyelerinize otomatik bir karşılama mesajı gönderin ve onlara roller verin. Sunucudan ayrılan üyelere hoşçakal mesajı gönderin.', icon: 'fa-hand-wave', color: 'blue' },
+        { id: 'welcomeChannel', name: 'Karşılama Kanalı', description: 'Yeni üyeleri karşılamak ve gerekli bilgileri paylaşmak için özel bir yer.', icon: 'fa-door-open', color: 'cyan' },
+        { id: 'reactionroles', name: 'Tepki Rol', description: 'Bir mesaja tepki vererek üyelerinizin rol almasına izin verin.', icon: 'fa-icons', color: 'purple' },
+        { id: 'automod', name: 'Moderatör', description: 'Otomatik moderasyon ile sunucunuzu güvende tutun ve güçlü moderasyon araçları ile moderatörlerinizi destekleyin.', icon: 'fa-shield-halved', color: 'green', premium: true },
+        { id: 'leveling', name: 'Seviye', description: 'Üyelerinize mesaj gönderdiklerinde XP ve Seviye verin ve onları aktifliklerine göre sıralama sayfaları oluşturun.', icon: 'fa-arrow-up-right-dots', color: 'yellow' },
+        { id: 'achievements', name: 'Başarımlar', description: 'Üyelerinizin ödül kazanabilmesi için başarı kazanmasına izin verin.', icon: 'fa-medal', color: 'orange' }
+      ],
+      management: [
+        { id: 'automation', name: 'Otomasyon', description: 'Mesajlar, tepkiler ve rol değişiklikleri gibi sunucu olaylarına yanıt olarak bot eylemlerini otomatikleştirin.', icon: 'fa-robot', color: 'blue', premium: true },
+        { id: 'customcommands', name: 'Özel Komutlar', description: 'Kendi metin komutlarınızı veya belirli roller veren komutlarınızı oluşturun.', icon: 'fa-terminal', color: 'purple' },
+        { id: 'invitetracker', name: 'Davet Takibi', description: 'Üyelerinizin topluluğunuza kaç kişi getirdiğini takip edin ve onları bir sıralama sayfasında görüntüleyin.', icon: 'fa-user-plus', color: 'cyan' },
+        { id: 'tickets', name: 'Talep', description: 'Üyelerinizin destek, şikayet ve öneri için talep oluşturmasına izin verin.', icon: 'fa-ticket', color: 'green' }
+      ],
+      tools: [
+        { id: 'embed', name: 'Gömülü Mesaj', description: 'Küçük resimler ve renklerle kurallarınız ile duyurularınız için güzel gömülü mesajları oluşturun.', icon: 'fa-code', color: 'purple', premium: true },
+        { id: 'polls', name: 'Anket', description: 'Üyelerinizin anket oluşturmasına ve oylamasına izin verin.', icon: 'fa-poll', color: 'blue', premium: true },
+        { id: 'search', name: 'Bir Şey Ara', description: 'YouTube videoları, Twitch yayıncıları, animeler ve daha fazlasını aramak için komutlar.', icon: 'fa-search', color: 'red' },
+        { id: 'logging', name: 'Kayıt', description: 'Sunucunuzda gerçekleşen tüm olayları kayıt altına alın ve takip edin.', icon: 'fa-scroll', color: 'green' },
+        { id: 'help', name: 'Yardım', description: 'Sunucunuz için kontrol panelini ve yardım komutlarını etkinleştirin.', icon: 'fa-circle-question', color: 'cyan' },
+        { id: 'reminders', name: 'Hatırlatıcı', description: 'Birkaç dakikada bir veya saatte bir tekrarlanan özel mesajlar gönderin.', icon: 'fa-bell', color: 'yellow' },
+        { id: 'statchannels', name: 'İstatistik Kanalları', description: 'Sunucu istatistiklerinizi ve sosyal medya takipçi sayısını sunucu kanallarınızın kenar çubuğunda görüntüleyin.', icon: 'fa-chart-line', color: 'blue', premium: true },
+        { id: 'tempvoice', name: 'Geçici Kanallar', description: 'Üyelerinizin tek bir tıklamayla sunucunuzda geçici sesli kanallar oluşturmasına izin verin.', icon: 'fa-headphones', color: 'purple', premium: true }
+      ],
+      social: [
+        { id: 'twitch', name: 'Twitch Bildirimleri', description: 'Twitch canlı yayına geçtiğinizde otomatik olarak bir mesaj gönderin ve herkesi bilgilendirin.', icon: 'fa-twitch', iconType: 'fab', color: 'purple' },
+        { id: 'twitter', name: 'X Bildirimleri', description: 'Birisi bir tweet gönderdiğinde otomatik olarak bir mesaj gönderin ve herkesi bilgilendirin.', icon: 'fa-x-twitter', iconType: 'fab', color: 'blue', premium: true },
+        { id: 'youtube', name: 'YouTube Bildirimleri', description: 'Birisi bir YouTube videosu yayınladığında otomatik olarak bir mesaj gönderin ve herkesi bilgilendirin.', icon: 'fa-youtube', iconType: 'fab', color: 'red', premium: true },
+        { id: 'reddit', name: 'Reddit Bildirimleri', description: "Reddit'te bir gönderi paylaşıldığında otomatik mesaj ile bilgilendirin.", icon: 'fa-reddit', iconType: 'fab', color: 'orange', premium: true },
+        { id: 'instagram', name: 'Instagram Bildirimleri', description: 'Instagram hesaplarını takip edin ve yeni gönderiler için bildirim alın.', icon: 'fa-instagram', iconType: 'fab', color: 'pink', premium: true },
+        { id: 'rss', name: 'RSS Bildirimleri', description: 'RSS kaynağında yeni bir içerik yayınlandığında otomatik olarak mesaj gönderin.', icon: 'fa-rss', color: 'orange', premium: true },
+        { id: 'tiktok', name: 'TikTok Bildirimleri', description: 'Birisi bir TikTok videosu yayınladığında otomatik olarak bir mesaj gönderin.', icon: 'fa-tiktok', iconType: 'fab', color: 'cyan', new: true }
+      ],
+      games: [
+        { id: 'giveaway', name: 'Çekiliş', description: 'Sunucunuzda çekilişler düzenleyin ve kazananları otomatik olarak belirleyin.', icon: 'fa-gift', color: 'purple' },
+        { id: 'birthday', name: 'Doğum Günü', description: 'Üyelerinizin doğum günlerini kutlayın ve özel roller verin.', icon: 'fa-cake-candles', color: 'pink' },
+        { id: 'economy', name: 'Ekonomi', description: 'Sanal para sistemi ile üyelerinize eğlenceli bir deneyim sunun.', icon: 'fa-coins', color: 'yellow' }
+      ]
     };
-
-    document.querySelectorAll('.plugin-card').forEach(card => {
-      card.addEventListener('click', (e) => {
-        const tab = card.dataset.tab;
-        document.querySelectorAll('.plugin-card').forEach(c => c.classList.remove('active'));
-        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-        card.classList.add('active');
-        document.getElementById('tab-' + tab).classList.add('active');
-        
-        if (tab === 'commands') loadCommands();
-        if (tab === 'modlog') loadModlog();
-        if (tab === 'logsystem') loadLogConfig();
-        if (tab === 'leaderboard') loadLeaderboard();
-        if (tab === 'leveling') loadLevelingStats();
-        if (tab === 'scheduled') {
-          populateScheduledChannels();
-          loadScheduledMessages();
+    
+    async function init() {
+      try {
+        const userRes = await fetch('/api/user');
+        if (!userRes.ok) {
+          window.location.href = '/';
+          return;
         }
-      });
-    });
-
-    function togglePlugin(plugin) {
-      pluginStates[plugin] = !pluginStates[plugin];
-      const toggle = document.getElementById('toggle-' + plugin);
-      toggle.classList.toggle('active', pluginStates[plugin]);
-      
-      const checkbox = document.getElementById(plugin + 'Enabled');
-      if (checkbox) checkbox.checked = pluginStates[plugin];
-      
-      savePluginState(plugin, pluginStates[plugin]);
-    }
-
-    async function savePluginState(plugin, enabled) {
-      try {
-        const body = {};
-        if (plugin === 'leveling') body.levelingEnabled = enabled;
-        if (plugin === 'welcome') body.welcomeEnabled = enabled;
-        if (plugin === 'automod') body.automodConfig = { enabled };
-        if (plugin === 'autopunish') body.autoPunishments = { enabled };
+        const user = await userRes.json();
+        document.getElementById('userAvatar').src = user.avatar 
+          ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`
+          : 'https://cdn.discordapp.com/embed/avatars/0.png';
         
-        await fetch(`/api/guild/${guildId}/settings`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body)
-        });
-        showToast(enabled ? 'Özellik aktif edildi!' : 'Özellik kapatıldı!');
-      } catch (error) {
-        showToast('Kaydetme hatası', 'danger');
-      }
-    }
-
-    function showToast(message, type = 'success') {
-      const toast = document.createElement('div');
-      toast.className = `alert alert-${type} mb-2`;
-      toast.style.cssText = 'animation: slideIn 0.3s ease;';
-      toast.textContent = message;
-      document.querySelector('.toast-container').appendChild(toast);
-      setTimeout(() => {
-        toast.style.opacity = '0';
-        setTimeout(() => toast.remove(), 300);
-      }, 3000);
-    }
-
-    async function loadGuild() {
-      try {
-        const res = await fetch(`/api/guild/${guildId}`);
-        if (!res.ok) {
+        const guildRes = await fetch(`/api/guild/${guildId}`);
+        if (!guildRes.ok) {
           window.location.href = '/dashboard';
           return;
         }
-        guildData = await res.json();
+        guildData = await guildRes.json();
+        settings = guildData.settings || {};
+        modules = settings.modules || {};
         
-        const iconUrl = guildData.icon || '';
-        document.getElementById('guild-header').innerHTML = `
-          <div class="guild-icon">
-            ${iconUrl ? `<img src="${iconUrl}" onerror="this.parentElement.textContent='${guildData.name.charAt(0)}'">` : guildData.name.charAt(0)}
-          </div>
-          <div>
-            <div class="guild-name">${guildData.name}</div>
-            <div class="guild-members">${guildData.memberCount.toLocaleString()} üye</div>
+        document.getElementById('guildNameSmall').textContent = guildData.name;
+        const iconEl = document.getElementById('guildIconSmall');
+        if (guildData.icon) {
+          iconEl.innerHTML = `<img src="${guildData.icon}" alt="">`;
+        } else {
+          iconEl.textContent = guildData.name.charAt(0);
+        }
+        
+        document.getElementById('loadingContainer').style.display = 'none';
+        document.getElementById('featuresPage').style.display = 'block';
+        
+        renderFeatures();
+        setupEventListeners();
+        populateSettingsSelects();
+      } catch (error) {
+        console.error('Init error:', error);
+        showToast('Bir hata oluştu', 'error');
+      }
+    }
+    
+    function populateSettingsSelects() {
+      const channelOptions = '<option value="">Kanal Seçin</option>' + 
+        guildData.channels.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+      const roleOptions = '<option value="">Rol Seçin</option>' + 
+        guildData.roles.map(r => `<option value="${r.id}">${r.name}</option>`).join('');
+      
+      document.getElementById('settingsLogChannel').innerHTML = channelOptions;
+      document.getElementById('settingsAutoRole').innerHTML = roleOptions;
+      document.getElementById('settingsMuteRole').innerHTML = roleOptions;
+      
+      if (settings.logChannel) document.getElementById('settingsLogChannel').value = settings.logChannel;
+      if (settings.autoRole) document.getElementById('settingsAutoRole').value = settings.autoRole;
+      if (settings.muteRole) document.getElementById('settingsMuteRole').value = settings.muteRole;
+    }
+    
+    function renderFeatures() {
+      renderFeatureCards('basicFeatures', features.basic);
+      renderFeatureCards('managementFeatures', features.management);
+      renderFeatureCards('toolsFeatures', features.tools);
+      renderFeatureCards('socialFeatures', features.social);
+      renderFeatureCards('gamesFeatures', features.games);
+    }
+    
+    function renderFeatureCards(containerId, featureList) {
+      const container = document.getElementById(containerId);
+      container.innerHTML = featureList.map(feature => {
+        const isActive = modules[feature.id] === true;
+        const iconClass = feature.iconType === 'fab' ? 'fab' : 'fas';
+        
+        return `
+          <div class="feature-card ${isActive ? 'active' : ''} ${feature.premium ? 'premium' : ''}" data-feature="${feature.id}">
+            ${feature.premium ? '<span class="feature-badge premium"><i class="fas fa-crown"></i> Premium</span>' : ''}
+            ${feature.new ? '<span class="feature-badge new"><i class="fas fa-sparkles"></i> Yeni</span>' : ''}
+            ${isActive ? '<span class="feature-badge active"><i class="fas fa-check"></i> Aktif</span>' : ''}
+            <div class="feature-header">
+              <div class="feature-icon ${feature.color}">
+                <i class="${iconClass} ${feature.icon}"></i>
+              </div>
+              <div>
+                <h3 class="feature-title">${feature.name}</h3>
+              </div>
+            </div>
+            <p class="feature-description">${feature.description}</p>
+            <div class="feature-actions">
+              ${isActive 
+                ? `<button class="btn btn-success" onclick="openFeatureSettings('${feature.id}')"><i class="fas fa-check"></i> Aktif</button>`
+                : `<button class="btn btn-primary" onclick="enableFeature('${feature.id}')"><i class="fas fa-plus"></i> Etkinleştir</button>`
+              }
+            </div>
           </div>
         `;
-
-        const channelSelects = ['logChannel', 'welcomeChannel', 'levelUpChannel'];
-        channelSelects.forEach(id => {
-          const select = document.getElementById(id);
-          if (!select) return;
-          guildData.channels.forEach(ch => {
-            const opt = document.createElement('option');
-            opt.value = ch.id;
-            opt.textContent = '#' + ch.name;
-            select.appendChild(opt);
-          });
-        });
-
-        const roleSelects = ['autoRole', 'newRewardRole'];
-        roleSelects.forEach(id => {
-          const select = document.getElementById(id);
-          if (!select) return;
-          guildData.roles.forEach(role => {
-            const opt = document.createElement('option');
-            opt.value = role.id;
-            opt.textContent = role.name;
-            select.appendChild(opt);
-          });
-        });
-
-        const settings = guildData.settings || {};
-        document.getElementById('logChannel').value = settings.logChannel || '';
-        document.getElementById('autoRole').value = settings.autoRole || '';
-        document.getElementById('welcomeChannel').value = settings.welcomeChannel || '';
-        document.getElementById('welcomeMessage').value = settings.welcomeMessage || '';
-
-        const automod = settings.automodConfig || {};
-        document.getElementById('automodEnabled').checked = automod.enabled || false;
-        document.getElementById('spamFilter').checked = automod.spamFilter?.enabled || false;
-        document.getElementById('capsFilter').checked = automod.capsFilter?.enabled || false;
-        document.getElementById('linkFilter').checked = automod.linkFilter?.enabled || false;
-        document.getElementById('inviteFilter').checked = automod.inviteFilter?.enabled || false;
-        document.getElementById('mentionSpam').checked = automod.mentionSpam?.enabled || false;
-        document.getElementById('emojiSpam').checked = automod.emojiSpam?.enabled || false;
-        document.getElementById('badWords').value = (automod.badWords?.words || []).join(', ');
-
-        const autopunish = settings.autoPunishments || { enabled: false, rules: [] };
-        document.getElementById('autopunishEnabled').checked = autopunish.enabled;
-        renderPunishRules(autopunish.rules || []);
-
-        const leveling = settings.levelingConfig || {};
-        document.getElementById('levelingEnabled').checked = leveling.enabled || false;
-        document.getElementById('xpMin').value = leveling.xpMin || 15;
-        document.getElementById('xpMax').value = leveling.xpMax || 25;
-        document.getElementById('xpCooldown').value = leveling.cooldown || 60;
-        document.getElementById('levelUpChannel').value = leveling.announceChannel || '';
-        document.getElementById('levelUpDM').checked = leveling.dmNotify || false;
-        document.getElementById('levelUpMessage').value = leveling.levelUpMessage || 'Tebrikler {user}! Seviye {level}\'e ulaştın!';
-        document.getElementById('welcomeEnabled').checked = settings.welcomeEnabled || false;
-
-        pluginStates.leveling = leveling.enabled || false;
-        pluginStates.welcome = settings.welcomeEnabled || false;
-        pluginStates.automod = automod.enabled || false;
-        pluginStates.autopunish = autopunish.enabled || false;
-
-        Object.keys(pluginStates).forEach(plugin => {
-          const toggle = document.getElementById('toggle-' + plugin);
-          if (toggle) toggle.classList.toggle('active', pluginStates[plugin]);
-        });
-
-        loadLevelRewards();
-
-      } catch (error) {
-        console.error(error);
-        showToast('Sunucu yüklenemedi', 'danger');
-      }
+      }).join('');
     }
-
-    async function loadLevelingStats() {
-      try {
-        const res = await fetch(`/api/guild/${guildId}/leveling/stats`);
-        if (res.ok) {
-          const stats = await res.json();
-          document.getElementById('stat-total-xp').textContent = stats.totalXp?.toLocaleString() || '0';
-          document.getElementById('stat-active-users').textContent = stats.activeUsers?.toLocaleString() || '0';
-          document.getElementById('stat-avg-level').textContent = stats.avgLevel || '0';
-          document.getElementById('stat-level-roles').textContent = stats.levelRoles || '0';
-        }
-        loadLevelRewards();
-      } catch (error) {
-        console.error('Stats load error:', error);
-      }
-    }
-
-    async function loadLevelRewards() {
-      try {
-        const res = await fetch(`/api/guild/${guildId}/levelrewards`);
-        const rewards = await res.json();
-        const container = document.getElementById('level-rewards-list');
-        
-        if (!rewards || rewards.length === 0) {
-          container.innerHTML = '<p class="text-muted text-center py-2">Henüz seviye ödülü eklenmedi. Yukarıdan yeni ödül ekleyebilirsiniz.</p>';
-          return;
-        }
-        
-        const sortedRewards = rewards.sort((a, b) => a.level - b.level);
-        
-        container.innerHTML = sortedRewards.map(reward => {
-          const role = guildData?.roles?.find(r => r.id === reward.roleId);
-          const roleName = role ? role.name : 'Bilinmeyen Rol';
-          const roleColor = role?.color || '#7289da';
-          
-          return `
-            <div class="level-role-item">
-              <div class="d-flex align-items-center gap-3">
-                <div class="level-badge">Lvl ${reward.level}</div>
-                <div>
-                  <i class="fas fa-arrow-right text-muted mx-2"></i>
-                </div>
-                <div style="color: ${roleColor}; font-weight: 600;">
-                  <i class="fas fa-at me-1"></i>${roleName}
-                </div>
-              </div>
-              <button class="btn btn-outline-danger btn-sm" onclick="deleteLevelReward(${reward.level})">
-                <i class="fas fa-trash"></i>
-              </button>
-            </div>
-          `;
-        }).join('');
-      } catch (error) {
-        console.error('Level rewards load error:', error);
-        document.getElementById('level-rewards-list').innerHTML = '<p class="text-muted text-center">Yüklenirken hata oluştu.</p>';
-      }
-    }
-
-    async function addLevelReward() {
-      const level = parseInt(document.getElementById('newRewardLevel').value);
-      const roleId = document.getElementById('newRewardRole').value;
+    
+    function setupEventListeners() {
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          filterFeatures(btn.dataset.tab);
+        });
+      });
       
-      if (!level || level < 1) {
-        showToast('Geçerli bir seviye girin!', 'warning');
-        return;
-      }
-      
-      if (!roleId) {
-        showToast('Bir rol seçin!', 'warning');
-        return;
-      }
-      
-      try {
-        const res = await fetch(`/api/guild/${guildId}/levelrewards`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ level, roleId })
+      document.querySelectorAll('.nav-item[data-page]').forEach(item => {
+        item.addEventListener('click', () => {
+          document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+          item.classList.add('active');
+          navigateTo(item.dataset.page);
         });
+      });
+      
+      document.querySelectorAll('.nav-item[data-feature]').forEach(item => {
+        item.addEventListener('click', () => {
+          document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+          item.classList.add('active');
+          openFeatureSettings(item.dataset.feature);
+        });
+      });
+      
+      document.getElementById('guildDropdown').addEventListener('click', () => {
+        window.location.href = '/dashboard';
+      });
+    }
+    
+    function filterFeatures(tab) {
+      const sections = ['basicSection', 'managementSection', 'toolsSection', 'socialSection', 'gamesSection'];
+      
+      if (tab === 'all') {
+        sections.forEach(s => document.getElementById(s).style.display = 'block');
+      } else {
+        const mapping = {
+          basic: ['basicSection'],
+          popular: ['basicSection', 'managementSection'],
+          management: ['managementSection'],
+          tools: ['toolsSection'],
+          social: ['socialSection'],
+          games: ['gamesSection']
+        };
         
-        if (res.ok) {
-          document.getElementById('newRewardLevel').value = '';
-          document.getElementById('newRewardRole').value = '';
-          loadLevelRewards();
-          loadLevelingStats();
-          showToast(`Seviye ${level} için rol ödülü eklendi!`);
-        } else {
-          showToast('Ödül eklenirken hata oluştu', 'danger');
-        }
-      } catch (error) {
-        console.error('Add reward error:', error);
-        showToast('Ödül eklenirken hata oluştu', 'danger');
+        sections.forEach(s => {
+          document.getElementById(s).style.display = mapping[tab]?.includes(s) ? 'block' : 'none';
+        });
       }
     }
-
-    async function deleteLevelReward(level) {
-      if (!confirm(`Seviye ${level} ödülünü silmek istediğinize emin misiniz?`)) {
-        return;
-      }
+    
+    function navigateTo(page) {
+      document.getElementById('featuresPage').style.display = 'none';
+      document.getElementById('leaderboardPage').style.display = 'none';
+      document.getElementById('settingsPage').style.display = 'none';
       
-      try {
-        const res = await fetch(`/api/guild/${guildId}/levelrewards/${level}`, {
-          method: 'DELETE'
-        });
-        
-        if (res.ok) {
-          loadLevelRewards();
-          loadLevelingStats();
-          showToast(`Seviye ${level} ödülü silindi!`);
-        } else {
-          showToast('Silme işlemi başarısız', 'danger');
-        }
-      } catch (error) {
-        console.error('Delete reward error:', error);
-        showToast('Silme işlemi başarısız', 'danger');
+      if (page === 'features') {
+        document.getElementById('pageTitle').textContent = 'Özellikler';
+        document.getElementById('featuresPage').style.display = 'block';
+      } else if (page === 'leaderboard') {
+        document.getElementById('pageTitle').textContent = 'Sıralama';
+        document.getElementById('leaderboardPage').style.display = 'block';
+        loadLeaderboard();
+      } else if (page === 'settings') {
+        document.getElementById('pageTitle').textContent = 'Ayarlar';
+        document.getElementById('settingsPage').style.display = 'block';
       }
     }
-
+    
     async function loadLeaderboard() {
       try {
         const res = await fetch(`/api/guild/${guildId}/leaderboard`);
         const data = await res.json();
-        const container = document.getElementById('leaderboard-list');
         
-        if (!data || data.length === 0) {
-          container.innerHTML = '<p class="text-muted text-center py-4">Henüz sıralamada kimse yok.</p>';
+        const container = document.getElementById('leaderboardContent');
+        if (data.length === 0) {
+          container.innerHTML = '<div class="feature-card"><p>Henüz sıralama verisi yok.</p></div>';
           return;
         }
         
-        container.innerHTML = data.map((user, i) => {
-          const rankClass = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : 'normal';
-          const progress = ((user.xp - user.currentLevelXp) / (user.nextLevelXp - user.currentLevelXp) * 100) || 0;
+        container.innerHTML = data.map((user, index) => {
+          const progress = ((user.xp - user.currentLevelXp) / (user.nextLevelXp - user.currentLevelXp)) * 100;
+          const rankClass = index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? 'bronze' : '';
           
           return `
-            <div class="leaderboard-item">
-              <div class="leaderboard-rank ${rankClass}">${i + 1}</div>
-              <div class="leaderboard-avatar" style="background: linear-gradient(135deg, #${Math.floor(Math.random()*16777215).toString(16)} 0%, #${Math.floor(Math.random()*16777215).toString(16)} 100%)"></div>
-              <div class="leaderboard-info">
-                <div class="leaderboard-name">${user.username || 'Bilinmeyen Kullanıcı'}</div>
-                <div class="leaderboard-stats">
-                  ${user.xp.toLocaleString()} XP
-                  <div class="xp-bar" style="width: 150px; display: inline-block; vertical-align: middle; margin-left: 10px;">
-                    <div class="xp-progress" style="width: ${progress}%"></div>
+            <div class="feature-card" style="margin-bottom: 12px; padding: 16px;">
+              <div style="display: flex; align-items: center; gap: 16px;">
+                <div style="width: 40px; height: 40px; border-radius: 50%; background: ${rankClass ? 'var(--accent-' + (rankClass === 'gold' ? 'yellow' : rankClass === 'silver' ? 'blue' : 'orange') + ')' : 'var(--bg-tertiary)'}; display: flex; align-items: center; justify-content: center; font-weight: 700; color: ${rankClass ? '#000' : 'var(--text-secondary)'};">
+                  ${index + 1}
+                </div>
+                <div style="flex: 1;">
+                  <div style="font-weight: 600;">${user.username}</div>
+                  <div style="font-size: 13px; color: var(--text-secondary);">Seviye ${user.level} - ${user.xp} XP</div>
+                  <div style="height: 6px; background: var(--bg-tertiary); border-radius: 3px; margin-top: 8px; overflow: hidden;">
+                    <div style="height: 100%; width: ${progress}%; background: var(--accent-blue); border-radius: 3px;"></div>
                   </div>
                 </div>
+                <div style="background: var(--accent-blue); padding: 6px 14px; border-radius: 20px; font-weight: 600; font-size: 14px;">
+                  LVL ${user.level}
+                </div>
               </div>
-              <div class="level-badge">Lvl ${user.level}</div>
             </div>
           `;
         }).join('');
       } catch (error) {
         console.error('Leaderboard error:', error);
-        document.getElementById('leaderboard-list').innerHTML = '<p class="text-muted text-center py-4">Yüklenirken hata oluştu.</p>';
       }
     }
-
-    async function saveGeneral() {
+    
+    async function enableFeature(featureId) {
+      modules[featureId] = true;
+      
       try {
         await fetch(`/api/guild/${guildId}/settings`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            logChannel: document.getElementById('logChannel').value || null,
-            autoRole: document.getElementById('autoRole').value || null
-          })
+          body: JSON.stringify({ modules })
         });
-        showToast('Ayarlar kaydedildi!');
+        
+        showToast('Özellik etkinleştirildi!', 'success');
+        renderFeatures();
       } catch (error) {
-        showToast('Kaydetme hatası', 'danger');
+        showToast('Hata oluştu', 'error');
       }
     }
-
-    async function saveLeveling() {
+    
+    async function disableFeature(featureId) {
+      modules[featureId] = false;
+      
       try {
         await fetch(`/api/guild/${guildId}/settings`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            levelingConfig: {
-              enabled: document.getElementById('levelingEnabled').checked,
-              xpMin: parseInt(document.getElementById('xpMin').value) || 15,
-              xpMax: parseInt(document.getElementById('xpMax').value) || 25,
-              cooldown: parseInt(document.getElementById('xpCooldown').value) || 60,
-              announceChannel: document.getElementById('levelUpChannel').value || null,
-              dmNotify: document.getElementById('levelUpDM').checked,
-              levelUpMessage: document.getElementById('levelUpMessage').value || 'Tebrikler {user}! Seviye {level}\'e ulaştın!'
-            }
-          })
+          body: JSON.stringify({ modules })
         });
         
-        pluginStates.leveling = document.getElementById('levelingEnabled').checked;
-        document.getElementById('toggle-leveling').classList.toggle('active', pluginStates.leveling);
-        
-        showToast('Seviye ayarları kaydedildi!');
+        showToast('Özellik devre dışı bırakıldı', 'success');
+        renderFeatures();
+        closeModal();
       } catch (error) {
-        showToast('Kaydetme hatası', 'danger');
+        showToast('Hata oluştu', 'error');
       }
     }
-
-    async function saveWelcome() {
-      try {
-        await fetch(`/api/guild/${guildId}/settings`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            welcomeEnabled: document.getElementById('welcomeEnabled').checked,
-            welcomeChannel: document.getElementById('welcomeChannel').value || null,
-            welcomeMessage: document.getElementById('welcomeMessage').value || null
-          })
-        });
+    
+    function openFeatureSettings(featureId) {
+      const allFeatures = [...features.basic, ...features.management, ...features.tools, ...features.social, ...features.games];
+      const feature = allFeatures.find(f => f.id === featureId);
+      
+      if (!feature) return;
+      
+      document.getElementById('modalTitle').textContent = feature.name + ' Ayarları';
+      
+      let bodyContent = '';
+      let footerContent = '';
+      
+      switch (featureId) {
+        case 'welcome':
+          bodyContent = `
+            <div class="form-group">
+              <label class="form-label">Hoşgeldin Kanalı</label>
+              <select class="form-select" id="welcomeChannel">
+                <option value="">Kanal Seçin</option>
+                ${guildData.channels.map(c => `<option value="${c.id}" ${settings.welcomeChannel === c.id ? 'selected' : ''}>${c.name}</option>`).join('')}
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Hoşgeldin Mesajı</label>
+              <textarea class="form-textarea" id="welcomeMessage" placeholder="Hoş geldin {user}! {server} sunucusuna katıldın.">${settings.welcomeMessage || ''}</textarea>
+              <small style="color: var(--text-muted);">{user} = Kullanıcı, {server} = Sunucu, {memberCount} = Üye sayısı</small>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Hoşçakal Kanalı</label>
+              <select class="form-select" id="goodbyeChannel">
+                <option value="">Kanal Seçin</option>
+                ${guildData.channels.map(c => `<option value="${c.id}" ${settings.goodbyeChannel === c.id ? 'selected' : ''}>${c.name}</option>`).join('')}
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Hoşçakal Mesajı</label>
+              <textarea class="form-textarea" id="goodbyeMessage" placeholder="Güle güle {user}!">${settings.goodbyeMessage || ''}</textarea>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Otomatik Rol</label>
+              <select class="form-select" id="autoRole">
+                <option value="">Rol Seçin</option>
+                ${guildData.roles.map(r => `<option value="${r.id}" ${settings.autoRole === r.id ? 'selected' : ''}>${r.name}</option>`).join('')}
+              </select>
+            </div>
+          `;
+          footerContent = `
+            <button class="btn btn-outline" onclick="disableFeature('welcome')">Devre Dışı Bırak</button>
+            <button class="btn btn-primary" onclick="saveWelcomeSettings()">Kaydet</button>
+          `;
+          break;
+          
+        case 'leveling':
+          bodyContent = `
+            <div class="form-group">
+              <label class="form-label">Seviye Atlama Bildirimi Kanalı</label>
+              <select class="form-select" id="levelUpChannel">
+                <option value="">Mevcut Kanal</option>
+                ${guildData.channels.map(c => `<option value="${c.id}" ${settings.levelUpChannel === c.id ? 'selected' : ''}>${c.name}</option>`).join('')}
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Seviye Atlama Mesajı</label>
+              <textarea class="form-textarea" id="levelUpMessage" placeholder="Tebrikler {user}! Artık seviye {level} oldun!">${settings.levelUpMessage || ''}</textarea>
+            </div>
+            <div class="form-group">
+              <label class="form-label">XP Çarpanı</label>
+              <input type="number" class="form-input" id="xpMultiplier" value="${settings.xpMultiplier || 1}" min="1" max="5">
+            </div>
+          `;
+          footerContent = `
+            <button class="btn btn-outline" onclick="disableFeature('leveling')">Devre Dışı Bırak</button>
+            <button class="btn btn-primary" onclick="saveLevelingSettings()">Kaydet</button>
+          `;
+          break;
+          
+        case 'automod':
+          bodyContent = `
+            <div class="form-group" style="display: flex; justify-content: space-between; align-items: center;">
+              <label class="form-label" style="margin: 0;">Küfür Filtresi</label>
+              <div class="toggle-switch ${settings.automodConfig?.badWords ? 'active' : ''}" onclick="this.classList.toggle('active')" id="badWordsToggle"></div>
+            </div>
+            <div class="form-group" style="display: flex; justify-content: space-between; align-items: center;">
+              <label class="form-label" style="margin: 0;">Spam Filtresi</label>
+              <div class="toggle-switch ${settings.automodConfig?.spam ? 'active' : ''}" onclick="this.classList.toggle('active')" id="spamToggle"></div>
+            </div>
+            <div class="form-group" style="display: flex; justify-content: space-between; align-items: center;">
+              <label class="form-label" style="margin: 0;">Link Filtresi</label>
+              <div class="toggle-switch ${settings.automodConfig?.links ? 'active' : ''}" onclick="this.classList.toggle('active')" id="linksToggle"></div>
+            </div>
+            <div class="form-group" style="display: flex; justify-content: space-between; align-items: center;">
+              <label class="form-label" style="margin: 0;">Büyük Harf Filtresi</label>
+              <div class="toggle-switch ${settings.automodConfig?.caps ? 'active' : ''}" onclick="this.classList.toggle('active')" id="capsToggle"></div>
+            </div>
+          `;
+          footerContent = `
+            <button class="btn btn-outline" onclick="disableFeature('automod')">Devre Dışı Bırak</button>
+            <button class="btn btn-primary" onclick="saveAutomodSettings()">Kaydet</button>
+          `;
+          break;
+          
+        case 'logging':
+          bodyContent = `
+            <div class="form-group">
+              <label class="form-label">Log Kanalı</label>
+              <select class="form-select" id="logChannel">
+                <option value="">Kanal Seçin</option>
+                ${guildData.channels.map(c => `<option value="${c.id}" ${settings.logChannel === c.id ? 'selected' : ''}>${c.name}</option>`).join('')}
+              </select>
+            </div>
+            <h4 style="margin: 20px 0 12px; font-size: 14px;">Log Türleri</h4>
+            <div class="form-group" style="display: flex; justify-content: space-between; align-items: center;">
+              <label class="form-label" style="margin: 0;">Mesaj Silme</label>
+              <div class="toggle-switch ${settings.logConfig?.messageDelete ? 'active' : ''}" onclick="this.classList.toggle('active')" id="logMessageDelete"></div>
+            </div>
+            <div class="form-group" style="display: flex; justify-content: space-between; align-items: center;">
+              <label class="form-label" style="margin: 0;">Mesaj Düzenleme</label>
+              <div class="toggle-switch ${settings.logConfig?.messageEdit ? 'active' : ''}" onclick="this.classList.toggle('active')" id="logMessageEdit"></div>
+            </div>
+            <div class="form-group" style="display: flex; justify-content: space-between; align-items: center;">
+              <label class="form-label" style="margin: 0;">Üye Katılma/Ayrılma</label>
+              <div class="toggle-switch ${settings.logConfig?.memberJoinLeave ? 'active' : ''}" onclick="this.classList.toggle('active')" id="logMemberJoinLeave"></div>
+            </div>
+            <div class="form-group" style="display: flex; justify-content: space-between; align-items: center;">
+              <label class="form-label" style="margin: 0;">Rol Değişiklikleri</label>
+              <div class="toggle-switch ${settings.logConfig?.roleChanges ? 'active' : ''}" onclick="this.classList.toggle('active')" id="logRoleChanges"></div>
+            </div>
+          `;
+          footerContent = `
+            <button class="btn btn-outline" onclick="disableFeature('logging')">Devre Dışı Bırak</button>
+            <button class="btn btn-primary" onclick="saveLoggingSettings()">Kaydet</button>
+          `;
+          break;
         
-        pluginStates.welcome = document.getElementById('welcomeEnabled').checked;
-        document.getElementById('toggle-welcome').classList.toggle('active', pluginStates.welcome);
-        
-        showToast('Hoş geldin ayarları kaydedildi!');
-      } catch (error) {
-        showToast('Kaydetme hatası', 'danger');
+        case 'customcommands':
+          loadCustomCommands();
+          bodyContent = `
+            <div id="customCommandsList"></div>
+            <h4 style="margin: 20px 0 12px; font-size: 14px;">Yeni Komut Ekle</h4>
+            <div class="form-group">
+              <label class="form-label">Komut Adı</label>
+              <input type="text" class="form-input" id="newCommandName" placeholder="merhaba">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Yanıt</label>
+              <textarea class="form-textarea" id="newCommandResponse" placeholder="Merhaba {user}!"></textarea>
+            </div>
+            <button class="btn btn-primary" onclick="addCustomCommand()"><i class="fas fa-plus"></i> Ekle</button>
+          `;
+          footerContent = `
+            <button class="btn btn-outline" onclick="disableFeature('customcommands')">Devre Dışı Bırak</button>
+            <button class="btn btn-primary" onclick="closeModal()">Tamam</button>
+          `;
+          break;
+          
+        case 'giveaway':
+          bodyContent = `
+            <p style="color: var(--text-secondary); margin-bottom: 16px;">Çekiliş sistemi aktif. Bot komutlarını kullanarak çekiliş oluşturabilirsiniz:</p>
+            <div class="feature-card" style="background: var(--bg-tertiary);">
+              <p><strong>!çekiliş &lt;süre&gt; &lt;ödül&gt;</strong> - Yeni çekiliş başlatır</p>
+              <p><strong>!groll &lt;mesaj_id&gt;</strong> - Çekilişi yeniden çeker</p>
+              <p><strong>!gend &lt;mesaj_id&gt;</strong> - Çekilişi erken bitirir</p>
+            </div>
+          `;
+          footerContent = `
+            <button class="btn btn-outline" onclick="disableFeature('giveaway')">Devre Dışı Bırak</button>
+            <button class="btn btn-primary" onclick="closeModal()">Tamam</button>
+          `;
+          break;
+          
+        default:
+          bodyContent = `
+            <p style="color: var(--text-secondary);">Bu özellik aktif durumda.</p>
+            <p style="color: var(--text-muted); font-size: 13px; margin-top: 12px;">Bot komutlarını kullanarak bu özelliği yönetebilirsiniz. Daha fazla ayar yakında eklenecek.</p>
+          `;
+          footerContent = `
+            <button class="btn btn-outline" onclick="disableFeature('${featureId}')">Devre Dışı Bırak</button>
+            <button class="btn btn-primary" onclick="closeModal()">Tamam</button>
+          `;
       }
+      
+      document.getElementById('modalBody').innerHTML = bodyContent;
+      document.getElementById('modalFooter').innerHTML = footerContent;
+      document.getElementById('modalOverlay').classList.add('active');
     }
-
-    async function saveAutomod() {
-      const words = document.getElementById('badWords').value.split(',').map(w => w.trim()).filter(w => w);
-      try {
-        await fetch(`/api/guild/${guildId}/settings`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            automodConfig: {
-              enabled: document.getElementById('automodEnabled').checked,
-              spamFilter: { enabled: document.getElementById('spamFilter').checked, maxMessages: 5, interval: 5000, action: 'warn' },
-              capsFilter: { enabled: document.getElementById('capsFilter').checked, threshold: 70, minLength: 10, action: 'delete' },
-              linkFilter: { enabled: document.getElementById('linkFilter').checked, whitelist: [], action: 'delete' },
-              inviteFilter: { enabled: document.getElementById('inviteFilter').checked, action: 'delete' },
-              mentionSpam: { enabled: document.getElementById('mentionSpam').checked, maxMentions: 5, action: 'warn' },
-              emojiSpam: { enabled: document.getElementById('emojiSpam').checked, maxEmojis: 10, action: 'delete' },
-              badWords: { enabled: words.length > 0, words, action: 'delete' }
-            }
-          })
-        });
-        
-        pluginStates.automod = document.getElementById('automodEnabled').checked;
-        document.getElementById('toggle-automod').classList.toggle('active', pluginStates.automod);
-        
-        showToast('AutoMod ayarları kaydedildi!');
-      } catch (error) {
-        showToast('Kaydetme hatası', 'danger');
-      }
-    }
-
-    function renderPunishRules(rules) {
-      const container = document.getElementById('autopunish-rules');
-      if (rules.length === 0) {
-        container.innerHTML = '<p class="text-muted">Henüz kural eklenmedi.</p>';
-        return;
-      }
-      container.innerHTML = rules.map((r, i) => `
-        <div class="d-flex align-items-center gap-2 mb-2">
-          <input type="number" class="form-control" style="width:80px" value="${r.warnings}" data-index="${i}" data-field="warnings">
-          <span class="text-muted">uyarıda</span>
-          <select class="form-select" style="width:130px" data-index="${i}" data-field="action">
-            <option value="mute" ${r.action === 'mute' ? 'selected' : ''}>Sustur</option>
-            <option value="kick" ${r.action === 'kick' ? 'selected' : ''}>At</option>
-            <option value="ban" ${r.action === 'ban' ? 'selected' : ''}>Yasakla</option>
-          </select>
-          <button class="btn btn-outline-danger btn-sm" onclick="removePunishRule(${i})"><i class="fas fa-trash"></i></button>
-        </div>
-      `).join('');
-    }
-
-    function addPunishRule() {
-      const rules = getPunishRules();
-      rules.push({ warnings: 3, action: 'mute' });
-      renderPunishRules(rules);
-    }
-
-    function removePunishRule(index) {
-      const rules = getPunishRules();
-      rules.splice(index, 1);
-      renderPunishRules(rules);
-    }
-
-    function getPunishRules() {
-      const rules = [];
-      document.querySelectorAll('#autopunish-rules .d-flex').forEach((row) => {
-        const warningsInput = row.querySelector('[data-field="warnings"]');
-        const actionSelect = row.querySelector('[data-field="action"]');
-        if (warningsInput && actionSelect) {
-          rules.push({
-            warnings: parseInt(warningsInput.value),
-            action: actionSelect.value
-          });
-        }
-      });
-      return rules;
-    }
-
-    async function saveAutopunish() {
-      try {
-        await fetch(`/api/guild/${guildId}/settings`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            autoPunishments: {
-              enabled: document.getElementById('autopunishEnabled').checked,
-              rules: getPunishRules()
-            }
-          })
-        });
-        
-        pluginStates.autopunish = document.getElementById('autopunishEnabled').checked;
-        document.getElementById('toggle-autopunish').classList.toggle('active', pluginStates.autopunish);
-        
-        showToast('Otomatik ceza ayarları kaydedildi!');
-      } catch (error) {
-        showToast('Kaydetme hatası', 'danger');
-      }
-    }
-
-    async function loadCommands() {
+    
+    async function loadCustomCommands() {
       try {
         const res = await fetch(`/api/guild/${guildId}/commands`);
         const commands = await res.json();
-        const container = document.getElementById('commands-list');
         
+        const container = document.getElementById('customCommandsList');
         if (commands.length === 0) {
-          container.innerHTML = '<p class="text-muted text-center">Henüz özel komut yok.</p>';
+          container.innerHTML = '<p style="color: var(--text-muted);">Henüz özel komut yok.</p>';
           return;
         }
         
         container.innerHTML = commands.map(cmd => `
-          <div class="command-item">
+          <div class="feature-card" style="background: var(--bg-tertiary); margin-bottom: 8px; padding: 12px; display: flex; justify-content: space-between; align-items: center;">
             <div>
               <strong>!${cmd.name}</strong>
-              <p class="text-muted mb-0 small">${cmd.response}</p>
+              <p style="font-size: 12px; color: var(--text-muted); margin: 4px 0 0;">${cmd.response.substring(0, 50)}...</p>
             </div>
-            <button class="btn btn-outline-danger btn-sm" onclick="deleteCommand('${cmd.name}')">
+            <button class="btn btn-outline" style="padding: 6px 12px;" onclick="deleteCustomCommand('${cmd.name}')">
               <i class="fas fa-trash"></i>
             </button>
           </div>
         `).join('');
       } catch (error) {
-        console.error(error);
+        console.error('Commands error:', error);
       }
     }
-
-    async function addCommand() {
-      const name = document.getElementById('newCmdName').value.trim().replace('!', '');
-      const response = document.getElementById('newCmdResponse').value.trim();
+    
+    async function addCustomCommand() {
+      const name = document.getElementById('newCommandName').value.trim();
+      const response = document.getElementById('newCommandResponse').value.trim();
       
       if (!name || !response) {
-        showToast('Komut adı ve yanıt gerekli!', 'warning');
+        showToast('Lütfen tüm alanları doldurun', 'error');
         return;
       }
       
@@ -1649,195 +775,128 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ name, response })
         });
-        document.getElementById('newCmdName').value = '';
-        document.getElementById('newCmdResponse').value = '';
-        loadCommands();
-        showToast('Komut eklendi!');
+        
+        showToast('Komut eklendi!', 'success');
+        document.getElementById('newCommandName').value = '';
+        document.getElementById('newCommandResponse').value = '';
+        loadCustomCommands();
       } catch (error) {
-        showToast('Ekleme hatası', 'danger');
+        showToast('Hata oluştu', 'error');
       }
     }
-
-    async function deleteCommand(name) {
+    
+    async function deleteCustomCommand(name) {
       try {
         await fetch(`/api/guild/${guildId}/commands/${name}`, { method: 'DELETE' });
-        loadCommands();
-        showToast('Komut silindi!');
+        showToast('Komut silindi', 'success');
+        loadCustomCommands();
       } catch (error) {
-        showToast('Silme hatası', 'danger');
+        showToast('Hata oluştu', 'error');
       }
     }
-
-    async function loadModlog() {
-      try {
-        const res = await fetch(`/api/guild/${guildId}/cases`);
-        const cases = await res.json();
-        const container = document.getElementById('modlog-list');
-        
-        if (cases.length === 0) {
-          container.innerHTML = '<p class="text-muted text-center">Henüz moderasyon vakası yok.</p>';
-          return;
-        }
-        
-        const typeNames = { warn: 'Uyarı', mute: 'Susturma', kick: 'Atma', ban: 'Yasaklama' };
-        
-        container.innerHTML = cases.map(c => `
-          <div class="case-item case-${c.type}">
-            <div class="d-flex justify-content-between">
-              <span><strong>#${c.caseNumber}</strong> ${typeNames[c.type] || c.type}</span>
-              <small class="text-muted">${new Date(c.createdAt).toLocaleString('tr-TR')}</small>
-            </div>
-            <small class="text-muted">Kullanıcı: ${c.userId} | Sebep: ${c.reason || 'Belirtilmedi'}</small>
-          </div>
-        `).join('');
-      } catch (error) {
-        console.error(error);
-      }
+    
+    function closeModal() {
+      document.getElementById('modalOverlay').classList.remove('active');
     }
-
-    const logTypes = [
-      'channelDelete', 'channelCreate', 'channelUpdate', 'guildUpdate',
-      'roleCreate', 'roleUpdate', 'roleDelete', 'messageUpdate',
-      'voiceActivity', 'messageDelete', 'memberUpdate', 'banAdd',
-      'banRemove', 'memberJoin', 'memberLeave', 'inviteCreate'
-    ];
-
-    async function loadLogConfig() {
-      try {
-        const res = await fetch(`/api/guild/${guildId}/logconfig`);
-        const logConfig = await res.json();
-        
-        logTypes.forEach(type => {
-          const select = document.getElementById(`log-${type}-channel`);
-          select.innerHTML = '<option value="">Kapalı</option>';
-          guildData.channels.forEach(ch => {
-            const opt = document.createElement('option');
-            opt.value = ch.id;
-            opt.textContent = '#' + ch.name;
-            select.appendChild(opt);
-          });
-          
-          const setting = logConfig[type] || {};
-          document.getElementById(`log-${type}-enabled`).checked = setting.enabled || false;
-          select.value = setting.channel || '';
-        });
-      } catch (error) {
-        console.error('Log config load error:', error);
-      }
-    }
-
-    async function saveLogConfig() {
-      const logConfig = {};
+    
+    async function saveWelcomeSettings() {
+      const newSettings = {
+        welcomeChannel: document.getElementById('welcomeChannel').value,
+        welcomeMessage: document.getElementById('welcomeMessage').value,
+        goodbyeChannel: document.getElementById('goodbyeChannel').value,
+        goodbyeMessage: document.getElementById('goodbyeMessage').value,
+        autoRole: document.getElementById('autoRole').value,
+        modules: { ...modules, welcome: true }
+      };
       
-      logTypes.forEach(type => {
-        logConfig[type] = {
-          enabled: document.getElementById(`log-${type}-enabled`).checked,
-          channel: document.getElementById(`log-${type}-channel`).value || null
-        };
-      });
+      await saveSettings(newSettings);
+    }
+    
+    async function saveLevelingSettings() {
+      const newSettings = {
+        levelUpChannel: document.getElementById('levelUpChannel').value,
+        levelUpMessage: document.getElementById('levelUpMessage').value,
+        xpMultiplier: parseInt(document.getElementById('xpMultiplier').value) || 1,
+        modules: { ...modules, leveling: true }
+      };
       
+      await saveSettings(newSettings);
+    }
+    
+    async function saveAutomodSettings() {
+      const automodConfig = {
+        badWords: document.getElementById('badWordsToggle').classList.contains('active'),
+        spam: document.getElementById('spamToggle').classList.contains('active'),
+        links: document.getElementById('linksToggle').classList.contains('active'),
+        caps: document.getElementById('capsToggle').classList.contains('active')
+      };
+      
+      await saveSettings({ automodConfig, modules: { ...modules, automod: true } });
+    }
+    
+    async function saveLoggingSettings() {
+      const logConfig = {
+        messageDelete: document.getElementById('logMessageDelete').classList.contains('active'),
+        messageEdit: document.getElementById('logMessageEdit').classList.contains('active'),
+        memberJoinLeave: document.getElementById('logMemberJoinLeave').classList.contains('active'),
+        roleChanges: document.getElementById('logRoleChanges').classList.contains('active')
+      };
+      
+      const logChannel = document.getElementById('logChannel').value;
+      
+      await saveSettings({ logChannel, logConfig, modules: { ...modules, logging: true } });
+    }
+    
+    async function saveGeneralSettings() {
+      const newSettings = {
+        logChannel: document.getElementById('settingsLogChannel').value,
+        autoRole: document.getElementById('settingsAutoRole').value,
+        muteRole: document.getElementById('settingsMuteRole').value
+      };
+      
+      await saveSettings(newSettings);
+    }
+    
+    async function saveSettings(newSettings) {
       try {
-        await fetch(`/api/guild/${guildId}/logconfig`, {
+        const res = await fetch(`/api/guild/${guildId}/settings`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(logConfig)
+          body: JSON.stringify(newSettings)
         });
-        showToast('Log ayarları kaydedildi!');
-      } catch (error) {
-        showToast('Kaydetme hatası', 'danger');
-      }
-    }
-
-    function populateScheduledChannels() {
-      const select = document.getElementById('scheduledChannel');
-      select.innerHTML = '<option value="">Kanal seçiniz...</option>';
-      guildData.channels.forEach(ch => {
-        const opt = document.createElement('option');
-        opt.value = ch.id;
-        opt.textContent = '#' + ch.name;
-        select.appendChild(opt);
-      });
-    }
-
-    async function loadScheduledMessages() {
-      try {
-        const res = await fetch(`/api/guild/${guildId}/scheduledmessages`);
-        const messages = await res.json();
-        const container = document.getElementById('scheduled-list');
         
-        if (messages.length === 0) {
-          container.innerHTML = '<p class="text-muted text-center py-3">Henüz zamanlı mesaj yok.</p>';
-          return;
+        if (res.ok) {
+          settings = { ...settings, ...newSettings };
+          modules = newSettings.modules || modules;
+          showToast('Ayarlar kaydedildi!', 'success');
+          closeModal();
+          renderFeatures();
+        } else {
+          showToast('Ayarlar kaydedilemedi', 'error');
         }
-        
-        container.innerHTML = messages.map(msg => {
-          const channelName = guildData.channels.find(c => c.id === msg.channelId)?.name || 'Bilinmeyen Kanal';
-          const nextRun = new Date(msg.nextRun).toLocaleString('tr-TR');
-          return `
-            <div class="command-item">
-              <div style="flex: 1;">
-                <div class="d-flex align-items-center gap-2 mb-1">
-                  <span class="badge bg-primary">#${channelName}</span>
-                  <span class="badge bg-secondary">${msg.intervalMinutes} dk</span>
-                  <span class="badge ${msg.enabled ? 'bg-success' : 'bg-danger'}">${msg.enabled ? 'Aktif' : 'Pasif'}</span>
-                </div>
-                <p class="mb-0">${msg.message}</p>
-                <small class="text-muted">Sonraki gönderim: ${nextRun}</small>
-              </div>
-              <button class="btn btn-outline-danger btn-sm" onclick="deleteScheduledMessage(${msg.id})">
-                <i class="fas fa-trash"></i>
-              </button>
-            </div>
-          `;
-        }).join('');
       } catch (error) {
-        console.error('Scheduled messages load error:', error);
+        showToast('Bir hata oluştu', 'error');
       }
     }
-
-    async function addScheduledMessage() {
-      const channelId = document.getElementById('scheduledChannel').value;
-      const intervalMinutes = parseInt(document.getElementById('scheduledInterval').value);
-      const message = document.getElementById('scheduledMessage').value.trim();
+    
+    function showToast(message, type = 'success') {
+      const toast = document.getElementById('toast');
+      const icon = toast.querySelector('i');
       
-      if (!channelId || !message || !intervalMinutes) {
-        showToast('Tüm alanları doldurun!', 'warning');
-        return;
-      }
+      toast.className = 'toast show ' + type;
+      icon.className = type === 'success' ? 'fas fa-check-circle' : 'fas fa-exclamation-circle';
+      document.getElementById('toastMessage').textContent = message;
       
-      if (intervalMinutes < 1 || intervalMinutes > 10080) {
-        showToast('Süre 1-10080 dakika arasında olmalı!', 'warning');
-        return;
-      }
-      
-      try {
-        await fetch(`/api/guild/${guildId}/scheduledmessages`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ channelId, message, intervalMinutes })
-        });
-        document.getElementById('scheduledMessage').value = '';
-        document.getElementById('scheduledInterval').value = '60';
-        loadScheduledMessages();
-        showToast('Zamanlı mesaj eklendi!');
-      } catch (error) {
-        showToast('Ekleme hatası', 'danger');
-      }
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 3000);
     }
-
-    async function deleteScheduledMessage(id) {
-      if (!confirm('Bu zamanlı mesajı silmek istediğinize emin misiniz?')) return;
-      
-      try {
-        await fetch(`/api/guild/${guildId}/scheduledmessages/${id}`, { method: 'DELETE' });
-        loadScheduledMessages();
-        showToast('Zamanlı mesaj silindi!');
-      } catch (error) {
-        showToast('Silme hatası', 'danger');
-      }
-    }
-
-    loadGuild();
+    
+    document.getElementById('modalOverlay').addEventListener('click', (e) => {
+      if (e.target.id === 'modalOverlay') closeModal();
+    });
+    
+    init();
   </script>
 </body>
 </html>
