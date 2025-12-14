@@ -5,6 +5,7 @@ const { storage } = require('./database/storage');
 const { checkAutomod } = require('./modules/automod');
 const { checkAutoPunishment } = require('./modules/autoPunish');
 const { Scheduler } = require('./modules/scheduler');
+const { LogSystem } = require('./modules/logSystem');
 
 const client = new Client({
   intents: [
@@ -14,7 +15,9 @@ const client = new Client({
     GatewayIntentBits.MessageContent,
     GatewayIntentBits.GuildModeration,
     GatewayIntentBits.GuildPresences,
-    GatewayIntentBits.GuildMessageReactions
+    GatewayIntentBits.GuildMessageReactions,
+    GatewayIntentBits.GuildVoiceStates,
+    GatewayIntentBits.GuildInvites
   ],
   partials: [Partials.Message, Partials.Channel, Partials.GuildMember, Partials.Reaction]
 });
@@ -38,6 +41,7 @@ for (const file of commandFiles) {
 }
 
 let scheduler;
+let logSystem;
 
 client.once(Events.ClientReady, () => {
   console.log(`Publisher Bot online! ${client.user.tag} olarak giriş yapıldı.`);
@@ -46,6 +50,8 @@ client.once(Events.ClientReady, () => {
   
   scheduler = new Scheduler(client, storage);
   scheduler.start();
+  
+  logSystem = new LogSystem(client, storage);
 });
 
 client.on(Events.GuildMemberAdd, async (member) => {
@@ -56,7 +62,6 @@ client.on(Events.GuildMemberAdd, async (member) => {
       const role = member.guild.roles.cache.get(guildData.autoRole);
       if (role) {
         await member.roles.add(role);
-        console.log(`Oto-rol verildi: ${member.user.tag}`);
       }
     } catch (error) {
       console.error('Oto-rol hatası:', error);
@@ -87,79 +92,71 @@ client.on(Events.GuildMemberAdd, async (member) => {
     }
   }
   
-  if (guildData?.logChannel) {
-    try {
-      const logChannel = member.guild.channels.cache.get(guildData.logChannel);
-      if (logChannel) {
-        const embed = new EmbedBuilder()
-          .setColor('#00ff00')
-          .setTitle('Üye Katıldı')
-          .setDescription(`${member.user.tag} sunucuya katıldı.`)
-          .setThumbnail(member.user.displayAvatarURL({ dynamic: true }))
-          .addFields(
-            { name: 'Hesap Oluşturulma', value: `<t:${Math.floor(member.user.createdTimestamp / 1000)}:R>`, inline: true },
-            { name: 'Üye Sayısı', value: `${member.guild.memberCount}`, inline: true }
-          )
-          .setTimestamp();
-        
-        await logChannel.send({ embeds: [embed] });
-      }
-    } catch (error) {
-      console.error('Log hatası:', error);
-    }
-  }
+  if (logSystem) await logSystem.guildMemberAdd(member);
 });
 
 client.on(Events.GuildMemberRemove, async (member) => {
-  const guildData = await storage.getGuild(member.guild.id);
-  
-  if (guildData?.logChannel) {
-    try {
-      const logChannel = member.guild.channels.cache.get(guildData.logChannel);
-      if (logChannel) {
-        const embed = new EmbedBuilder()
-          .setColor('#ff0000')
-          .setTitle('Üye Ayrıldı')
-          .setDescription(`${member.user.tag} sunucudan ayrıldı.`)
-          .setThumbnail(member.user.displayAvatarURL({ dynamic: true }))
-          .addFields(
-            { name: 'Üye Sayısı', value: `${member.guild.memberCount}`, inline: true }
-          )
-          .setTimestamp();
-        
-        await logChannel.send({ embeds: [embed] });
-      }
-    } catch (error) {
-      console.error('Log hatası:', error);
-    }
-  }
+  if (logSystem) await logSystem.guildMemberRemove(member);
+});
+
+client.on(Events.GuildMemberUpdate, async (oldMember, newMember) => {
+  if (logSystem) await logSystem.guildMemberUpdate(oldMember, newMember);
 });
 
 client.on(Events.MessageDelete, async (message) => {
-  if (!message.guild || message.author?.bot) return;
-  
-  const guildData = await storage.getGuild(message.guild.id);
-  
-  if (guildData?.logChannel) {
-    try {
-      const logChannel = message.guild.channels.cache.get(guildData.logChannel);
-      if (logChannel) {
-        const embed = new EmbedBuilder()
-          .setColor('#ff9900')
-          .setTitle('Mesaj Silindi')
-          .addFields(
-            { name: 'Kanal', value: message.channel.toString(), inline: true },
-            { name: 'Yazar', value: message.author?.tag || 'Bilinmiyor', inline: true },
-            { name: 'İçerik', value: message.content?.slice(0, 1000) || 'İçerik yok' }
-          )
-          .setTimestamp();
-        
-        await logChannel.send({ embeds: [embed] });
-      }
-    } catch (error) {
-      console.error('Log hatası:', error);
-    }
-  }
+  if (logSystem) await logSystem.messageDelete(message);
+});
+
+client.on(Events.MessageUpdate, async (oldMessage, newMessage) => {
+  if (logSystem) await logSystem.messageUpdate(oldMessage, newMessage);
+});
+
+client.on(Events.ChannelCreate, async (channel) => {
+  if (logSystem) await logSystem.channelCreate(channel);
+});
+
+client.on(Events.ChannelDelete, async (channel) => {
+  if (logSystem) await logSystem.channelDelete(channel);
+});
+
+client.on(Events.ChannelUpdate, async (oldChannel, newChannel) => {
+  if (logSystem) await logSystem.channelUpdate(oldChannel, newChannel);
+});
+
+client.on(Events.GuildRoleCreate, async (role) => {
+  if (logSystem) await logSystem.roleCreate(role);
+});
+
+client.on(Events.GuildRoleDelete, async (role) => {
+  if (logSystem) await logSystem.roleDelete(role);
+});
+
+client.on(Events.GuildRoleUpdate, async (oldRole, newRole) => {
+  if (logSystem) await logSystem.roleUpdate(oldRole, newRole);
+});
+
+client.on(Events.GuildBanAdd, async (ban) => {
+  if (logSystem) await logSystem.guildBanAdd(ban);
+});
+
+client.on(Events.GuildBanRemove, async (ban) => {
+  if (logSystem) await logSystem.guildBanRemove(ban);
+});
+
+client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
+  if (logSystem) await logSystem.voiceStateUpdate(oldState, newState);
+});
+
+client.on(Events.GuildUpdate, async (oldGuild, newGuild) => {
+  if (logSystem) await logSystem.guildUpdate(oldGuild, newGuild);
+});
+
+client.on(Events.InviteCreate, async (invite) => {
+  if (logSystem) await logSystem.inviteCreate(invite);
+});
+
+client.on(Events.InviteDelete, async (invite) => {
+  if (logSystem) await logSystem.inviteDelete(invite);
 });
 
 client.on(Events.MessageReactionAdd, async (reaction, user) => {

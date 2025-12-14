@@ -161,6 +161,9 @@
         <a href="#" class="sidebar-link" data-tab="modlog">
           <i class="fas fa-clipboard-list"></i>Mod Logları
         </a>
+        <a href="#" class="sidebar-link" data-tab="logsystem">
+          <i class="fas fa-history"></i>Log Sistemi
+        </a>
       </div>
 
       <div class="col-md-9 col-lg-10 content-area">
@@ -315,6 +318,229 @@
             </div>
           </div>
         </div>
+
+        <div id="tab-logsystem" class="tab-content">
+          <h3 class="mb-4">Log Sistemi</h3>
+          <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i>
+            Log sistemi, sunucuda detaylı olarak kayıt tutmanızı sağlar.
+          </div>
+          
+          <div class="row">
+            <div class="col-md-4">
+              <div class="card mb-3">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                  <span>Kanal Silme Kayıtları</span>
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="log-channelDelete-enabled">
+                  </div>
+                </div>
+                <div class="card-body">
+                  <select class="form-select form-select-sm" id="log-channelDelete-channel"></select>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="card mb-3">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                  <span>Kanal Ekleme Kayıtları</span>
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="log-channelCreate-enabled">
+                  </div>
+                </div>
+                <div class="card-body">
+                  <select class="form-select form-select-sm" id="log-channelCreate-channel"></select>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="card mb-3">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                  <span>Kanal Güncelleme Kayıtları</span>
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="log-channelUpdate-enabled">
+                  </div>
+                </div>
+                <div class="card-body">
+                  <select class="form-select form-select-sm" id="log-channelUpdate-channel"></select>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="card mb-3">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                  <span>Sunucu Ayarları Değişiklikleri</span>
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="log-guildUpdate-enabled">
+                  </div>
+                </div>
+                <div class="card-body">
+                  <select class="form-select form-select-sm" id="log-guildUpdate-channel"></select>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="card mb-3">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                  <span>Rol Ekleme Kayıtları</span>
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="log-roleCreate-enabled">
+                  </div>
+                </div>
+                <div class="card-body">
+                  <select class="form-select form-select-sm" id="log-roleCreate-channel"></select>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="card mb-3">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                  <span>Rol Güncelleme Kayıtları</span>
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="log-roleUpdate-enabled">
+                  </div>
+                </div>
+                <div class="card-body">
+                  <select class="form-select form-select-sm" id="log-roleUpdate-channel"></select>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="card mb-3">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                  <span>Rol Silme Kayıtları</span>
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="log-roleDelete-enabled">
+                  </div>
+                </div>
+                <div class="card-body">
+                  <select class="form-select form-select-sm" id="log-roleDelete-channel"></select>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="card mb-3">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                  <span>Mesaj Güncellemeleri</span>
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="log-messageUpdate-enabled">
+                  </div>
+                </div>
+                <div class="card-body">
+                  <select class="form-select form-select-sm" id="log-messageUpdate-channel"></select>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="card mb-3">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                  <span>Ses Aktiviteleri</span>
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="log-voiceActivity-enabled">
+                  </div>
+                </div>
+                <div class="card-body">
+                  <select class="form-select form-select-sm" id="log-voiceActivity-channel"></select>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="card mb-3">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                  <span>Silinen Mesajlar</span>
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="log-messageDelete-enabled">
+                  </div>
+                </div>
+                <div class="card-body">
+                  <select class="form-select form-select-sm" id="log-messageDelete-channel"></select>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="card mb-3">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                  <span>Kullanıcı Güncellemeleri</span>
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="log-memberUpdate-enabled">
+                  </div>
+                </div>
+                <div class="card-body">
+                  <select class="form-select form-select-sm" id="log-memberUpdate-channel"></select>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="card mb-3">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                  <span>Ban Kayıtları</span>
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="log-banAdd-enabled">
+                  </div>
+                </div>
+                <div class="card-body">
+                  <select class="form-select form-select-sm" id="log-banAdd-channel"></select>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="card mb-3">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                  <span>Unban Kayıtları</span>
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="log-banRemove-enabled">
+                  </div>
+                </div>
+                <div class="card-body">
+                  <select class="form-select form-select-sm" id="log-banRemove-channel"></select>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="card mb-3">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                  <span>Üye Giriş Takibi</span>
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="log-memberJoin-enabled">
+                  </div>
+                </div>
+                <div class="card-body">
+                  <select class="form-select form-select-sm" id="log-memberJoin-channel"></select>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="card mb-3">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                  <span>Üye Çıkış Takibi</span>
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="log-memberLeave-enabled">
+                  </div>
+                </div>
+                <div class="card-body">
+                  <select class="form-select form-select-sm" id="log-memberLeave-channel"></select>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="card mb-3">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                  <span>Davet Kayıtları</span>
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="log-inviteCreate-enabled">
+                  </div>
+                </div>
+                <div class="card-body">
+                  <select class="form-select form-select-sm" id="log-inviteCreate-channel"></select>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <button class="btn btn-primary mt-3" onclick="saveLogConfig()">
+            <i class="fas fa-save me-2"></i>Kaydet
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -336,6 +562,7 @@
         
         if (tab === 'commands') loadCommands();
         if (tab === 'modlog') loadModlog();
+        if (tab === 'logsystem') loadLogConfig();
       });
     });
 
@@ -609,6 +836,59 @@
         `).join('');
       } catch (error) {
         console.error(error);
+      }
+    }
+
+    const logTypes = [
+      'channelDelete', 'channelCreate', 'channelUpdate', 'guildUpdate',
+      'roleCreate', 'roleUpdate', 'roleDelete', 'messageUpdate',
+      'voiceActivity', 'messageDelete', 'memberUpdate', 'banAdd',
+      'banRemove', 'memberJoin', 'memberLeave', 'inviteCreate'
+    ];
+
+    async function loadLogConfig() {
+      try {
+        const res = await fetch(`/api/guild/${guildId}/logconfig`);
+        const logConfig = await res.json();
+        
+        logTypes.forEach(type => {
+          const select = document.getElementById(`log-${type}-channel`);
+          select.innerHTML = '<option value="">Kapalı</option>';
+          guildData.channels.forEach(ch => {
+            const opt = document.createElement('option');
+            opt.value = ch.id;
+            opt.textContent = '#' + ch.name;
+            select.appendChild(opt);
+          });
+          
+          const setting = logConfig[type] || {};
+          document.getElementById(`log-${type}-enabled`).checked = setting.enabled || false;
+          select.value = setting.channel || '';
+        });
+      } catch (error) {
+        console.error('Log config load error:', error);
+      }
+    }
+
+    async function saveLogConfig() {
+      const logConfig = {};
+      
+      logTypes.forEach(type => {
+        logConfig[type] = {
+          enabled: document.getElementById(`log-${type}-enabled`).checked,
+          channel: document.getElementById(`log-${type}-channel`).value || null
+        };
+      });
+      
+      try {
+        await fetch(`/api/guild/${guildId}/logconfig`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(logConfig)
+        });
+        showToast('Log ayarları kaydedildi!');
+      } catch (error) {
+        showToast('Kaydetme hatası', 'danger');
       }
     }
 

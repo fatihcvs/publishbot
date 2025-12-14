@@ -12,6 +12,7 @@ const guilds = pgTable('guilds', {
   modules: jsonb('modules').default({}),
   automodConfig: jsonb('automod_config').default({}),
   autoPunishments: jsonb('auto_punishments').default({}),
+  logConfig: jsonb('log_config').default({}),
   createdAt: timestamp('created_at').defaultNow()
 });
 

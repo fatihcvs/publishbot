@@ -223,6 +223,37 @@ app.get('/api/status', (req, res) => {
   });
 });
 
+app.get('/api/guild/:guildId/logconfig', isAuthenticated, async (req, res) => {
+  const { guildId } = req.params;
+  
+  try {
+    const guildData = await storage.getGuild(guildId);
+    res.json(guildData?.logConfig || {});
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get log config' });
+  }
+});
+
+app.post('/api/guild/:guildId/logconfig', isAuthenticated, async (req, res) => {
+  const { guildId } = req.params;
+  const logConfig = req.body;
+  
+  const userGuilds = req.user.guilds || [];
+  const hasAccess = userGuilds.some(g => g.id === guildId && (parseInt(g.permissions) & 0x20) === 0x20);
+  
+  if (!hasAccess) {
+    return res.status(403).json({ error: 'Access denied' });
+  }
+  
+  try {
+    await storage.upsertGuild(guildId, { logConfig });
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Log config update error:', error);
+    res.status(500).json({ error: 'Failed to update log config' });
+  }
+});
+
 app.get('/dashboard', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
 });
