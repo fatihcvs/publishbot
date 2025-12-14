@@ -146,6 +146,7 @@
     .plugin-icon.red { background: linear-gradient(135deg, #f04747 0%, #d83c3c 100%); }
     .plugin-icon.purple { background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%); }
     .plugin-icon.cyan { background: linear-gradient(135deg, #00d4ff 0%, #0ea5e9 100%); }
+    .plugin-icon.teal { background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%); }
     .plugin-icon.orange { background: linear-gradient(135deg, #ff9500 0%, #f97316 100%); }
     .plugin-icon.pink { background: linear-gradient(135deg, #ec4899 0%, #db2777 100%); }
     
@@ -490,6 +491,14 @@
             <div class="plugin-desc">Özelleştirilmiş komutlar</div>
           </div>
         </button>
+        
+        <button class="plugin-card" data-tab="scheduled">
+          <div class="plugin-icon teal"><i class="fas fa-clock"></i></div>
+          <div class="plugin-info">
+            <div class="plugin-name">Zamanlı Mesajlar</div>
+            <div class="plugin-desc">Otomatik mesaj gönderimi</div>
+          </div>
+        </button>
       </div>
       
       <div class="sidebar-section">
@@ -831,6 +840,52 @@
         </div>
       </div>
 
+      <div id="tab-scheduled" class="tab-content">
+        <h2 class="page-title">Zamanlı Mesajlar</h2>
+        <p class="page-desc">Belirlenen aralıklarla otomatik mesaj gönderimi</p>
+        
+        <div class="card">
+          <div class="card-header">
+            <span><i class="fas fa-plus me-2"></i>Yeni Zamanlı Mesaj</span>
+          </div>
+          <div class="card-body">
+            <div class="row g-3 align-items-end">
+              <div class="col-md-4">
+                <label class="form-label">Kanal</label>
+                <select class="form-select" id="scheduledChannel">
+                  <option value="">Kanal seçiniz...</option>
+                </select>
+              </div>
+              <div class="col-md-3">
+                <label class="form-label">Tekrar Süresi (dakika)</label>
+                <input type="number" class="form-control" id="scheduledInterval" min="1" max="10080" value="60" placeholder="60">
+              </div>
+              <div class="col-md-5">
+                <label class="form-label">Mesaj</label>
+                <input type="text" class="form-control" id="scheduledMessage" placeholder="Gönderilecek mesaj...">
+              </div>
+            </div>
+            <div class="mt-3">
+              <button class="btn btn-primary" onclick="addScheduledMessage()">
+                <i class="fas fa-plus me-2"></i>Mesaj Ekle
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <div class="card">
+          <div class="card-header">
+            <span>Mevcut Zamanlı Mesajlar</span>
+            <button class="btn btn-outline-light btn-sm" onclick="loadScheduledMessages()">
+              <i class="fas fa-sync-alt"></i>
+            </button>
+          </div>
+          <div class="card-body" id="scheduled-list">
+            <p class="text-muted text-center">Yükleniyor...</p>
+          </div>
+        </div>
+      </div>
+
       <div id="tab-modlog" class="tab-content">
         <h2 class="page-title">Moderasyon Logları</h2>
         <p class="page-desc">Son moderasyon işlemleri</p>
@@ -1095,6 +1150,10 @@
         if (tab === 'logsystem') loadLogConfig();
         if (tab === 'leaderboard') loadLeaderboard();
         if (tab === 'leveling') loadLevelingStats();
+        if (tab === 'scheduled') {
+          populateScheduledChannels();
+          loadScheduledMessages();
+        }
       });
     });
 
@@ -1686,6 +1745,95 @@
         showToast('Log ayarları kaydedildi!');
       } catch (error) {
         showToast('Kaydetme hatası', 'danger');
+      }
+    }
+
+    function populateScheduledChannels() {
+      const select = document.getElementById('scheduledChannel');
+      select.innerHTML = '<option value="">Kanal seçiniz...</option>';
+      guildData.channels.forEach(ch => {
+        const opt = document.createElement('option');
+        opt.value = ch.id;
+        opt.textContent = '#' + ch.name;
+        select.appendChild(opt);
+      });
+    }
+
+    async function loadScheduledMessages() {
+      try {
+        const res = await fetch(`/api/guild/${guildId}/scheduledmessages`);
+        const messages = await res.json();
+        const container = document.getElementById('scheduled-list');
+        
+        if (messages.length === 0) {
+          container.innerHTML = '<p class="text-muted text-center py-3">Henüz zamanlı mesaj yok.</p>';
+          return;
+        }
+        
+        container.innerHTML = messages.map(msg => {
+          const channelName = guildData.channels.find(c => c.id === msg.channelId)?.name || 'Bilinmeyen Kanal';
+          const nextRun = new Date(msg.nextRun).toLocaleString('tr-TR');
+          return `
+            <div class="command-item">
+              <div style="flex: 1;">
+                <div class="d-flex align-items-center gap-2 mb-1">
+                  <span class="badge bg-primary">#${channelName}</span>
+                  <span class="badge bg-secondary">${msg.intervalMinutes} dk</span>
+                  <span class="badge ${msg.enabled ? 'bg-success' : 'bg-danger'}">${msg.enabled ? 'Aktif' : 'Pasif'}</span>
+                </div>
+                <p class="mb-0">${msg.message}</p>
+                <small class="text-muted">Sonraki gönderim: ${nextRun}</small>
+              </div>
+              <button class="btn btn-outline-danger btn-sm" onclick="deleteScheduledMessage(${msg.id})">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          `;
+        }).join('');
+      } catch (error) {
+        console.error('Scheduled messages load error:', error);
+      }
+    }
+
+    async function addScheduledMessage() {
+      const channelId = document.getElementById('scheduledChannel').value;
+      const intervalMinutes = parseInt(document.getElementById('scheduledInterval').value);
+      const message = document.getElementById('scheduledMessage').value.trim();
+      
+      if (!channelId || !message || !intervalMinutes) {
+        showToast('Tüm alanları doldurun!', 'warning');
+        return;
+      }
+      
+      if (intervalMinutes < 1 || intervalMinutes > 10080) {
+        showToast('Süre 1-10080 dakika arasında olmalı!', 'warning');
+        return;
+      }
+      
+      try {
+        await fetch(`/api/guild/${guildId}/scheduledmessages`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ channelId, message, intervalMinutes })
+        });
+        document.getElementById('scheduledMessage').value = '';
+        document.getElementById('scheduledInterval').value = '60';
+        loadScheduledMessages();
+        showToast('Zamanlı mesaj eklendi!');
+      } catch (error) {
+        showToast('Ekleme hatası', 'danger');
+      }
+    }
+
+    async function deleteScheduledMessage(id) {
+      if (!confirm('Bu zamanlı mesajı silmek istediğinize emin misiniz?')) return;
+      
+      try {
+        await fetch(`/api/guild/${guildId}/scheduledmessages/${id}`, { method: 'DELETE' });
+        loadScheduledMessages();
+        showToast('Zamanlı mesaj silindi!');
+      } catch (error) {
+        showToast('Silme hatası', 'danger');
       }
     }
 

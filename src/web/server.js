@@ -381,6 +381,65 @@ app.delete('/api/guild/:guildId/levelrewards/:level', isAuthenticated, async (re
   }
 });
 
+app.get('/api/guild/:guildId/scheduledmessages', isAuthenticated, async (req, res) => {
+  const { guildId } = req.params;
+  
+  const userGuilds = req.user.guilds || [];
+  const hasAccess = userGuilds.some(g => g.id === guildId && (parseInt(g.permissions) & 0x20) === 0x20);
+  
+  if (!hasAccess) {
+    return res.status(403).json({ error: 'Access denied' });
+  }
+  
+  try {
+    const messages = await storage.getScheduledMessages(guildId);
+    res.json(messages);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get scheduled messages' });
+  }
+});
+
+app.post('/api/guild/:guildId/scheduledmessages', isAuthenticated, async (req, res) => {
+  const { guildId } = req.params;
+  const { channelId, message, intervalMinutes } = req.body;
+  
+  const userGuilds = req.user.guilds || [];
+  const hasAccess = userGuilds.some(g => g.id === guildId && (parseInt(g.permissions) & 0x20) === 0x20);
+  
+  if (!hasAccess) {
+    return res.status(403).json({ error: 'Access denied' });
+  }
+  
+  if (!channelId || !message || !intervalMinutes || intervalMinutes < 1) {
+    return res.status(400).json({ error: 'Invalid input' });
+  }
+  
+  try {
+    await storage.addScheduledMessage(guildId, channelId, message, intervalMinutes, req.user.id);
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to add scheduled message' });
+  }
+});
+
+app.delete('/api/guild/:guildId/scheduledmessages/:id', isAuthenticated, async (req, res) => {
+  const { guildId, id } = req.params;
+  
+  const userGuilds = req.user.guilds || [];
+  const hasAccess = userGuilds.some(g => g.id === guildId && (parseInt(g.permissions) & 0x20) === 0x20);
+  
+  if (!hasAccess) {
+    return res.status(403).json({ error: 'Access denied' });
+  }
+  
+  try {
+    await storage.deleteScheduledMessage(parseInt(id));
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to delete scheduled message' });
+  }
+});
+
 app.get('/dashboard', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
 });

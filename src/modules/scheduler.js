@@ -10,7 +10,39 @@ class Scheduler {
   start() {
     this.intervals.push(setInterval(() => this.checkReminders(), 30000));
     this.intervals.push(setInterval(() => this.checkGiveaways(), 30000));
+    this.intervals.push(setInterval(() => this.checkScheduledMessages(), 60000));
     console.log('Scheduler started');
+  }
+
+  async checkScheduledMessages() {
+    try {
+      const messages = await this.storage.getPendingScheduledMessages();
+      
+      for (const msg of messages) {
+        if (!msg.intervalMinutes || msg.intervalMinutes < 1) {
+          console.warn(`Invalid interval for scheduled message ${msg.id}, skipping`);
+          continue;
+        }
+        
+        await this.sendScheduledMessage(msg);
+        
+        const nextRun = new Date(Date.now() + msg.intervalMinutes * 60 * 1000);
+        await this.storage.updateScheduledMessageNextRun(msg.id, nextRun);
+      }
+    } catch (error) {
+      console.error('Scheduled message check error:', error);
+    }
+  }
+
+  async sendScheduledMessage(msg) {
+    try {
+      const channel = await this.client.channels.fetch(msg.channelId).catch(() => null);
+      if (!channel) return;
+
+      await channel.send(msg.message);
+    } catch (error) {
+      console.error('Send scheduled message error:', error);
+    }
   }
 
   stop() {
