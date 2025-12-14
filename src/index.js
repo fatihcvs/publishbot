@@ -1,4 +1,4 @@
-const { Client, GatewayIntentBits, Partials, Collection, EmbedBuilder, PermissionFlagsBits, Events } = require('discord.js');
+const { Client, GatewayIntentBits, Partials, Collection, EmbedBuilder, PermissionFlagsBits, Events, ChannelType } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
 const { storage } = require('./database/storage');
@@ -7,6 +7,8 @@ const { checkAutoPunishment } = require('./modules/autoPunish');
 const { Scheduler } = require('./modules/scheduler');
 const { LogSystem } = require('./modules/logSystem');
 const { LevelingSystem } = require('./modules/leveling');
+const { TempVoiceSystem } = require('./modules/tempVoice');
+const { StatChannelSystem } = require('./modules/statChannels');
 const { chat: chatGPT } = require('./modules/chatgpt');
 
 const client = new Client({
@@ -45,6 +47,8 @@ for (const file of commandFiles) {
 let scheduler;
 let logSystem;
 let levelingSystem;
+let tempVoiceSystem;
+let statChannelSystem;
 
 client.once(Events.ClientReady, () => {
   console.log(`Publisher online! ${client.user.tag} olarak giriş yapıldı.`);
@@ -56,7 +60,9 @@ client.once(Events.ClientReady, () => {
   
   logSystem = new LogSystem(client, storage);
   levelingSystem = new LevelingSystem(client, storage);
-  console.log('Leveling system started');
+  tempVoiceSystem = new TempVoiceSystem(client, storage);
+  statChannelSystem = new StatChannelSystem(client, storage);
+  console.log('All systems started');
 });
 
 client.on(Events.GuildMemberAdd, async (member) => {
@@ -102,6 +108,32 @@ client.on(Events.GuildMemberAdd, async (member) => {
 
 client.on(Events.GuildMemberRemove, async (member) => {
   if (logSystem) await logSystem.guildMemberRemove(member);
+  
+  // Hoşçakal sistemi
+  const guildData = await storage.getGuild(member.guild.id);
+  if (guildData?.goodbyeChannel) {
+    try {
+      const channel = member.guild.channels.cache.get(guildData.goodbyeChannel);
+      if (channel) {
+        let goodbyeText = guildData.goodbyeMessage || '**{user}** sunucudan ayrıldı. Görüşmek üzere!';
+        goodbyeText = goodbyeText
+          .replace(/{user}/g, member.user.username)
+          .replace(/{server}/g, member.guild.name)
+          .replace(/{membercount}/g, member.guild.memberCount);
+
+        const embed = new EmbedBuilder()
+          .setColor('#ff6b6b')
+          .setTitle('👋 Güle Güle!')
+          .setDescription(goodbyeText)
+          .setThumbnail(member.user.displayAvatarURL({ dynamic: true }))
+          .setTimestamp();
+
+        await channel.send({ embeds: [embed] });
+      }
+    } catch (error) {
+      console.error('Hoşçakal mesajı hatası:', error);
+    }
+  }
 });
 
 client.on(Events.GuildMemberUpdate, async (oldMember, newMember) => {
@@ -162,6 +194,107 @@ client.on(Events.InviteCreate, async (invite) => {
 
 client.on(Events.InviteDelete, async (invite) => {
   if (logSystem) await logSystem.inviteDelete(invite);
+});
+
+// Button etkileşimleri
+client.on(Events.InteractionCreate, async (interaction) => {
+  if (!interaction.isButton()) return;
+
+  // Talep oluşturma butonu
+  if (interaction.customId === 'create_ticket') {
+    const guildData = await storage.getGuild(interaction.guild.id);
+    if (!guildData?.ticketCategory) {
+      return interaction.reply({ content: 'Talep sistemi yapılandırılmamış!', ephemeral: true });
+    }
+
+    const existingTicket = interaction.guild.channels.cache.find(
+      c => c.name === `talep-${interaction.user.username.toLowerCase().replace(/[^a-z0-9]/g, '')}`
+    );
+
+    if (existingTicket) {
+      return interaction.reply({ content: `Zaten açık bir talebin var: ${existingTicket}`, ephemeral: true });
+    }
+
+    try {
+      const ticketChannel = await interaction.guild.channels.create({
+        name: `talep-${interaction.user.username.toLowerCase().replace(/[^a-z0-9]/g, '')}`,
+        type: ChannelType.GuildText,
+        parent: guildData.ticketCategory,
+        permissionOverwrites: [
+          {
+            id: interaction.guild.id,
+            deny: [PermissionFlagsBits.ViewChannel]
+          },
+          {
+            id: interaction.user.id,
+            allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages]
+          },
+          ...(guildData.ticketSupportRole ? [{
+            id: guildData.ticketSupportRole,
+            allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages]
+          }] : [])
+        ]
+      });
+
+      const embed = new EmbedBuilder()
+        .setColor('#00ff00')
+        .setTitle('🎫 Yeni Destek Talebi')
+        .setDescription('Lütfen sorununuzu detaylı bir şekilde açıklayın.\nBir yetkili en kısa sürede size yardımcı olacaktır.')
+        .addFields({ name: 'Kullanıcı', value: interaction.user.tag })
+        .setTimestamp();
+
+      await ticketChannel.send({ 
+        content: `${interaction.user}${guildData.ticketSupportRole ? ` <@&${guildData.ticketSupportRole}>` : ''}`,
+        embeds: [embed]
+      });
+
+      await interaction.reply({ content: `Talebin oluşturuldu: ${ticketChannel}`, ephemeral: true });
+    } catch (error) {
+      console.error('Talep oluşturma hatası:', error);
+      await interaction.reply({ content: 'Talep oluşturulurken bir hata oluştu!', ephemeral: true });
+    }
+  }
+
+  // Talep kapatma butonu
+  if (interaction.customId === 'close_ticket') {
+    const embed = new EmbedBuilder()
+      .setColor('#ff0000')
+      .setTitle('Talep Kapatılıyor')
+      .setDescription('Bu talep 5 saniye içinde kapatılacak...')
+      .setTimestamp();
+
+    await interaction.reply({ embeds: [embed] });
+    
+    setTimeout(async () => {
+      try {
+        await interaction.channel.delete();
+      } catch (err) {
+        console.error('Talep kanalı silinirken hata:', err);
+      }
+    }, 5000);
+  }
+
+  // Doğrulama butonu
+  if (interaction.customId === 'verify_user') {
+    const guildData = await storage.getGuild(interaction.guild.id);
+    if (!guildData?.verifiedRole) {
+      return interaction.reply({ content: 'Doğrulama sistemi yapılandırılmamış!', ephemeral: true });
+    }
+
+    try {
+      const member = await interaction.guild.members.fetch(interaction.user.id);
+      
+      if (guildData.verificationRole) {
+        await member.roles.remove(guildData.verificationRole).catch(() => {});
+      }
+      await member.roles.add(guildData.verifiedRole);
+
+      await interaction.reply({ content: '✅ Başarıyla doğrulandınız!', ephemeral: true });
+    } catch (error) {
+      console.error('Doğrulama hatası:', error);
+      await interaction.reply({ content: 'Doğrulama sırasında bir hata oluştu!', ephemeral: true });
+    }
+  }
 });
 
 client.on(Events.MessageReactionAdd, async (reaction, user) => {

@@ -1,6 +1,6 @@
 const { db } = require('./db');
 const { eq, and, desc, sql, lte } = require('drizzle-orm');
-const { guilds, warnings, modCases, customCommands, reactionRoles, giveaways, reminders, afkUsers, userLevels, levelRewards, scheduledMessages } = require('../../shared/schema');
+const { guilds, warnings, modCases, customCommands, reactionRoles, giveaways, reminders, afkUsers, userLevels, levelRewards, scheduledMessages, userAchievements, inviteTracking } = require('../../shared/schema');
 const fs = require('fs');
 const path = require('path');
 
@@ -343,6 +343,70 @@ class DatabaseStorage {
   async deleteScheduledMessage(id) {
     if (!db) return;
     await db.delete(scheduledMessages).where(eq(scheduledMessages.id, id));
+  }
+
+  async getUserAchievements(guildId, userId) {
+    if (!db) return [];
+    return db.select().from(userAchievements).where(
+      and(eq(userAchievements.guildId, guildId), eq(userAchievements.userId, userId))
+    );
+  }
+
+  async addAchievement(guildId, userId, achievementId) {
+    if (!db) return null;
+    const existing = await db.select().from(userAchievements).where(
+      and(
+        eq(userAchievements.guildId, guildId),
+        eq(userAchievements.userId, userId),
+        eq(userAchievements.achievementId, achievementId)
+      )
+    );
+    if (existing.length > 0) return existing[0];
+    const [achievement] = await db.insert(userAchievements).values({
+      guildId, userId, achievementId
+    }).returning();
+    return achievement;
+  }
+
+  async hasAchievement(guildId, userId, achievementId) {
+    if (!db) return false;
+    const [achievement] = await db.select().from(userAchievements).where(
+      and(
+        eq(userAchievements.guildId, guildId),
+        eq(userAchievements.userId, userId),
+        eq(userAchievements.achievementId, achievementId)
+      )
+    );
+    return !!achievement;
+  }
+
+  async trackInvite(guildId, userId, inviterId, inviteCode) {
+    if (!db) return null;
+    const [invite] = await db.insert(inviteTracking).values({
+      guildId, userId, inviterId, inviteCode
+    }).returning();
+    return invite;
+  }
+
+  async getInviteCount(guildId, inviterId) {
+    if (!db) return 0;
+    const result = await db.select({ count: sql`count(*)` }).from(inviteTracking).where(
+      and(eq(inviteTracking.guildId, guildId), eq(inviteTracking.inviterId, inviterId))
+    );
+    return parseInt(result[0]?.count || 0);
+  }
+
+  async getInviteLeaderboard(guildId, limit = 10) {
+    if (!db) return [];
+    const result = await db.execute(sql`
+      SELECT inviter_id, COUNT(*) as invite_count 
+      FROM invite_tracking 
+      WHERE guild_id = ${guildId} AND inviter_id IS NOT NULL
+      GROUP BY inviter_id 
+      ORDER BY invite_count DESC 
+      LIMIT ${limit}
+    `);
+    return result.rows || [];
   }
 }
 
@@ -697,6 +761,56 @@ class JSONStorage {
     let scheduled = this.loadJSON('scheduledMessages.json', []);
     scheduled = scheduled.filter(s => s.id !== id);
     this.saveJSON('scheduledMessages.json', scheduled);
+  }
+
+  async getUserAchievements(guildId, userId) {
+    const achievements = this.loadJSON('achievements.json', {});
+    return achievements[guildId]?.[userId] || [];
+  }
+
+  async addAchievement(guildId, userId, achievementId) {
+    const achievements = this.loadJSON('achievements.json', {});
+    if (!achievements[guildId]) achievements[guildId] = {};
+    if (!achievements[guildId][userId]) achievements[guildId][userId] = [];
+    if (!achievements[guildId][userId].includes(achievementId)) {
+      achievements[guildId][userId].push(achievementId);
+      this.saveJSON('achievements.json', achievements);
+    }
+    return { guildId, userId, achievementId };
+  }
+
+  async hasAchievement(guildId, userId, achievementId) {
+    const achievements = this.loadJSON('achievements.json', {});
+    return achievements[guildId]?.[userId]?.includes(achievementId) || false;
+  }
+
+  async trackInvite(guildId, userId, inviterId, inviteCode) {
+    const invites = this.loadJSON('invites.json', {});
+    if (!invites[guildId]) invites[guildId] = [];
+    invites[guildId].push({ userId, inviterId, inviteCode, joinedAt: new Date().toISOString() });
+    this.saveJSON('invites.json', invites);
+    return { guildId, userId, inviterId, inviteCode };
+  }
+
+  async getInviteCount(guildId, inviterId) {
+    const invites = this.loadJSON('invites.json', {});
+    const guildInvites = invites[guildId] || [];
+    return guildInvites.filter(i => i.inviterId === inviterId).length;
+  }
+
+  async getInviteLeaderboard(guildId, limit = 10) {
+    const invites = this.loadJSON('invites.json', {});
+    const guildInvites = invites[guildId] || [];
+    const counts = {};
+    guildInvites.forEach(i => {
+      if (i.inviterId) {
+        counts[i.inviterId] = (counts[i.inviterId] || 0) + 1;
+      }
+    });
+    return Object.entries(counts)
+      .map(([inviter_id, invite_count]) => ({ inviter_id, invite_count }))
+      .sort((a, b) => b.invite_count - a.invite_count)
+      .slice(0, limit);
   }
 }
 

@@ -8,231 +8,548 @@
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
   <style>
     :root {
-      --discord-blurple: #5865F2;
-      --discord-dark: #23272A;
-      --discord-darker: #1a1d21;
+      --bg-primary: #0d1117;
+      --bg-secondary: #161b22;
+      --bg-tertiary: #21262d;
+      --accent-blue: #58a6ff;
+      --accent-purple: #8b5cf6;
+      --accent-pink: #ec4899;
+      --accent-green: #10b981;
+      --accent-orange: #f59e0b;
+      --text-primary: #f0f6fc;
+      --text-secondary: #8b949e;
+      --border-color: #30363d;
     }
+    * { box-sizing: border-box; }
     body {
-      background: linear-gradient(135deg, var(--discord-darker) 0%, var(--discord-dark) 100%);
-      color: white;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      font-family: 'Segoe UI', system-ui, sans-serif;
       min-height: 100vh;
+      overflow-x: hidden;
     }
     .navbar {
-      background: rgba(0,0,0,0.3) !important;
-      backdrop-filter: blur(10px);
+      background: rgba(13, 17, 23, 0.95) !important;
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border-color);
+      padding: 1rem 0;
+    }
+    .navbar-brand {
+      font-size: 1.5rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .nav-link {
+      color: var(--text-secondary) !important;
+      font-weight: 500;
+      transition: color 0.3s;
+    }
+    .nav-link:hover { color: var(--text-primary) !important; }
+    .btn-primary-custom {
+      background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink));
+      border: none;
+      padding: 12px 28px;
+      border-radius: 12px;
+      font-weight: 600;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .btn-primary-custom:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 40px rgba(139, 92, 246, 0.3);
     }
     .hero {
-      padding: 100px 0;
+      padding: 120px 0 80px;
       text-align: center;
+      position: relative;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 800px;
+      height: 800px;
+      background: radial-gradient(circle, rgba(139, 92, 246, 0.15) 0%, transparent 70%);
+      pointer-events: none;
     }
     .hero h1 {
       font-size: 4rem;
       font-weight: 800;
-      background: linear-gradient(135deg, var(--discord-blurple), #ff69b4);
+      margin-bottom: 1.5rem;
+      background: linear-gradient(135deg, #fff, var(--accent-blue), var(--accent-purple));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
+    .hero p {
+      font-size: 1.25rem;
+      color: var(--text-secondary);
+      max-width: 600px;
+      margin: 0 auto 2rem;
+    }
+    .hero-buttons {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
     .btn-discord {
-      background: var(--discord-blurple);
+      background: #5865F2;
       color: white;
-      padding: 15px 40px;
-      font-size: 1.2rem;
-      border-radius: 50px;
+      padding: 14px 32px;
+      border-radius: 12px;
+      font-weight: 600;
       border: none;
-      transition: transform 0.3s, box-shadow 0.3s;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      transition: all 0.3s;
     }
     .btn-discord:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 10px 30px rgba(88, 101, 242, 0.4);
+      background: #4752c4;
+      transform: translateY(-2px);
+      box-shadow: 0 10px 40px rgba(88, 101, 242, 0.3);
       color: white;
     }
+    .btn-outline-custom {
+      background: transparent;
+      border: 2px solid var(--border-color);
+      color: var(--text-primary);
+      padding: 12px 28px;
+      border-radius: 12px;
+      font-weight: 600;
+      transition: all 0.3s;
+    }
+    .btn-outline-custom:hover {
+      border-color: var(--accent-purple);
+      color: var(--accent-purple);
+    }
+    .section-title {
+      text-align: center;
+      margin-bottom: 4rem;
+    }
+    .section-title h2 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+    .section-title p {
+      color: var(--text-secondary);
+      font-size: 1.1rem;
+    }
+    .features-section {
+      padding: 100px 0;
+      background: var(--bg-secondary);
+    }
     .feature-card {
-      background: rgba(255,255,255,0.05);
-      border-radius: 20px;
-      padding: 30px;
-      margin: 20px 0;
-      border: 1px solid rgba(255,255,255,0.1);
-      transition: transform 0.3s;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 32px;
+      height: 100%;
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
     }
     .feature-card:hover {
-      transform: translateY(-5px);
+      transform: translateY(-8px);
+      border-color: var(--accent-purple);
+      box-shadow: 0 20px 60px rgba(139, 92, 246, 0.15);
     }
+    .feature-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple), var(--accent-pink));
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .feature-card:hover::before { opacity: 1; }
     .feature-icon {
-      font-size: 3rem;
-      margin-bottom: 20px;
-      color: var(--discord-blurple);
+      width: 60px;
+      height: 60px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      margin-bottom: 1.5rem;
     }
-    .stats {
-      background: rgba(88, 101, 242, 0.1);
-      padding: 50px 0;
-      margin: 50px 0;
+    .feature-icon.blue { background: rgba(88, 166, 255, 0.15); color: var(--accent-blue); }
+    .feature-icon.purple { background: rgba(139, 92, 246, 0.15); color: var(--accent-purple); }
+    .feature-icon.pink { background: rgba(236, 72, 153, 0.15); color: var(--accent-pink); }
+    .feature-icon.green { background: rgba(16, 185, 129, 0.15); color: var(--accent-green); }
+    .feature-icon.orange { background: rgba(245, 158, 11, 0.15); color: var(--accent-orange); }
+    .feature-card h4 {
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+    }
+    .feature-card p {
+      color: var(--text-secondary);
+      margin: 0;
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+    .badge-new {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: linear-gradient(135deg, var(--accent-green), #059669);
+      color: white;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.7rem;
+      font-weight: 600;
+    }
+    .stats-section {
+      padding: 80px 0;
+      background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(88, 166, 255, 0.1));
+    }
+    .stat-box {
+      text-align: center;
+      padding: 2rem;
     }
     .stat-number {
-      font-size: 3rem;
+      font-size: 3.5rem;
       font-weight: 800;
-      color: var(--discord-blurple);
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .stat-label {
+      color: var(--text-secondary);
+      font-size: 1.1rem;
+      margin-top: 0.5rem;
+    }
+    .commands-section {
+      padding: 100px 0;
+    }
+    .command-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 16px;
+      transition: all 0.3s;
+    }
+    .command-card:hover {
+      border-color: var(--accent-blue);
+      background: var(--bg-tertiary);
+    }
+    .command-name {
+      font-family: 'Fira Code', monospace;
+      color: var(--accent-blue);
+      font-weight: 600;
+    }
+    .command-desc {
+      color: var(--text-secondary);
+      margin: 0;
+      font-size: 0.9rem;
+    }
+    .cta-section {
+      padding: 100px 0;
+      background: var(--bg-secondary);
+      text-align: center;
+    }
+    .cta-box {
+      background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(88, 166, 255, 0.2));
+      border: 1px solid var(--border-color);
+      border-radius: 24px;
+      padding: 60px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .cta-box h2 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+    .cta-box p {
+      color: var(--text-secondary);
+      font-size: 1.1rem;
+      margin-bottom: 2rem;
     }
     footer {
-      background: rgba(0,0,0,0.3);
-      padding: 30px 0;
-      margin-top: 50px;
+      background: var(--bg-primary);
+      border-top: 1px solid var(--border-color);
+      padding: 40px 0;
+      text-align: center;
     }
-    .text-muted {
-      color: #b9bbbe !important;
+    footer p {
+      color: var(--text-secondary);
+      margin: 0;
     }
-    p, .lead {
-      color: #dcddde;
+    .category-tabs {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      margin-bottom: 3rem;
+      flex-wrap: wrap;
+    }
+    .category-tab {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-color);
+      color: var(--text-secondary);
+      padding: 10px 24px;
+      border-radius: 30px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .category-tab:hover, .category-tab.active {
+      background: var(--accent-purple);
+      border-color: var(--accent-purple);
+      color: white;
+    }
+    @media (max-width: 768px) {
+      .hero h1 { font-size: 2.5rem; }
+      .stat-number { font-size: 2.5rem; }
+      .cta-box { padding: 40px 20px; }
     }
   </style>
 </head>
 <body>
-  <nav class="navbar navbar-expand-lg navbar-dark">
+  <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
     <div class="container">
-      <a class="navbar-brand fw-bold" href="/">
+      <a class="navbar-brand" href="/">
         <i class="fas fa-robot me-2"></i>Publisher
       </a>
-      <div class="navbar-nav ms-auto">
-        <a class="nav-link" href="#features">Özellikler</a>
-        <a class="nav-link" href="#commands">Komutlar</a>
-        <a class="nav-link" href="#invite">Davet Et</a>
-        <a class="btn btn-discord ms-3" href="/auth/discord">
-          <i class="fab fa-discord me-2"></i>Giriş Yap
-        </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto align-items-center">
+          <li class="nav-item"><a class="nav-link" href="#features">Ozellikler</a></li>
+          <li class="nav-item"><a class="nav-link" href="#commands">Komutlar</a></li>
+          <li class="nav-item"><a class="nav-link" href="#stats">Istatistikler</a></li>
+          <li class="nav-item ms-3">
+            <a href="/auth/discord" class="btn btn-discord">
+              <i class="fab fa-discord"></i>Dashboard
+            </a>
+          </li>
+        </ul>
       </div>
     </div>
   </nav>
 
   <section class="hero">
     <div class="container">
-      <h1>Publisher</h1>
-      <p class="lead mb-5">Güçlü ve tam donanımlı Discord moderasyon botu. Moderasyon, AutoMod, özel komutlar ve çok daha fazlası!</p>
-      <a href="/auth/discord" class="btn btn-discord">
-        <i class="fab fa-discord me-2"></i>Dashboard'a Giriş Yap
-      </a>
-    </div>
-  </section>
-
-  <section id="features" class="container">
-    <h2 class="text-center mb-5">Özellikler</h2>
-    <div class="row">
-      <div class="col-md-4">
-        <div class="feature-card text-center">
-          <div class="feature-icon"><i class="fas fa-shield-alt"></i></div>
-          <h4>Moderasyon</h4>
-          <p>Kick, ban, mute, warn ve daha fazlası. Sunucunuzu güvende tutun.</p>
-        </div>
-      </div>
-      <div class="col-md-4">
-        <div class="feature-card text-center">
-          <div class="feature-icon"><i class="fas fa-robot"></i></div>
-          <h4>AutoMod</h4>
-          <p>Spam, kötü kelime, link ve davet filtreleri ile otomatik moderasyon.</p>
-        </div>
-      </div>
-      <div class="col-md-4">
-        <div class="feature-card text-center">
-          <div class="feature-icon"><i class="fas fa-user-plus"></i></div>
-          <h4>Hoş Geldin</h4>
-          <p>Özelleştirilebilir hoş geldin mesajları ve otomatik rol sistemi.</p>
-        </div>
-      </div>
-      <div class="col-md-4">
-        <div class="feature-card text-center">
-          <div class="feature-icon"><i class="fas fa-gift"></i></div>
-          <h4>Çekilişler</h4>
-          <p>Kolay çekiliş oluşturma ve otomatik kazanan seçimi.</p>
-        </div>
-      </div>
-      <div class="col-md-4">
-        <div class="feature-card text-center">
-          <div class="feature-icon"><i class="fas fa-smile"></i></div>
-          <h4>Tepki Rolleri</h4>
-          <p>Emoji tepkileriyle kullanıcıların rol almasını sağlayın.</p>
-        </div>
-      </div>
-      <div class="col-md-4">
-        <div class="feature-card text-center">
-          <div class="feature-icon"><i class="fas fa-cog"></i></div>
-          <h4>Web Dashboard</h4>
-          <p>Tüm ayarları web üzerinden kolayca yönetin.</p>
-        </div>
+      <h1>Publisher Bot</h1>
+      <p>Discord sunucunuz icin ihtiyaciniz olan tum ozellikler tek bir botta. Moderasyon, seviye sistemi, ozel komutlar ve cok daha fazlasi!</p>
+      <div class="hero-buttons">
+        <a href="#" id="invite-btn" class="btn btn-discord">
+          <i class="fas fa-plus"></i>Sunucuna Ekle
+        </a>
+        <a href="/auth/discord" class="btn btn-outline-custom">
+          <i class="fas fa-cog me-2"></i>Dashboard
+        </a>
       </div>
     </div>
   </section>
 
-  <section class="stats" id="stats">
+  <section class="features-section" id="features">
     <div class="container">
-      <div class="row text-center">
+      <div class="section-title">
+        <h2>Ozellikler</h2>
+        <p>Sunucunuzu yonetmek icin ihtiyaciniz olan her sey</p>
+      </div>
+      <div class="row g-4">
         <div class="col-md-4">
-          <div class="stat-number" id="guild-count">-</div>
-          <p>Sunucu</p>
+          <div class="feature-card">
+            <div class="feature-icon blue"><i class="fas fa-shield-alt"></i></div>
+            <h4>Moderasyon</h4>
+            <p>Kick, ban, mute, warn ve daha fazlasiyla sunucunuzu guvenli tutun. Otomatik ceza sistemiyle kurallar otomatik uygulanir.</p>
+          </div>
         </div>
         <div class="col-md-4">
-          <div class="stat-number" id="user-count">-</div>
-          <p>Kullanıcı</p>
+          <div class="feature-card">
+            <div class="feature-icon purple"><i class="fas fa-robot"></i></div>
+            <h4>AutoMod</h4>
+            <p>Spam, kotu kelime, link ve davet filtreleriyle otomatik moderasyon. Sunucunuz 7/24 korunur.</p>
+          </div>
         </div>
         <div class="col-md-4">
-          <div class="stat-number" id="uptime">-</div>
-          <p>Uptime</p>
+          <div class="feature-card">
+            <div class="feature-icon pink"><i class="fas fa-chart-line"></i></div>
+            <h4>Seviye Sistemi</h4>
+            <p>Kullanicilarin aktivitesini odullendirin. XP kazanma, seviye atlama ve ozel rol odulleri.</p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="feature-card">
+            <span class="badge-new">Yeni</span>
+            <div class="feature-icon green"><i class="fas fa-ticket-alt"></i></div>
+            <h4>Talep Sistemi</h4>
+            <p>Kullanicilarinizin destek talebi olusturmasini saglayin. Organize ve kolay yonetilebilir destek sistemi.</p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="feature-card">
+            <span class="badge-new">Yeni</span>
+            <div class="feature-icon orange"><i class="fas fa-user-check"></i></div>
+            <h4>Kayit Sistemi</h4>
+            <p>Yeni uyelerin dogrulanmasini saglayin. Buton tabanli kolay dogrulama sistemi.</p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="feature-card">
+            <div class="feature-icon blue"><i class="fas fa-smile"></i></div>
+            <h4>Tepki Rolleri</h4>
+            <p>Emoji tepkileriyle kullanicilarin kendi rollerini secmesini saglayin.</p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="feature-card">
+            <span class="badge-new">Yeni</span>
+            <div class="feature-icon purple"><i class="fas fa-trophy"></i></div>
+            <h4>Basarimlar</h4>
+            <p>Kullanicilarin aktivitelerine gore basarim ve rozet kazanmasini saglayin.</p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="feature-card">
+            <span class="badge-new">Yeni</span>
+            <div class="feature-icon pink"><i class="fas fa-envelope"></i></div>
+            <h4>Davet Takibi</h4>
+            <p>Kimin kac kisi davet ettigini takip edin. Davet siralamasi ve istatistikleri.</p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="feature-card">
+            <div class="feature-icon green"><i class="fas fa-gift"></i></div>
+            <h4>Cekilisler</h4>
+            <p>Kolay cekilis olusturma ve otomatik kazanan secimi. Toplulugunuzu heyecanlandirin!</p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="feature-card">
+            <span class="badge-new">Yeni</span>
+            <div class="feature-icon orange"><i class="fas fa-microphone"></i></div>
+            <h4>Gecici Ses Kanallari</h4>
+            <p>Kullanicilarin kendi ses odalarini olusturmasina izin verin. Oda bos kaldiginda otomatik silinir.</p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="feature-card">
+            <span class="badge-new">Yeni</span>
+            <div class="feature-icon blue"><i class="fas fa-chart-bar"></i></div>
+            <h4>Istatistik Kanallari</h4>
+            <p>Uye sayisi, bot sayisi ve daha fazlasini gosteren canli sayac kanallari.</p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="feature-card">
+            <div class="feature-icon purple"><i class="fas fa-cog"></i></div>
+            <h4>Web Dashboard</h4>
+            <p>Tum ayarlari web uzerinden kolayca yonetin. Discord ile giris yapin ve hemen baslayin.</p>
+          </div>
         </div>
       </div>
     </div>
   </section>
 
-  <section id="commands" class="container">
-    <h2 class="text-center mb-5">Popüler Komutlar</h2>
-    <div class="row">
-      <div class="col-md-6">
-        <div class="feature-card">
-          <h5><i class="fas fa-ban text-danger me-2"></i>!ban @kullanıcı [sebep]</h5>
-          <p class="text-muted mb-0">Kullanıcıyı sunucudan yasaklar</p>
+  <section class="stats-section" id="stats">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-4">
+          <div class="stat-box">
+            <div class="stat-number" id="guild-count">-</div>
+            <div class="stat-label">Sunucu</div>
+          </div>
         </div>
-        <div class="feature-card">
-          <h5><i class="fas fa-volume-mute text-warning me-2"></i>!mute @kullanıcı [süre]</h5>
-          <p class="text-muted mb-0">Kullanıcıyı susturur</p>
+        <div class="col-md-4">
+          <div class="stat-box">
+            <div class="stat-number" id="user-count">-</div>
+            <div class="stat-label">Kullanici</div>
+          </div>
         </div>
-        <div class="feature-card">
-          <h5><i class="fas fa-exclamation-triangle text-info me-2"></i>!warn @kullanıcı [sebep]</h5>
-          <p class="text-muted mb-0">Kullanıcıyı uyarır</p>
-        </div>
-      </div>
-      <div class="col-md-6">
-        <div class="feature-card">
-          <h5><i class="fas fa-gift text-success me-2"></i>!çekiliş başlat [süre] [kazanan] [ödül]</h5>
-          <p class="text-muted mb-0">Çekiliş başlatır</p>
-        </div>
-        <div class="feature-card">
-          <h5><i class="fas fa-poll text-primary me-2"></i>!anket "Soru" "Seçenek1" "Seçenek2"</h5>
-          <p class="text-muted mb-0">Anket oluşturur</p>
-        </div>
-        <div class="feature-card">
-          <h5><i class="fas fa-robot text-secondary me-2"></i>!automod</h5>
-          <p class="text-muted mb-0">AutoMod ayarlarını yönetir</p>
+        <div class="col-md-4">
+          <div class="stat-box">
+            <div class="stat-number" id="uptime">-</div>
+            <div class="stat-label">Uptime</div>
+          </div>
         </div>
       </div>
     </div>
   </section>
 
-  <section id="invite" class="container text-center" style="padding: 80px 0;">
-    <div class="feature-card" style="max-width: 700px; margin: 0 auto; padding: 50px;">
-      <div class="feature-icon"><i class="fas fa-plus-circle"></i></div>
-      <h2 class="mb-4">Botu Sunucuna Ekle</h2>
-      <p class="lead mb-4">Publisher'ı sunucuna ekleyerek moderasyon, AutoMod, çekilişler ve daha fazla özelliğin keyfini çıkar!</p>
-      <a href="#" id="invite-btn" class="btn btn-discord btn-lg">
-        <i class="fas fa-plus me-2"></i>Sunucuma Ekle
-      </a>
-      <p class="text-muted mt-4" style="font-size: 0.9rem;">
-        <i class="fas fa-shield-alt me-1"></i> Güvenli ve kolay kurulum
-      </p>
+  <section class="commands-section" id="commands">
+    <div class="container">
+      <div class="section-title">
+        <h2>Populer Komutlar</h2>
+        <p>En cok kullanilan komutlarin bir bolumu</p>
+      </div>
+      <div class="category-tabs">
+        <span class="category-tab active">Moderasyon</span>
+        <span class="category-tab">Ayarlar</span>
+        <span class="category-tab">Eglence</span>
+        <span class="category-tab">Bilgi</span>
+      </div>
+      <div class="row">
+        <div class="col-md-6">
+          <div class="command-card">
+            <span class="command-name">!ban @kullanici [sebep]</span>
+            <p class="command-desc">Kullaniciyi sunucudan yasaklar</p>
+          </div>
+          <div class="command-card">
+            <span class="command-name">!mute @kullanici [sure]</span>
+            <p class="command-desc">Kullaniciyi susturur</p>
+          </div>
+          <div class="command-card">
+            <span class="command-name">!warn @kullanici [sebep]</span>
+            <p class="command-desc">Kullaniciyi uyarir</p>
+          </div>
+          <div class="command-card">
+            <span class="command-name">!talep</span>
+            <p class="command-desc">Destek talebi olusturur</p>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="command-card">
+            <span class="command-name">!cekilis baslat [sure] [kazanan] [odul]</span>
+            <p class="command-desc">Cekilis baslatir</p>
+          </div>
+          <div class="command-card">
+            <span class="command-name">!seviye [@kullanici]</span>
+            <p class="command-desc">Seviye ve XP bilgisini gosterir</p>
+          </div>
+          <div class="command-card">
+            <span class="command-name">!basarimlar</span>
+            <p class="command-desc">Basarimlarinizi gosterir</p>
+          </div>
+          <div class="command-card">
+            <span class="command-name">!davetler [@kullanici]</span>
+            <p class="command-desc">Davet istatistiklerini gosterir</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta-section">
+    <div class="container">
+      <div class="cta-box">
+        <h2>Hemen Baslayin</h2>
+        <p>Publisher'i sunucunuza ekleyin ve guclu ozelliklerinden yararlanmaya baslayin. Kurulum sadece birkaç saniye surer!</p>
+        <a href="#" id="invite-btn-2" class="btn btn-discord btn-lg">
+          <i class="fab fa-discord me-2"></i>Sunucuma Ekle
+        </a>
+      </div>
     </div>
   </section>
 
   <footer>
-    <div class="container text-center">
-      <p>&copy; 2024 Publisher. Tüm hakları saklıdır.</p>
+    <div class="container">
+      <p>&copy; 2024 Publisher Bot. Tum haklari saklidir.</p>
     </div>
   </footer>
 
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     fetch('/api/status')
       .then(r => r.json())
@@ -241,7 +558,7 @@
         document.getElementById('user-count').textContent = data.users.toLocaleString();
         const hours = Math.floor(data.uptime / 3600000);
         const minutes = Math.floor((data.uptime % 3600000) / 60000);
-        document.getElementById('uptime').textContent = `${hours}s ${minutes}dk`;
+        document.getElementById('uptime').textContent = hours + 's ' + minutes + 'dk';
       });
 
     fetch('/api/invite')
@@ -249,6 +566,7 @@
       .then(data => {
         if (data.url) {
           document.getElementById('invite-btn').href = data.url;
+          document.getElementById('invite-btn-2').href = data.url;
         }
       });
   </script>

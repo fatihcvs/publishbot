@@ -13,6 +13,14 @@ const guilds = pgTable('guilds', {
   automodConfig: jsonb('automod_config').default({}),
   autoPunishments: jsonb('auto_punishments').default({}),
   logConfig: jsonb('log_config').default({}),
+  goodbyeChannel: text('goodbye_channel'),
+  goodbyeMessage: text('goodbye_message'),
+  verificationRole: text('verification_role'),
+  verifiedRole: text('verified_role'),
+  ticketCategory: text('ticket_category'),
+  ticketSupportRole: text('ticket_support_role'),
+  tempVoiceChannel: text('temp_voice_channel'),
+  tempVoiceCategory: text('temp_voice_category'),
   createdAt: timestamp('created_at').defaultNow()
 });
 
@@ -119,6 +127,23 @@ const scheduledMessages = pgTable('scheduled_messages', {
   createdAt: timestamp('created_at').defaultNow()
 });
 
+const userAchievements = pgTable('user_achievements', {
+  id: serial('id').primaryKey(),
+  guildId: text('guild_id').notNull(),
+  userId: text('user_id').notNull(),
+  achievementId: text('achievement_id').notNull(),
+  unlockedAt: timestamp('unlocked_at').defaultNow()
+});
+
+const inviteTracking = pgTable('invite_tracking', {
+  id: serial('id').primaryKey(),
+  guildId: text('guild_id').notNull(),
+  userId: text('user_id').notNull(),
+  inviterId: text('inviter_id'),
+  inviteCode: text('invite_code'),
+  joinedAt: timestamp('joined_at').defaultNow()
+});
+
 module.exports = {
   guilds,
   warnings,
@@ -130,5 +155,7 @@ module.exports = {
   afkUsers,
   userLevels,
   levelRewards,
-  scheduledMessages
+  scheduledMessages,
+  userAchievements,
+  inviteTracking
 };
