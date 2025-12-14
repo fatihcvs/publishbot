@@ -94,6 +94,7 @@
       <div class="navbar-nav ms-auto">
         <a class="nav-link" href="#features">Özellikler</a>
         <a class="nav-link" href="#commands">Komutlar</a>
+        <a class="nav-link" href="#invite">Davet Et</a>
         <a class="btn btn-discord ms-3" href="/auth/discord">
           <i class="fab fa-discord me-2"></i>Giriş Yap
         </a>
@@ -212,6 +213,20 @@
     </div>
   </section>
 
+  <section id="invite" class="container text-center" style="padding: 80px 0;">
+    <div class="feature-card" style="max-width: 700px; margin: 0 auto; padding: 50px;">
+      <div class="feature-icon"><i class="fas fa-plus-circle"></i></div>
+      <h2 class="mb-4">Botu Sunucuna Ekle</h2>
+      <p class="lead mb-4">Publisher Bot'u sunucuna ekleyerek moderasyon, AutoMod, çekilişler ve daha fazla özelliğin keyfini çıkar!</p>
+      <a href="#" id="invite-btn" class="btn btn-discord btn-lg">
+        <i class="fas fa-plus me-2"></i>Sunucuma Ekle
+      </a>
+      <p class="text-muted mt-4" style="font-size: 0.9rem;">
+        <i class="fas fa-shield-alt me-1"></i> Güvenli ve kolay kurulum
+      </p>
+    </div>
+  </section>
+
   <footer>
     <div class="container text-center">
       <p>&copy; 2024 Publisher Bot. Tüm hakları saklıdır.</p>
@@ -227,6 +242,14 @@
         const hours = Math.floor(data.uptime / 3600000);
         const minutes = Math.floor((data.uptime % 3600000) / 60000);
         document.getElementById('uptime').textContent = `${hours}s ${minutes}dk`;
+      });
+
+    fetch('/api/invite')
+      .then(r => r.json())
+      .then(data => {
+        if (data.url) {
+          document.getElementById('invite-btn').href = data.url;
+        }
       });
   </script>
 </body>

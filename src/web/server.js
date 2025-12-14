@@ -236,6 +236,16 @@ app.get('/api/status', (req, res) => {
   });
 });
 
+app.get('/api/invite', (req, res) => {
+  const clientId = DISCORD_CLIENT_ID;
+  if (!clientId) {
+    return res.status(503).json({ error: 'Bot client ID not configured' });
+  }
+  const permissions = '8';
+  const inviteUrl = `https://discord.com/api/oauth2/authorize?client_id=${clientId}&permissions=${permissions}&scope=bot%20applications.commands`;
+  res.json({ url: inviteUrl });
+});
+
 app.get('/api/guild/:guildId/logconfig', isAuthenticated, async (req, res) => {
   const { guildId } = req.params;
   
