@@ -54,6 +54,32 @@ Güçlü ve tam donanımlı Discord moderasyon botu + Web Dashboard.
 - `!hatırlat <süre> <mesaj>` - Hatırlatıcı oluşturur
 - `!afk [sebep]` - AFK durumunu ayarlar
 
+### Ekonomi Sistemi
+- `!para` / `!bal` - Bakiye görüntüleme
+- `!günlük` - Günlük ödül alma
+- `!çalış` - Çalışarak para kazanma
+- `!banka yatır/çek <miktar>` - Banka işlemleri
+- `!mağaza ekle/sil/liste` - Mağaza yönetimi (admin)
+- `!satınal <ürün>` - Mağazadan ürün satın alma
+
+### Doğum Günü Sistemi
+- `!doğumgünü ayarla <gün> <ay>` - Doğum gününü kaydetme
+- `!doğumgünü sil` - Doğum gününü silme
+- `!doğumgünü kanal #kanal` - Kutlama kanalını ayarlama
+- `!doğumgünü mesaj <mesaj>` - Kutlama mesajını özelleştirme
+- `!doğumgünü liste` - Yaklaşan doğum günlerini görme
+
+### Sosyal Medya Bildirimleri
+- `!sosyal ekle <platform> <kullanıcı> #kanal [mesaj]` - Bildirim ekleme
+- `!sosyal sil <id>` - Bildirim silme
+- `!sosyal liste [platform]` - Bildirimleri listeleme
+- `!sosyal toggle <id>` - Bildirimi açma/kapama
+- Desteklenen platformlar: Twitch, YouTube, TikTok, Twitter/X, Instagram, RSS
+
+### Araçlar
+- `!embed basit/gelişmiş/alan` - Özel embed mesaj oluşturma
+- `!anket "Soru" "Seçenek1" "Seçenek2"` - Anket oluşturma (10 seçeneğe kadar)
+
 ### Bilgi Komutları
 - `!sunucu` - Sunucu bilgilerini gösterir
 - `!kullanıcı @kullanıcı` - Kullanıcı bilgilerini gösterir
@@ -71,6 +97,8 @@ Dashboard özellikleri:
 - AutoMod yapılandırması
 - Otomatik ceza kuralları
 - Özel komut yönetimi
+- Sosyal medya bildirimleri
+- Ekonomi ayarları
 - Moderasyon log görüntüleyici
 
 Dashboard için gereken environment variables:
@@ -84,6 +112,12 @@ Dashboard için gereken environment variables:
 │   ├── main.js           # Ana giriş noktası (bot + web server)
 │   ├── index.js          # Discord bot
 │   ├── commands/         # Bot komutları
+│   │   ├── moderation/   # Moderasyon komutları
+│   │   ├── economy.js    # Ekonomi sistemi
+│   │   ├── birthday.js   # Doğum günü sistemi
+│   │   ├── social.js     # Sosyal medya bildirimleri
+│   │   ├── poll.js       # Anket sistemi
+│   │   └── embed.js      # Embed oluşturucu
 │   ├── modules/          # AutoMod, AutoPunish, Scheduler
 │   ├── database/         # Storage layer (PostgreSQL/JSON fallback)
 │   └── web/              # Express web server
