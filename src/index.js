@@ -29,6 +29,7 @@ const client = new Client({
 
 client.commands = new Collection();
 client.storage = storage;
+client.invites = new Collection();
 
 const PREFIX = '!';
 
@@ -52,10 +53,19 @@ let tempVoiceSystem;
 let statChannelSystem;
 let socialNotificationSystem;
 
-client.once(Events.ClientReady, () => {
+client.once(Events.ClientReady, async () => {
   console.log(`Publisher online! ${client.user.tag} olarak giriş yapıldı.`);
   console.log(`${client.guilds.cache.size} sunucuda aktif.`);
   client.user.setActivity('!yardım | Publisher', { type: 3 });
+  
+  for (const guild of client.guilds.cache.values()) {
+    try {
+      const invites = await guild.invites.fetch();
+      client.invites.set(guild.id, new Collection(invites.map(inv => [inv.code, inv.uses])));
+    } catch (error) {
+      console.log(`Davetler alınamadı: ${guild.name}`);
+    }
+  }
   
   scheduler = new Scheduler(client, storage);
   scheduler.start();
@@ -70,6 +80,30 @@ client.once(Events.ClientReady, () => {
 
 client.on(Events.GuildMemberAdd, async (member) => {
   const guildData = await storage.getGuild(member.guild.id);
+  
+  let inviterId = null;
+  let usedInviteCode = null;
+  try {
+    const oldInvites = client.invites.get(member.guild.id) || new Collection();
+    const newInvites = await member.guild.invites.fetch();
+    
+    for (const [code, invite] of newInvites) {
+      const oldUses = oldInvites.get(code) || 0;
+      if (invite.uses > oldUses) {
+        inviterId = invite.inviter?.id;
+        usedInviteCode = code;
+        break;
+      }
+    }
+    
+    client.invites.set(member.guild.id, new Collection(newInvites.map(inv => [inv.code, inv.uses])));
+    
+    if (inviterId && inviterId !== member.id) {
+      await storage.trackInvite(member.guild.id, member.id, inviterId, usedInviteCode);
+    }
+  } catch (error) {
+    console.error('Davet takibi hatası:', error);
+  }
   
   if (guildData?.autoRole) {
     try {
@@ -86,11 +120,17 @@ client.on(Events.GuildMemberAdd, async (member) => {
     try {
       const channel = member.guild.channels.cache.get(guildData.welcomeChannel);
       if (channel) {
-        const welcomeMsg = guildData.welcomeMessage
+        let welcomeMsg = guildData.welcomeMessage
           .replace(/{user}/g, member.toString())
           .replace(/{username}/g, member.user.username)
           .replace(/{server}/g, member.guild.name)
           .replace(/{membercount}/g, member.guild.memberCount);
+        
+        if (inviterId) {
+          welcomeMsg = welcomeMsg.replace(/{inviter}/g, `<@${inviterId}>`);
+        } else {
+          welcomeMsg = welcomeMsg.replace(/{inviter}/g, 'Bilinmiyor');
+        }
         
         const embed = new EmbedBuilder()
           .setColor('#00ff00')
@@ -106,7 +146,7 @@ client.on(Events.GuildMemberAdd, async (member) => {
     }
   }
   
-  if (logSystem) await logSystem.guildMemberAdd(member);
+  if (logSystem) await logSystem.guildMemberAdd(member, inviterId);
 });
 
 client.on(Events.GuildMemberRemove, async (member) => {
@@ -339,6 +379,27 @@ client.on(Events.MessageReactionRemove, async (reaction, user) => {
     }
   } catch (error) {
     console.error('Reaction role remove error:', error);
+  }
+});
+
+client.on(Events.InviteCreate, async (invite) => {
+  try {
+    const guildInvites = client.invites.get(invite.guild.id) || new Collection();
+    guildInvites.set(invite.code, invite.uses);
+    client.invites.set(invite.guild.id, guildInvites);
+  } catch (error) {
+    console.error('Invite create cache error:', error);
+  }
+});
+
+client.on(Events.InviteDelete, async (invite) => {
+  try {
+    const guildInvites = client.invites.get(invite.guild.id);
+    if (guildInvites) {
+      guildInvites.delete(invite.code);
+    }
+  } catch (error) {
+    console.error('Invite delete cache error:', error);
   }
 });
 
