@@ -62,6 +62,31 @@ Güçlü ve tam donanımlı Discord moderasyon botu + Web Dashboard.
 - `!mağaza ekle/sil/liste` - Mağaza yönetimi (admin)
 - `!satınal <ürün>` - Mağazadan ürün satın alma
 
+### Oyun Sistemi (Casino & PvP)
+
+**Casino Oyunları:**
+- `!coinflip <yazı/tura> <miktar>` - Yazı tura oyna (2x çarpan)
+- `!slots [miktar]` - Slot makinesi (2x-100x çarpan, jackpot!)
+- `!blackjack <miktar>` - Klasik 21 oyunu
+- `!dice <alt/üst/sayı> <miktar>` - Zar oyunu (2x veya 6x)
+- `!crash <miktar>` - Çarpan yükselirken doğru zamanda çık
+- `!roulette <bahis> <miktar>` - Rulet (kırmızı/siyah/yeşil/sayı)
+
+**PvP Oyunlar:**
+- `!duel @kullanıcı <miktar>` - Coinflip düellosu
+- `!rps [miktar]` - Taş Kağıt Makas (bot veya oyuncuya karşı)
+
+**Kaynak Toplama:**
+- `!fish` / `!balık` - Balık tutma (nadir balıklar daha değerli)
+- `!mine` / `!maden` - Maden kazma (elmas, yakut vb.)
+- `!hunt` / `!av` - Hayvan avcılığı
+
+**Diğer:**
+- `!rob @kullanıcı` - Soygun (riskli!)
+- `!gamestats [@kullanıcı]` - Oyun istatistikleri
+- `!gleaderboard` - Oyun sıralaması
+- `!jackpotinfo` - Jackpot havuzu bilgisi
+
 ### Doğum Günü Sistemi
 - `!doğumgünü ayarla <gün> <ay>` - Doğum gününü kaydetme
 - `!doğumgünü sil` - Doğum gününü silme
