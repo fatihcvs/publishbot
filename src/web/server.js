@@ -682,6 +682,10 @@ app.get('/dashboard/:guildId', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'guild.html'));
 });
 
+app.get('/lethe-game', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'lethe-game.html'));
+});
+
 const PORT = 5000;
 
 function startServer() {

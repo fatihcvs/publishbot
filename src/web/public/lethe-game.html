@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lethe Game - Oyun Kılavuzu</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary: #0d1117;
+      --bg-secondary: #161b22;
+      --bg-tertiary: #21262d;
+      --accent-blue: #58a6ff;
+      --accent-purple: #8b5cf6;
+      --accent-pink: #ec4899;
+      --accent-green: #10b981;
+      --accent-orange: #f59e0b;
+      --accent-yellow: #fbbf24;
+      --accent-red: #ef4444;
+      --text-primary: #f0f6fc;
+      --text-secondary: #8b949e;
+      --border-color: #30363d;
+    }
+    * { box-sizing: border-box; }
+    body {
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      min-height: 100vh;
+    }
+    .navbar {
+      background: rgba(13, 17, 23, 0.95) !important;
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border-color);
+      padding: 1rem 0;
+    }
+    .navbar-brand {
+      font-size: 1.5rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .nav-link {
+      color: var(--text-secondary) !important;
+      font-weight: 500;
+      transition: color 0.3s;
+    }
+    .nav-link:hover, .nav-link.active { color: var(--text-primary) !important; }
+    .hero {
+      padding: 80px 0 40px;
+      text-align: center;
+      position: relative;
+      background: linear-gradient(180deg, rgba(139, 92, 246, 0.1) 0%, transparent 100%);
+    }
+    .hero h1 {
+      font-size: 3.5rem;
+      font-weight: 800;
+      margin-bottom: 1rem;
+      background: linear-gradient(135deg, #fff, var(--accent-purple), var(--accent-pink));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .hero p {
+      font-size: 1.25rem;
+      color: var(--text-secondary);
+      max-width: 700px;
+      margin: 0 auto;
+    }
+    .section {
+      padding: 60px 0;
+    }
+    .section-title {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .section-title i {
+      color: var(--accent-purple);
+    }
+    .card-custom {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 24px;
+      height: 100%;
+      transition: transform 0.3s, border-color 0.3s;
+    }
+    .card-custom:hover {
+      transform: translateY(-4px);
+      border-color: var(--accent-purple);
+    }
+    .card-custom h4 {
+      font-weight: 600;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .card-custom p {
+      color: var(--text-secondary);
+      margin-bottom: 0;
+    }
+    .rarity-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .rarity-table th, .rarity-table td {
+      padding: 12px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .rarity-table th {
+      background: var(--bg-tertiary);
+      font-weight: 600;
+    }
+    .rarity-table tr:hover {
+      background: rgba(255, 255, 255, 0.02);
+    }
+    .rarity-common { color: #9ca3af; }
+    .rarity-uncommon { color: #10b981; }
+    .rarity-rare { color: #3b82f6; }
+    .rarity-epic { color: #8b5cf6; }
+    .rarity-legendary { color: #f59e0b; }
+    .rarity-mythic { color: #f97316; }
+    .rarity-hidden { color: #ef4444; }
+    .command-box {
+      background: var(--bg-tertiary);
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-family: 'Consolas', monospace;
+      color: var(--accent-green);
+      margin-bottom: 8px;
+    }
+    .command-desc {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      margin-bottom: 16px;
+    }
+    .animal-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 12px;
+    }
+    .animal-item {
+      background: var(--bg-tertiary);
+      border-radius: 8px;
+      padding: 12px;
+      text-align: center;
+      font-size: 0.9rem;
+    }
+    .animal-item .emoji {
+      font-size: 2rem;
+      display: block;
+      margin-bottom: 4px;
+    }
+    .item-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .item-table th, .item-table td {
+      padding: 10px 14px;
+      text-align: left;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .item-table th {
+      background: var(--bg-tertiary);
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+    .tab-container {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+    .tab-btn {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-color);
+      color: var(--text-secondary);
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .tab-btn:hover, .tab-btn.active {
+      background: var(--accent-purple);
+      color: white;
+      border-color: var(--accent-purple);
+    }
+    .tab-content {
+      display: none;
+    }
+    .tab-content.active {
+      display: block;
+    }
+    .stat-box {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: var(--bg-tertiary);
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      margin: 2px;
+    }
+    .quick-start-steps {
+      counter-reset: step;
+    }
+    .quick-start-step {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+    }
+    .quick-start-step::before {
+      counter-increment: step;
+      content: counter(step);
+      background: var(--accent-purple);
+      color: white;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .footer {
+      background: var(--bg-secondary);
+      border-top: 1px solid var(--border-color);
+      padding: 40px 0;
+      margin-top: 60px;
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg sticky-top">
+    <div class="container">
+      <a class="navbar-brand" href="/">Publisher</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a class="nav-link" href="/">Ana Sayfa</a></li>
+          <li class="nav-item"><a class="nav-link" href="/commands">Komutlar</a></li>
+          <li class="nav-item"><a class="nav-link active" href="/lethe-game">Lethe Game</a></li>
+          <li class="nav-item"><a class="nav-link" href="/dashboard">Panel</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <section class="hero">
+    <div class="container">
+      <h1><i class="fas fa-gamepad"></i> Lethe Game</h1>
+      <p>Discord'un en eğlenceli ekonomi ve koleksiyon oyunu! Hayvan avla, pet eğit, savaş ve zengin ol!</p>
+    </div>
+  </section>
+
+  <div class="container">
+    <section class="section">
+      <h2 class="section-title"><i class="fas fa-rocket"></i> Hızlı Başlangıç</h2>
+      <div class="quick-start-steps">
+        <div class="quick-start-step">
+          <div>
+            <h5>İlk paranı kazan</h5>
+            <p class="text-secondary mb-2">Her gün <code>!günlük</code> komutu ile ücretsiz para al. <code>!çalış</code> ile ekstra kazanç sağla.</p>
+            <div class="command-box">!günlük</div>
+          </div>
+        </div>
+        <div class="quick-start-step">
+          <div>
+            <h5>Hayvan avla</h5>
+            <p class="text-secondary mb-2"><code>!avla</code> komutu ile rastgele hayvanlar yakala. Nadir hayvanlar daha değerli!</p>
+            <div class="command-box">!avla</div>
+          </div>
+        </div>
+        <div class="quick-start-step">
+          <div>
+            <h5>Takımını kur</h5>
+            <p class="text-secondary mb-2">Yakaladığın hayvanları takımına ekle. 3 hayvanlık güçlü bir takım oluştur!</p>
+            <div class="command-box">!takımekle &lt;hayvan_id&gt;</div>
+          </div>
+        </div>
+        <div class="quick-start-step">
+          <div>
+            <h5>Savaş ve geliş</h5>
+            <p class="text-secondary mb-2">Botla veya diğer oyuncularla savaşarak XP ve para kazan. Petlerini seviye atla!</p>
+            <div class="command-box">!savaş</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="hunting">
+      <h2 class="section-title"><i class="fas fa-crosshairs"></i> Hayvan Avlama Sistemi</h2>
+      <p class="text-secondary mb-4">Lethe Game'in temel mekanığı hayvan avlamaktır. Her av, rastgele bir hayvan yakalamanı sağlar. Hayvanların nadirlik seviyeleri şansını ve değerini belirler.</p>
+      
+      <h4 class="mb-3">Nadirlik Seviyeleri</h4>
+      <div class="table-responsive mb-4">
+        <table class="rarity-table">
+          <thead>
+            <tr>
+              <th>Seviye</th>
+              <th>Düşme Şansı</th>
+              <th>XP</th>
+              <th>Satış Fiyatı</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="rarity-common">⬜ Yaygın</span></td>
+              <td>%58</td>
+              <td>1 XP</td>
+              <td>5 💰</td>
+            </tr>
+            <tr>
+              <td><span class="rarity-uncommon">🟩 Sıradışı</span></td>
+              <td>%25</td>
+              <td>5 XP</td>
+              <td>25 💰</td>
+            </tr>
+            <tr>
+              <td><span class="rarity-rare">🟦 Nadir</span></td>
+              <td>%10</td>
+              <td>25 XP</td>
+              <td>100 💰</td>
+            </tr>
+            <tr>
+              <td><span class="rarity-epic">🟪 Epik</span></td>
+              <td>%5</td>
+              <td>100 XP</td>
+              <td>500 💰</td>
+            </tr>
+            <tr>
+              <td><span class="rarity-legendary">🟨 Efsanevi</span></td>
+              <td>%1.5</td>
+              <td>500 XP</td>
+              <td>2,500 💰</td>
+            </tr>
+            <tr>
+              <td><span class="rarity-mythic">🟧 Mitik</span></td>
+              <td>%0.4</td>
+              <td>2,000 XP</td>
+              <td>10,000 💰</td>
+            </tr>
+            <tr>
+              <td><span class="rarity-hidden">❓ Gizli</span></td>
+              <td>%0.1</td>
+              <td>10,000 XP</td>
+              <td>100,000 💰</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h4 class="mb-3">Hayvan Listesi</h4>
+      <div class="tab-container">
+        <button class="tab-btn active" data-tab="common">Yaygın</button>
+        <button class="tab-btn" data-tab="uncommon">Sıradışı</button>
+        <button class="tab-btn" data-tab="rare">Nadir</button>
+        <button class="tab-btn" data-tab="epic">Epik</button>
+        <button class="tab-btn" data-tab="legendary">Efsanevi</button>
+        <button class="tab-btn" data-tab="mythic">Mitik</button>
+        <button class="tab-btn" data-tab="hidden">Gizli</button>
+      </div>
+
+      <div class="tab-content active" id="common">
+        <div class="animal-grid">
+          <div class="animal-item"><span class="emoji">🐶</span>Köpek</div>
+          <div class="animal-item"><span class="emoji">🐱</span>Kedi</div>
+          <div class="animal-item"><span class="emoji">🐭</span>Fare</div>
+          <div class="animal-item"><span class="emoji">🐹</span>Hamster</div>
+          <div class="animal-item"><span class="emoji">🐰</span>Tavşan</div>
+          <div class="animal-item"><span class="emoji">🦊</span>Tilki</div>
+          <div class="animal-item"><span class="emoji">🐻</span>Ayı</div>
+          <div class="animal-item"><span class="emoji">🐼</span>Panda</div>
+          <div class="animal-item"><span class="emoji">🐨</span>Koala</div>
+          <div class="animal-item"><span class="emoji">🐯</span>Kaplan</div>
+          <div class="animal-item"><span class="emoji">🦁</span>Aslan</div>
+          <div class="animal-item"><span class="emoji">🐮</span>İnek</div>
+          <div class="animal-item"><span class="emoji">🐷</span>Domuz</div>
+          <div class="animal-item"><span class="emoji">🐸</span>Kurbağa</div>
+          <div class="animal-item"><span class="emoji">🐵</span>Maymun</div>
+          <div class="animal-item"><span class="emoji">🐔</span>Tavuk</div>
+          <div class="animal-item"><span class="emoji">🐧</span>Penguen</div>
+          <div class="animal-item"><span class="emoji">🐦</span>Kuş</div>
+          <div class="animal-item"><span class="emoji">🐤</span>Civciv</div>
+          <div class="animal-item"><span class="emoji">🦆</span>Ördek</div>
+          <div class="animal-item"><span class="emoji">🦅</span>Kartal</div>
+          <div class="animal-item"><span class="emoji">🦉</span>Baykuş</div>
+          <div class="animal-item"><span class="emoji">🐺</span>Kurt</div>
+          <div class="animal-item"><span class="emoji">🐗</span>Yaban Domuzu</div>
+          <div class="animal-item"><span class="emoji">🐴</span>At</div>
+          <div class="animal-item"><span class="emoji">🦄</span>Tek Boynuz</div>
+          <div class="animal-item"><span class="emoji">🐝</span>Arı</div>
+          <div class="animal-item"><span class="emoji">🐛</span>Tırtıl</div>
+          <div class="animal-item"><span class="emoji">🦋</span>Kelebek</div>
+          <div class="animal-item"><span class="emoji">🐌</span>Salyangoz</div>
+        </div>
+      </div>
+
+      <div class="tab-content" id="uncommon">
+        <div class="animal-grid">
+          <div class="animal-item"><span class="emoji">🦎</span>Kertenkele</div>
+          <div class="animal-item"><span class="emoji">🐍</span>Yılan</div>
+          <div class="animal-item"><span class="emoji">🐢</span>Kaplumbağa</div>
+          <div class="animal-item"><span class="emoji">🦖</span>T-Rex</div>
+          <div class="animal-item"><span class="emoji">🦕</span>Dinozor</div>
+          <div class="animal-item"><span class="emoji">🐙</span>Ahtapot</div>
+          <div class="animal-item"><span class="emoji">🦑</span>Kalamar</div>
+          <div class="animal-item"><span class="emoji">🦐</span>Karides</div>
+          <div class="animal-item"><span class="emoji">🦞</span>Istakoz</div>
+          <div class="animal-item"><span class="emoji">🦀</span>Yengeç</div>
+          <div class="animal-item"><span class="emoji">🐡</span>Balon Balık</div>
+          <div class="animal-item"><span class="emoji">🐠</span>Tropikal Balık</div>
+          <div class="animal-item"><span class="emoji">🐟</span>Balık</div>
+          <div class="animal-item"><span class="emoji">🐬</span>Yunus</div>
+          <div class="animal-item"><span class="emoji">🐳</span>Balina</div>
+          <div class="animal-item"><span class="emoji">🦈</span>Köpek Balığı</div>
+          <div class="animal-item"><span class="emoji">🐊</span>Timsah</div>
+          <div class="animal-item"><span class="emoji">🦩</span>Flamingo</div>
+          <div class="animal-item"><span class="emoji">🦚</span>Tavus Kuşu</div>
+          <div class="animal-item"><span class="emoji">🦜</span>Papağan</div>
+        </div>
+      </div>
+
+      <div class="tab-content" id="rare">
+        <div class="animal-grid">
+          <div class="animal-item"><span class="emoji">🦥</span>Tembel Hayvan</div>
+          <div class="animal-item"><span class="emoji">🦦</span>Su Samuru</div>
+          <div class="animal-item"><span class="emoji">🦨</span>Kokarca</div>
+          <div class="animal-item"><span class="emoji">🦘</span>Kanguru</div>
+          <div class="animal-item"><span class="emoji">🦡</span>Porsuk</div>
+          <div class="animal-item"><span class="emoji">🦔</span>Kirpi</div>
+          <div class="animal-item"><span class="emoji">🦇</span>Yarasa</div>
+          <div class="animal-item"><span class="emoji">🦫</span>Kunduz</div>
+          <div class="animal-item"><span class="emoji">🐓</span>Horoz</div>
+          <div class="animal-item"><span class="emoji">🦃</span>Hindi</div>
+          <div class="animal-item"><span class="emoji">🦤</span>Dodo</div>
+          <div class="animal-item"><span class="emoji">🦭</span>Fok</div>
+          <div class="animal-item"><span class="emoji">🦬</span>Bizon</div>
+          <div class="animal-item"><span class="emoji">🐂</span>Boğa</div>
+          <div class="animal-item"><span class="emoji">🦣</span>Mamut</div>
+        </div>
+      </div>
+
+      <div class="tab-content" id="epic">
+        <div class="animal-grid">
+          <div class="animal-item"><span class="emoji">🐉</span>Ejderha</div>
+          <div class="animal-item"><span class="emoji">🦑</span>Dev Kalamar</div>
+          <div class="animal-item"><span class="emoji">🦅</span>Altın Kartal</div>
+          <div class="animal-item"><span class="emoji">🐺</span>Gümüş Kurt</div>
+          <div class="animal-item"><span class="emoji">🦁</span>Kral Aslan</div>
+          <div class="animal-item"><span class="emoji">🐯</span>Beyaz Kaplan</div>
+          <div class="animal-item"><span class="emoji">🐻‍❄️</span>Kutup Ayısı</div>
+          <div class="animal-item"><span class="emoji">🦈</span>Mega Köpekbalığı</div>
+          <div class="animal-item"><span class="emoji">🦖</span>Raptor</div>
+          <div class="animal-item"><span class="emoji">🦕</span>Brontosaurus</div>
+          <div class="animal-item"><span class="emoji">🐙</span>Kraken</div>
+          <div class="animal-item"><span class="emoji">🦚</span>Altın Tavus</div>
+          <div class="animal-item"><span class="emoji">🦩</span>Kristal Flamingo</div>
+          <div class="animal-item"><span class="emoji">🐲</span>Deniz Ejderhası</div>
+          <div class="animal-item"><span class="emoji">🦄</span>Gökkuşağı Unicorn</div>
+        </div>
+      </div>
+
+      <div class="tab-content" id="legendary">
+        <div class="animal-grid">
+          <div class="animal-item"><span class="emoji">🔥</span>Anka Kuşu</div>
+          <div class="animal-item"><span class="emoji">⚡</span>Şimşek Ejderhası</div>
+          <div class="animal-item"><span class="emoji">🌊</span>Leviathan</div>
+          <div class="animal-item"><span class="emoji">💀</span>Cerberus</div>
+          <div class="animal-item"><span class="emoji">🌙</span>Ay Kurdu</div>
+          <div class="animal-item"><span class="emoji">☀️</span>Güneş Kartalı</div>
+          <div class="animal-item"><span class="emoji">🌈</span>Gökkuşağı Yılanı</div>
+          <div class="animal-item"><span class="emoji">❄️</span>Buz Ejderhası</div>
+          <div class="animal-item"><span class="emoji">🌪️</span>Fırtına Kuşu</div>
+          <div class="animal-item"><span class="emoji">🌟</span>Yıldız Tilkisi</div>
+        </div>
+      </div>
+
+      <div class="tab-content" id="mythic">
+        <div class="animal-grid">
+          <div class="animal-item"><span class="emoji">👑</span>Ejderha Kralı</div>
+          <div class="animal-item"><span class="emoji">💎</span>Elmas Kaplan</div>
+          <div class="animal-item"><span class="emoji">🌌</span>Galaksi Kurdu</div>
+          <div class="animal-item"><span class="emoji">⭐</span>Yıldız Unicorn</div>
+          <div class="animal-item"><span class="emoji">🔮</span>Kristal Phoenix</div>
+          <div class="animal-item"><span class="emoji">💫</span>Nebula Baykuşu</div>
+          <div class="animal-item"><span class="emoji">🌠</span>Meteor Aslanı</div>
+          <div class="animal-item"><span class="emoji">✨</span>Işık Ejderhası</div>
+        </div>
+      </div>
+
+      <div class="tab-content" id="hidden">
+        <div class="animal-grid">
+          <div class="animal-item"><span class="emoji">🎭</span>Gölge Lord</div>
+          <div class="animal-item"><span class="emoji">👁️</span>Tüm Gören</div>
+          <div class="animal-item"><span class="emoji">🕳️</span>Void Yaratığı</div>
+          <div class="animal-item"><span class="emoji">⚫</span>Karanlık Tanrı</div>
+          <div class="animal-item"><span class="emoji">🌀</span>Kaos Varlığı</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="pets">
+      <h2 class="section-title"><i class="fas fa-paw"></i> Pet Sistemi</h2>
+      <p class="text-secondary mb-4">Yakaladığın hayvanları takımına ekleyerek onları savaşlarda kullanabilirsin. Her pet'in kendine özgü statları vardır.</p>
+      
+      <div class="row g-4 mb-4">
+        <div class="col-md-6 col-lg-3">
+          <div class="card-custom">
+            <h4><span class="stat-box">❤️ HP</span></h4>
+            <p>Can Puanı - Pet'in ne kadar hasar alabileceğini belirler. Seviye atladıkça artar.</p>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+          <div class="card-custom">
+            <h4><span class="stat-box">⚔️ STR</span></h4>
+            <p>Güç - Fiziksel saldırı hasarını belirler. Silahlarla artırılabilir.</p>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+          <div class="card-custom">
+            <h4><span class="stat-box">🛡️ DEF</span></h4>
+            <p>Savunma - Alınan hasarı azaltır. Zırhlarla güçlendirilebilir.</p>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+          <div class="card-custom">
+            <h4><span class="stat-box">⚡ SPD</span></h4>
+            <p>Hız - Savaşta kimin önce saldıracağını belirler.</p>
+          </div>
+        </div>
+      </div>
+
+      <h4 class="mb-3">Takım Sistemi</h4>
+      <ul class="list-unstyled">
+        <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Takımına 3 farklı hayvan ekleyebilirsin</li>
+        <li class="mb-2"><i class="fas fa-check text-success me-2"></i>2 farklı takım kaydedip aralarında geçiş yapabilirsin</li>
+        <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Aynı türden birden fazla hayvan takımda olamaz</li>
+        <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Pet'ler savaşarak XP kazanır ve seviye atlar</li>
+        <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Her seviye: +10 HP, +2 STR, +1 DEF, +1 SPD</li>
+      </ul>
+    </section>
+
+    <section class="section" id="equipment">
+      <h2 class="section-title"><i class="fas fa-shield-halved"></i> Ekipman Sistemi</h2>
+      
+      <div class="tab-container">
+        <button class="tab-btn active" data-tab="weapons">Silahlar</button>
+        <button class="tab-btn" data-tab="armors">Zırhlar</button>
+        <button class="tab-btn" data-tab="accessories">Aksesuarlar</button>
+        <button class="tab-btn" data-tab="consumables">Tüketimler</button>
+        <button class="tab-btn" data-tab="baits">Yemler</button>
+      </div>
+
+      <div class="tab-content active" id="weapons">
+        <div class="table-responsive">
+          <table class="item-table">
+            <thead>
+              <tr>
+                <th>Silah</th>
+                <th>Tip</th>
+                <th>Hasar</th>
+                <th>Özel</th>
+                <th>Fiyat</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>🗡️ Tahta Kılıç</td><td>Fiziksel</td><td>+10</td><td>-</td><td>100 💰</td></tr>
+              <tr><td>⚔️ Demir Kılıç</td><td>Fiziksel</td><td>+25</td><td>-</td><td>500 💰</td></tr>
+              <tr><td>🔪 Çelik Hançer</td><td>Fiziksel</td><td>+15</td><td>%10 kritik</td><td>400 💰</td></tr>
+              <tr><td>🏹 Uzun Yay</td><td>Fiziksel</td><td>+20</td><td>İlk vuruş</td><td>600 💰</td></tr>
+              <tr><td>🪄 Büyü Asası</td><td>Büyü</td><td>+30</td><td>Büyü x1.2</td><td>1,000 💰</td></tr>
+              <tr><td>⚡ Şimşek Kamçısı</td><td>Büyü</td><td>+40</td><td>%15 sersemletme</td><td>2,500 💰</td></tr>
+              <tr><td>🔥 Ateş Kılıcı</td><td>Fiziksel</td><td>+50</td><td>+10 yanma</td><td>5,000 💰</td></tr>
+              <tr><td>❄️ Buz Baltası</td><td>Fiziksel</td><td>+55</td><td>%20 yavaşlatma</td><td>5,500 💰</td></tr>
+              <tr><td>💀 Karanlık Orak</td><td>Fiziksel</td><td>+70</td><td>%10 can çalma</td><td>10,000 💰</td></tr>
+              <tr><td>👑 Ejderha Kılıcı</td><td>Fiziksel</td><td>+100</td><td>Tüm stat +5</td><td>50,000 💰</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="tab-content" id="armors">
+        <div class="table-responsive">
+          <table class="item-table">
+            <thead>
+              <tr>
+                <th>Zırh</th>
+                <th>Savunma</th>
+                <th>Özel</th>
+                <th>Fiyat</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>🥋 Kumaş Zırh</td><td>+5</td><td>-</td><td>100 💰</td></tr>
+              <tr><td>🦺 Deri Zırh</td><td>+15</td><td>-</td><td>400 💰</td></tr>
+              <tr><td>🛡️ Zincir Zırh</td><td>+30</td><td>-</td><td>1,000 💰</td></tr>
+              <tr><td>⚔️ Çelik Zırh</td><td>+50</td><td>-</td><td>3,000 💰</td></tr>
+              <tr><td>🔥 Ateş Zırhı</td><td>+60</td><td>Ateş direnci</td><td>8,000 💰</td></tr>
+              <tr><td>❄️ Buz Zırhı</td><td>+60</td><td>Buz direnci</td><td>8,000 💰</td></tr>
+              <tr><td>💎 Elmas Zırh</td><td>+80</td><td>+10 HP</td><td>20,000 💰</td></tr>
+              <tr><td>👑 Ejderha Zırhı</td><td>+100</td><td>Tüm direnç +20%</td><td>50,000 💰</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="tab-content" id="accessories">
+        <div class="table-responsive">
+          <table class="item-table">
+            <thead>
+              <tr>
+                <th>Aksesuar</th>
+                <th>Etki</th>
+                <th>Fiyat</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>💍 Şans Yüzüğü</td><td>Avlanma şansı +5%</td><td>2,000 💰</td></tr>
+              <tr><td>📿 Güç Kolyesi</td><td>STR +10</td><td>3,000 💰</td></tr>
+              <tr><td>🧿 Koruma Tılsımı</td><td>DEF +10</td><td>3,000 💰</td></tr>
+              <tr><td>⏱️ Hız Bileziği</td><td>SPD +10</td><td>3,000 💰</td></tr>
+              <tr><td>🔮 Büyü Küpesi</td><td>Büyü hasarı +15%</td><td>5,000 💰</td></tr>
+              <tr><td>👑 Kralın Tacı</td><td>Tüm statlar +5</td><td>25,000 💰</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="tab-content" id="consumables">
+        <div class="table-responsive">
+          <table class="item-table">
+            <thead>
+              <tr>
+                <th>İksir</th>
+                <th>Etki</th>
+                <th>Süre</th>
+                <th>Fiyat</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>❤️ Küçük Can İksiri</td><td>+50 HP</td><td>Anlık</td><td>50 💰</td></tr>
+              <tr><td>❤️‍🔥 Büyük Can İksiri</td><td>+200 HP</td><td>Anlık</td><td>200 💰</td></tr>
+              <tr><td>💪 Güç İksiri</td><td>STR +20</td><td>10 savaş</td><td>300 💰</td></tr>
+              <tr><td>🛡️ Savunma İksiri</td><td>DEF +20</td><td>10 savaş</td><td>300 💰</td></tr>
+              <tr><td>⚡ Hız İksiri</td><td>SPD +20</td><td>10 savaş</td><td>300 💰</td></tr>
+              <tr><td>🍀 Şans İksiri</td><td>LCK +20</td><td>10 av</td><td>500 💰</td></tr>
+              <tr><td>✨ Nadir Av İksiri</td><td>Nadir+ şansı x2</td><td>5 av</td><td>1,000 💰</td></tr>
+              <tr><td>🌟 XP İksiri</td><td>XP x2</td><td>30 dk</td><td>800 💰</td></tr>
+              <tr><td>💰 Para İksiri</td><td>Kazanç x2</td><td>30 dk</td><td>1,500 💰</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="tab-content" id="baits">
+        <div class="table-responsive">
+          <table class="item-table">
+            <thead>
+              <tr>
+                <th>Yem</th>
+                <th>Etki</th>
+                <th>Kullanım</th>
+                <th>Fiyat</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>🍖 Normal Yem</td><td>+5% yakalama</td><td>10 av</td><td>100 💰</td></tr>
+              <tr><td>🥩 Kaliteli Yem</td><td>+10% yakalama</td><td>10 av</td><td>300 💰</td></tr>
+              <tr><td>🍗 Premium Yem</td><td>+20% yakalama</td><td>10 av</td><td>800 💰</td></tr>
+              <tr><td>🦴 Altın Yem</td><td>+30% + Nadir şansı</td><td>5 av</td><td>2,000 💰</td></tr>
+              <tr><td>💎 Elmas Yem</td><td>+50% + Epik şansı</td><td>3 av</td><td>5,000 💰</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="battle">
+      <h2 class="section-title"><i class="fas fa-swords"></i> Savaş Sistemi</h2>
+      
+      <div class="row g-4 mb-4">
+        <div class="col-md-4">
+          <div class="card-custom">
+            <h4><i class="fas fa-robot text-info me-2"></i>PvE Savaş</h4>
+            <p>Bot kontrollü rakiplerle savaş. XP ve para kazan, günlük görevleri tamamla.</p>
+            <div class="command-box">!savaş</div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card-custom">
+            <h4><i class="fas fa-users text-warning me-2"></i>PvP Düello</h4>
+            <p>Diğer oyuncularla düello yap. Bahis koy ve kazanan her şeyi alsın!</p>
+            <div class="command-box">!düello @kullanıcı</div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card-custom">
+            <h4><i class="fas fa-dragon text-danger me-2"></i>Boss Savaşı</h4>
+            <p>Haftalık boss savaşlarına katıl. Büyük ödüller ve nadir eşyalar kazan!</p>
+            <div class="command-box">!boss</div>
+          </div>
+        </div>
+      </div>
+
+      <h4 class="mb-3">Boss Listesi</h4>
+      <div class="table-responsive">
+        <table class="item-table">
+          <thead>
+            <tr>
+              <th>Boss</th>
+              <th>HP</th>
+              <th>Ödül</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>🐲 Genç Ejderha</td><td>1,000</td><td>500 💰 + Nadir eşya</td></tr>
+            <tr><td>🦑 Dev Kraken</td><td>2,500</td><td>1,500 💰 + Epik eşya</td></tr>
+            <tr><td>💀 İskelet Kral</td><td>5,000</td><td>3,000 💰 + Efsanevi eşya</td></tr>
+            <tr><td>👹 Şeytan Lord</td><td>10,000</td><td>10,000 💰 + Mitik eşya</td></tr>
+            <tr><td>🌌 Kaos Ejderhası</td><td>25,000</td><td>50,000 💰 + Gizli eşya</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section" id="crates">
+      <h2 class="section-title"><i class="fas fa-box-open"></i> Sandık Sistemi</h2>
+      <p class="text-secondary mb-4">Sandıklar rastgele eşyalar içerir. Ne kadar değerli sandık, o kadar iyi ödüller!</p>
+      
+      <div class="row g-4">
+        <div class="col-md-4 col-lg">
+          <div class="card-custom text-center">
+            <div style="font-size: 3rem; margin-bottom: 12px;">📦</div>
+            <h5 class="rarity-common">Bronz Sandık</h5>
+            <p class="small">Yaygın-Nadir eşya</p>
+            <strong>200 💰</strong>
+          </div>
+        </div>
+        <div class="col-md-4 col-lg">
+          <div class="card-custom text-center">
+            <div style="font-size: 3rem; margin-bottom: 12px;">📦</div>
+            <h5 class="rarity-uncommon">Gümüş Sandık</h5>
+            <p class="small">Sıradışı-Epik eşya</p>
+            <strong>1,000 💰</strong>
+          </div>
+        </div>
+        <div class="col-md-4 col-lg">
+          <div class="card-custom text-center">
+            <div style="font-size: 3rem; margin-bottom: 12px;">📦</div>
+            <h5 class="rarity-legendary">Altın Sandık</h5>
+            <p class="small">Nadir-Efsanevi eşya</p>
+            <strong>5,000 💰</strong>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg">
+          <div class="card-custom text-center">
+            <div style="font-size: 3rem; margin-bottom: 12px;">📦</div>
+            <h5 class="rarity-epic">Elmas Sandık</h5>
+            <p class="small">Epik-Mitik eşya</p>
+            <strong>20,000 💰</strong>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg">
+          <div class="card-custom text-center">
+            <div style="font-size: 3rem; margin-bottom: 12px;">📦</div>
+            <h5 class="rarity-hidden">Kozmik Sandık</h5>
+            <p class="small">Efsanevi-Gizli eşya</p>
+            <strong>100,000 💰</strong>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="commands">
+      <h2 class="section-title"><i class="fas fa-terminal"></i> Tüm Komutlar</h2>
+      
+      <div class="row g-4">
+        <div class="col-md-6">
+          <div class="card-custom">
+            <h4><i class="fas fa-coins text-warning me-2"></i>Ekonomi</h4>
+            <div class="command-box">!bakiye</div>
+            <p class="command-desc">Para bakiyeni görüntüle</p>
+            <div class="command-box">!günlük</div>
+            <p class="command-desc">Günlük ödülünü al</p>
+            <div class="command-box">!çalış</div>
+            <p class="command-desc">Çalışarak para kazan</p>
+            <div class="command-box">!banka yatır/çek &lt;miktar&gt;</div>
+            <p class="command-desc">Bankaya para yatır veya çek</p>
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <div class="card-custom">
+            <h4><i class="fas fa-crosshairs text-success me-2"></i>Avlanma</h4>
+            <div class="command-box">!avla</div>
+            <p class="command-desc">Hayvan avla</p>
+            <div class="command-box">!koleksiyon</div>
+            <p class="command-desc">Yakaladığın hayvanları gör</p>
+            <div class="command-box">!sat &lt;hayvan_id&gt;</div>
+            <p class="command-desc">Hayvan sat</p>
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <div class="card-custom">
+            <h4><i class="fas fa-paw text-info me-2"></i>Pet & Takım</h4>
+            <div class="command-box">!takım</div>
+            <p class="command-desc">Aktif takımını gör</p>
+            <div class="command-box">!takımekle &lt;hayvan_id&gt;</div>
+            <p class="command-desc">Takımına hayvan ekle</p>
+            <div class="command-box">!takımçıkar &lt;slot&gt;</div>
+            <p class="command-desc">Takımdan hayvan çıkar</p>
+            <div class="command-box">!petler</div>
+            <p class="command-desc">Tüm petlerini gör</p>
+            <div class="command-box">!isimver &lt;slot&gt; &lt;isim&gt;</div>
+            <p class="command-desc">Pet'e isim ver</p>
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <div class="card-custom">
+            <h4><i class="fas fa-swords text-danger me-2"></i>Savaş</h4>
+            <div class="command-box">!savaş</div>
+            <p class="command-desc">Bot ile savaş</p>
+            <div class="command-box">!düello @kullanıcı [bahis]</div>
+            <p class="command-desc">Kullanıcıyla düello</p>
+            <div class="command-box">!boss</div>
+            <p class="command-desc">Boss savaşına katıl</p>
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <div class="card-custom">
+            <h4><i class="fas fa-shop text-purple me-2"></i>Mağaza & Envanter</h4>
+            <div class="command-box">!mağaza</div>
+            <p class="command-desc">Mağazayı aç</p>
+            <div class="command-box">!satınal &lt;eşya_id&gt;</div>
+            <p class="command-desc">Eşya satın al</p>
+            <div class="command-box">!envanter</div>
+            <p class="command-desc">Envanterini gör</p>
+            <div class="command-box">!kuşan &lt;eşya_id&gt;</div>
+            <p class="command-desc">Eşya kuşan</p>
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <div class="card-custom">
+            <h4><i class="fas fa-box-open text-orange me-2"></i>Sandık</h4>
+            <div class="command-box">!sandık</div>
+            <p class="command-desc">Mevcut sandıkları gör</p>
+            <div class="command-box">!sandıkaç &lt;sandık_türü&gt;</div>
+            <p class="command-desc">Sandık aç</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="achievements">
+      <h2 class="section-title"><i class="fas fa-trophy"></i> Başarımlar</h2>
+      
+      <div class="table-responsive">
+        <table class="item-table">
+          <thead>
+            <tr>
+              <th>Başarım</th>
+              <th>Koşul</th>
+              <th>Ödül</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>🎯 İlk Av</td><td>1 hayvan yakala</td><td>50 💰</td></tr>
+            <tr><td>🏆 Avcı</td><td>100 hayvan yakala</td><td>500 💰 + Rozet</td></tr>
+            <tr><td>👑 Usta Avcı</td><td>1,000 hayvan yakala</td><td>5,000 💰 + Özel Pet</td></tr>
+            <tr><td>⚔️ İlk Zafer</td><td>1 savaş kazan</td><td>100 💰</td></tr>
+            <tr><td>🏅 Savaşçı</td><td>50 savaş kazan</td><td>2,000 💰 + Silah</td></tr>
+            <tr><td>💰 Zengin</td><td>100,000 💰 biriktir</td><td>Özel Rozet</td></tr>
+            <tr><td>🦁 Koleksiyoncu</td><td>Her türden 1 hayvan</td><td>10,000 💰</td></tr>
+            <tr><td>🐉 Ejderha Avcısı</td><td>Boss öldür</td><td>Özel Silah</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <footer class="footer">
+    <div class="container text-center">
+      <p class="text-secondary mb-2">Lethe Game - Publisher Bot'un Ekonomi & Koleksiyon Oyunu</p>
+      <p class="text-secondary small">Her gün oyna, koleksiyonunu büyüt ve en güçlü ol!</p>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const tabGroup = btn.closest('.section');
+        tabGroup.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        tabGroup.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        btn.classList.add('active');
+        const tabId = btn.dataset.tab;
+        tabGroup.querySelector(`#${tabId}`).classList.add('active');
+      });
+    });
+  </script>
+</body>
+</html>

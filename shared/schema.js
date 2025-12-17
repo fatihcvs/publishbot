@@ -353,6 +353,183 @@ const lootBoxes = pgTable('loot_boxes', {
   possibleItems: jsonb('possible_items').default([])
 });
 
+const letheAnimals = pgTable('lethe_animals', {
+  id: serial('id').primaryKey(),
+  animalId: text('animal_id').notNull().unique(),
+  name: text('name').notNull(),
+  emoji: text('emoji').notNull(),
+  rarity: text('rarity').notNull(),
+  baseHp: integer('base_hp').default(100),
+  baseStr: integer('base_str').default(10),
+  baseDef: integer('base_def').default(10),
+  baseSpd: integer('base_spd').default(10),
+  sellPrice: integer('sell_price').default(5),
+  xpReward: integer('xp_reward').default(1)
+});
+
+const userAnimals = pgTable('user_animals', {
+  id: serial('id').primaryKey(),
+  guildId: text('guild_id').notNull(),
+  userId: text('user_id').notNull(),
+  animalId: text('animal_id').notNull(),
+  nickname: text('nickname'),
+  level: integer('level').default(1),
+  xp: integer('xp').default(0),
+  hp: integer('hp').default(100),
+  str: integer('str').default(10),
+  def: integer('def').default(10),
+  spd: integer('spd').default(10),
+  isInTeam: boolean('is_in_team').default(false),
+  teamSlot: integer('team_slot'),
+  caughtAt: timestamp('caught_at').defaultNow()
+});
+
+const letheWeapons = pgTable('lethe_weapons', {
+  id: serial('id').primaryKey(),
+  weaponId: text('weapon_id').notNull().unique(),
+  name: text('name').notNull(),
+  emoji: text('emoji').notNull(),
+  type: text('type').default('physical'),
+  damage: integer('damage').default(10),
+  specialEffect: text('special_effect'),
+  specialValue: integer('special_value'),
+  price: integer('price').default(100),
+  rarity: text('rarity').default('common')
+});
+
+const letheArmors = pgTable('lethe_armors', {
+  id: serial('id').primaryKey(),
+  armorId: text('armor_id').notNull().unique(),
+  name: text('name').notNull(),
+  emoji: text('emoji').notNull(),
+  defense: integer('defense').default(5),
+  specialEffect: text('special_effect'),
+  specialValue: integer('special_value'),
+  price: integer('price').default(100),
+  rarity: text('rarity').default('common')
+});
+
+const letheAccessories = pgTable('lethe_accessories', {
+  id: serial('id').primaryKey(),
+  accessoryId: text('accessory_id').notNull().unique(),
+  name: text('name').notNull(),
+  emoji: text('emoji').notNull(),
+  effect: text('effect').notNull(),
+  effectValue: integer('effect_value').default(5),
+  price: integer('price').default(100),
+  rarity: text('rarity').default('common')
+});
+
+const letheConsumables = pgTable('lethe_consumables', {
+  id: serial('id').primaryKey(),
+  consumableId: text('consumable_id').notNull().unique(),
+  name: text('name').notNull(),
+  emoji: text('emoji').notNull(),
+  effect: text('effect').notNull(),
+  effectValue: integer('effect_value').default(50),
+  duration: integer('duration'),
+  durationType: text('duration_type'),
+  price: integer('price').default(50),
+  rarity: text('rarity').default('common')
+});
+
+const letheBaits = pgTable('lethe_baits', {
+  id: serial('id').primaryKey(),
+  baitId: text('bait_id').notNull().unique(),
+  name: text('name').notNull(),
+  emoji: text('emoji').notNull(),
+  catchBonus: integer('catch_bonus').default(5),
+  rarityBonus: text('rarity_bonus'),
+  uses: integer('uses').default(10),
+  price: integer('price').default(100)
+});
+
+const letheCrates = pgTable('lethe_crates', {
+  id: serial('id').primaryKey(),
+  crateId: text('crate_id').notNull().unique(),
+  name: text('name').notNull(),
+  emoji: text('emoji').notNull(),
+  minRarity: text('min_rarity').default('common'),
+  maxRarity: text('max_rarity').default('rare'),
+  price: integer('price').default(200),
+  possibleRewards: jsonb('possible_rewards').default([])
+});
+
+const letheBosses = pgTable('lethe_bosses', {
+  id: serial('id').primaryKey(),
+  bossId: text('boss_id').notNull().unique(),
+  name: text('name').notNull(),
+  emoji: text('emoji').notNull(),
+  hp: integer('hp').default(1000),
+  str: integer('str').default(50),
+  def: integer('def').default(30),
+  rewardMoney: integer('reward_money').default(500),
+  rewardRarity: text('reward_rarity').default('rare')
+});
+
+const userLetheInventory = pgTable('user_lethe_inventory', {
+  id: serial('id').primaryKey(),
+  guildId: text('guild_id').notNull(),
+  visitorId: text('user_id').notNull(),
+  itemType: text('item_type').notNull(),
+  itemId: text('item_id').notNull(),
+  quantity: integer('quantity').default(1),
+  isEquipped: boolean('is_equipped').default(false),
+  obtainedAt: timestamp('obtained_at').defaultNow()
+});
+
+const userLetheProfile = pgTable('user_lethe_profile', {
+  id: serial('id').primaryKey(),
+  guildId: text('guild_id').notNull(),
+  visitorId: text('user_id').notNull(),
+  level: integer('level').default(1),
+  xp: integer('xp').default(0),
+  totalHunts: integer('total_hunts').default(0),
+  totalBattles: integer('total_battles').default(0),
+  battlesWon: integer('battles_won').default(0),
+  bossesKilled: integer('bosses_killed').default(0),
+  equippedWeapon: text('equipped_weapon'),
+  equippedArmor: text('equipped_armor'),
+  equippedAccessory: text('equipped_accessory'),
+  activeBoosts: jsonb('active_boosts').default({}),
+  lastHunt: timestamp('last_hunt'),
+  createdAt: timestamp('created_at').defaultNow()
+});
+
+const letheAchievements = pgTable('lethe_achievements', {
+  id: serial('id').primaryKey(),
+  achievementId: text('achievement_id').notNull().unique(),
+  name: text('name').notNull(),
+  description: text('description').notNull(),
+  emoji: text('emoji').notNull(),
+  requirement: text('requirement').notNull(),
+  requirementValue: integer('requirement_value').default(1),
+  rewardMoney: integer('reward_money').default(0),
+  rewardItem: text('reward_item')
+});
+
+const userLetheAchievements = pgTable('user_lethe_achievements', {
+  id: serial('id').primaryKey(),
+  guildId: text('guild_id').notNull(),
+  visitorId: text('user_id').notNull(),
+  achievementId: text('achievement_id').notNull(),
+  unlockedAt: timestamp('unlocked_at').defaultNow()
+});
+
+const letheBattles = pgTable('lethe_battles', {
+  id: serial('id').primaryKey(),
+  guildId: text('guild_id').notNull(),
+  visitorId: text('user_id').notNull(),
+  opponentType: text('opponent_type').notNull(),
+  opponentId: text('opponent_id'),
+  result: text('result'),
+  xpEarned: integer('xp_earned').default(0),
+  moneyEarned: integer('money_earned').default(0),
+  itemDropped: text('item_dropped'),
+  battleLog: jsonb('battle_log').default([]),
+  createdAt: timestamp('created_at').defaultNow()
+});
+
 module.exports = {
   guilds,
   warnings,
@@ -384,5 +561,19 @@ module.exports = {
   dailyStreak,
   jackpotPool,
   userStats,
-  lootBoxes
+  lootBoxes,
+  letheAnimals,
+  userAnimals,
+  letheWeapons,
+  letheArmors,
+  letheAccessories,
+  letheConsumables,
+  letheBaits,
+  letheCrates,
+  letheBosses,
+  userLetheInventory,
+  userLetheProfile,
+  letheAchievements,
+  userLetheAchievements,
+  letheBattles
 };
