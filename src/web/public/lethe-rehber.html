@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lethe Game Rehberi - Publisher Bot</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary: #0d1117;
+      --bg-secondary: #161b22;
+      --bg-tertiary: #21262d;
+      --accent-blue: #58a6ff;
+      --accent-purple: #8b5cf6;
+      --accent-pink: #ec4899;
+      --accent-green: #10b981;
+      --accent-orange: #f59e0b;
+      --accent-yellow: #fbbf24;
+      --accent-red: #ef4444;
+      --text-primary: #f0f6fc;
+      --text-secondary: #8b949e;
+      --border-color: #30363d;
+    }
+    * { box-sizing: border-box; }
+    body {
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      min-height: 100vh;
+    }
+    .navbar {
+      background: rgba(13, 17, 23, 0.95) !important;
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border-color);
+      padding: 1rem 0;
+    }
+    .navbar-brand {
+      font-size: 1.5rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .nav-link {
+      color: var(--text-secondary) !important;
+      font-weight: 500;
+      transition: color 0.3s;
+    }
+    .nav-link:hover, .nav-link.active { color: var(--text-primary) !important; }
+    .hero {
+      padding: 80px 0 40px;
+      text-align: center;
+      position: relative;
+      background: linear-gradient(180deg, rgba(16, 185, 129, 0.1) 0%, transparent 100%);
+    }
+    .hero h1 {
+      font-size: 3rem;
+      font-weight: 800;
+      margin-bottom: 1rem;
+      background: linear-gradient(135deg, #fff, var(--accent-green), var(--accent-blue));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .hero p {
+      font-size: 1.25rem;
+      color: var(--text-secondary);
+      max-width: 700px;
+      margin: 0 auto;
+    }
+    .section {
+      padding: 60px 0;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .section:last-child {
+      border-bottom: none;
+    }
+    .section-title {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .section-title i {
+      color: var(--accent-green);
+    }
+    .guide-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 24px;
+      height: 100%;
+      transition: transform 0.3s, border-color 0.3s;
+    }
+    .guide-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--accent-green);
+    }
+    .guide-card h4 {
+      font-weight: 600;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .guide-card p {
+      color: var(--text-secondary);
+      margin-bottom: 0;
+    }
+    .step-number {
+      background: var(--accent-green);
+      color: white;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .step-box {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 16px;
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+    }
+    .step-box:hover {
+      border-color: var(--accent-green);
+    }
+    .command-box {
+      background: var(--bg-tertiary);
+      border-radius: 8px;
+      padding: 10px 16px;
+      font-family: 'Consolas', monospace;
+      color: var(--accent-green);
+      display: inline-block;
+      margin: 4px 0;
+    }
+    .tip-box {
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid var(--accent-green);
+      border-radius: 12px;
+      padding: 16px;
+      margin: 16px 0;
+    }
+    .tip-box h5 {
+      color: var(--accent-green);
+      margin-bottom: 8px;
+    }
+    .warning-box {
+      background: rgba(245, 158, 11, 0.1);
+      border: 1px solid var(--accent-orange);
+      border-radius: 12px;
+      padding: 16px;
+      margin: 16px 0;
+    }
+    .warning-box h5 {
+      color: var(--accent-orange);
+      margin-bottom: 8px;
+    }
+    .info-box {
+      background: rgba(88, 166, 255, 0.1);
+      border: 1px solid var(--accent-blue);
+      border-radius: 12px;
+      padding: 16px;
+      margin: 16px 0;
+    }
+    .info-box h5 {
+      color: var(--accent-blue);
+      margin-bottom: 8px;
+    }
+    .stat-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: var(--bg-tertiary);
+      padding: 4px 12px;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      margin: 2px;
+    }
+    .rarity-common { color: #9ca3af; }
+    .rarity-uncommon { color: #10b981; }
+    .rarity-rare { color: #3b82f6; }
+    .rarity-epic { color: #8b5cf6; }
+    .rarity-legendary { color: #f59e0b; }
+    .rarity-mythic { color: #f97316; }
+    .rarity-hidden { color: #ef4444; }
+    .toc {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 24px;
+      position: sticky;
+      top: 80px;
+    }
+    .toc h5 {
+      margin-bottom: 16px;
+      font-weight: 600;
+    }
+    .toc a {
+      display: block;
+      color: var(--text-secondary);
+      text-decoration: none;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border-color);
+      transition: color 0.3s;
+    }
+    .toc a:last-child {
+      border-bottom: none;
+    }
+    .toc a:hover {
+      color: var(--accent-green);
+    }
+    .progress-bar-custom {
+      height: 8px;
+      background: var(--bg-tertiary);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent-green), var(--accent-blue));
+      border-radius: 4px;
+    }
+    .footer {
+      background: var(--bg-secondary);
+      border-top: 1px solid var(--border-color);
+      padding: 40px 0;
+      margin-top: 60px;
+    }
+    @media (max-width: 992px) {
+      .toc {
+        position: static;
+        margin-bottom: 32px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg sticky-top">
+    <div class="container">
+      <a class="navbar-brand" href="/">Publisher</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a class="nav-link" href="/">Ana Sayfa</a></li>
+          <li class="nav-item"><a class="nav-link" href="/commands">Komutlar</a></li>
+          <li class="nav-item"><a class="nav-link" href="/lethe-game">Lethe Game</a></li>
+          <li class="nav-item"><a class="nav-link active" href="/lethe-rehber">Rehber</a></li>
+          <li class="nav-item"><a class="nav-link" href="/dashboard">Panel</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <section class="hero">
+    <div class="container">
+      <h1><i class="fas fa-book-open"></i> Lethe Game Rehberi</h1>
+      <p>Sıfırdan uzmanlığa! Bu rehber ile Lethe Game'in tüm inceliklerini öğren ve en güçlü oyuncu ol.</p>
+    </div>
+  </section>
+
+  <div class="container py-5">
+    <div class="row">
+      <div class="col-lg-3">
+        <div class="toc">
+          <h5><i class="fas fa-list me-2"></i>İçindekiler</h5>
+          <a href="#baslangic">1. Başlangıç Rehberi</a>
+          <a href="#avlanma">2. Avlanma Sistemi</a>
+          <a href="#takim">3. Takım Kurma</a>
+          <a href="#ekipman">4. Ekipman Sistemi</a>
+          <a href="#savas">5. Savaş Stratejileri</a>
+          <a href="#boss">6. Boss Rehberi</a>
+          <a href="#ekonomi">7. Para Kazanma</a>
+          <a href="#gorevler">8. Görev Sistemi</a>
+          <a href="#evrim">9. Evrim Sistemi</a>
+          <a href="#ipuclari">10. Pro İpuçları</a>
+        </div>
+      </div>
+
+      <div class="col-lg-9">
+        <section class="section" id="baslangic">
+          <h2 class="section-title"><i class="fas fa-play-circle"></i> 1. Başlangıç Rehberi</h2>
+          <p class="text-secondary mb-4">Lethe Game'e hoş geldin! Bu bölümde oyuna nasıl başlayacağını öğreneceksin.</p>
+
+          <div class="step-box">
+            <div class="step-number">1</div>
+            <div>
+              <h5>İlk Hayvanını Avla</h5>
+              <p class="text-secondary">Oyuna başlamak için ilk hayvanını avla. Her avda rastgele bir hayvan yakalarsın.</p>
+              <div class="command-box">!avla</div>
+              <p class="text-secondary small mt-2">15 saniye bekleme süresi var. Bu süre dolmadan tekrar avlanamazsın.</p>
+            </div>
+          </div>
+
+          <div class="step-box">
+            <div class="step-number">2</div>
+            <div>
+              <h5>Koleksiyonunu Kontrol Et</h5>
+              <p class="text-secondary">Yakaladığın hayvanları görmek için koleksiyonuna bak.</p>
+              <div class="command-box">!koleksiyon</div>
+              <p class="text-secondary small mt-2">Her hayvanın bir ID numarası var. Bu numara ile takıma ekleyebilirsin.</p>
+            </div>
+          </div>
+
+          <div class="step-box">
+            <div class="step-number">3</div>
+            <div>
+              <h5>Takımına Hayvan Ekle</h5>
+              <p class="text-secondary">Savaşabilmek için takımına hayvan eklemelisin. Maksimum 3 hayvan.</p>
+              <div class="command-box">!takımekle &lt;hayvan_id&gt;</div>
+              <p class="text-secondary small mt-2">Örnek: <code>!takımekle 5</code> - 5 numaralı hayvanı takıma ekler.</p>
+            </div>
+          </div>
+
+          <div class="step-box">
+            <div class="step-number">4</div>
+            <div>
+              <h5>İlk Savaşını Yap</h5>
+              <p class="text-secondary">Takımın hazır olduğunda savaşa girebilirsin.</p>
+              <div class="command-box">!savaş</div>
+              <p class="text-secondary small mt-2">Savaş kazandığında XP ve para kazanırsın!</p>
+            </div>
+          </div>
+
+          <div class="tip-box">
+            <h5><i class="fas fa-lightbulb me-2"></i>İpucu</h5>
+            <p class="mb-0">Başlangıçta çok avlan! Ne kadar çok hayvan yakalarsan, takımın için daha iyi seçeneklerin olur.</p>
+          </div>
+        </section>
+
+        <section class="section" id="avlanma">
+          <h2 class="section-title"><i class="fas fa-crosshairs"></i> 2. Avlanma Sistemi</h2>
+          <p class="text-secondary mb-4">Avlanma, oyunun temel mekanığıdır. Doğru strateji ile nadir hayvanlar yakalayabilirsin.</p>
+
+          <h4 class="mb-3">Nadirlik Seviyeleri</h4>
+          <div class="row g-3 mb-4">
+            <div class="col-md-6 col-lg-4">
+              <div class="guide-card">
+                <h4><span class="rarity-common">⬜ Yaygın</span></h4>
+                <p>%58 düşme şansı<br>Satış: 5💰 | XP: 1</p>
+              </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+              <div class="guide-card">
+                <h4><span class="rarity-uncommon">🟩 Sıradışı</span></h4>
+                <p>%25 düşme şansı<br>Satış: 25💰 | XP: 5</p>
+              </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+              <div class="guide-card">
+                <h4><span class="rarity-rare">🟦 Nadir</span></h4>
+                <p>%10 düşme şansı<br>Satış: 100💰 | XP: 25</p>
+              </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+              <div class="guide-card">
+                <h4><span class="rarity-epic">🟪 Epik</span></h4>
+                <p>%5 düşme şansı<br>Satış: 500💰 | XP: 100</p>
+              </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+              <div class="guide-card">
+                <h4><span class="rarity-legendary">🟨 Efsanevi</span></h4>
+                <p>%1.5 düşme şansı<br>Satış: 2,500💰 | XP: 500</p>
+              </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+              <div class="guide-card">
+                <h4><span class="rarity-mythic">🟧 Mitik</span></h4>
+                <p>%0.4 düşme şansı<br>Satış: 10,000💰 | XP: 2,000</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="info-box">
+            <h5><i class="fas fa-info-circle me-2"></i>Gizli Hayvanlar</h5>
+            <p class="mb-0">%0.1 şansla <span class="rarity-hidden">❓ Gizli</span> nadirliğinde hayvanlar yakalayabilirsin. Bunlar oyunun en nadir ve en güçlü hayvanları! Satış: 100,000💰 | XP: 10,000</p>
+          </div>
+
+          <h4 class="mb-3 mt-4">Avlanma İpuçları</h4>
+          <ul class="list-unstyled">
+            <li class="mb-2"><i class="fas fa-check text-success me-2"></i><strong>Sürekli avlan:</strong> 15 saniye bekle ve tekrar avla</li>
+            <li class="mb-2"><i class="fas fa-check text-success me-2"></i><strong>Yem kullan:</strong> Nadir Av İksiri ile nadir+ şansını 2 katına çıkar</li>
+            <li class="mb-2"><i class="fas fa-check text-success me-2"></i><strong>Görevleri takip et:</strong> Avlanma görevleri ekstra ödül verir</li>
+            <li class="mb-2"><i class="fas fa-check text-success me-2"></i><strong>Yaygın hayvanları sat:</strong> Takımına ekleme, para için sat</li>
+          </ul>
+        </section>
+
+        <section class="section" id="takim">
+          <h2 class="section-title"><i class="fas fa-users"></i> 3. Takım Kurma</h2>
+          <p class="text-secondary mb-4">Güçlü bir takım, savaşlarda başarının anahtarıdır.</p>
+
+          <h4 class="mb-3">Hayvan İstatistikleri</h4>
+          <div class="row g-3 mb-4">
+            <div class="col-md-6 col-lg-3">
+              <div class="guide-card text-center">
+                <span class="stat-badge" style="background: rgba(239, 68, 68, 0.2);">❤️ HP</span>
+                <p class="mt-3 small">Can Puanı. Sıfıra düşerse hayvan bayılır.</p>
+              </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+              <div class="guide-card text-center">
+                <span class="stat-badge" style="background: rgba(249, 115, 22, 0.2);">⚔️ STR</span>
+                <p class="mt-3 small">Güç. Verdiğin hasarı belirler.</p>
+              </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+              <div class="guide-card text-center">
+                <span class="stat-badge" style="background: rgba(59, 130, 246, 0.2);">🛡️ DEF</span>
+                <p class="mt-3 small">Savunma. Aldığın hasarı azaltır.</p>
+              </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+              <div class="guide-card text-center">
+                <span class="stat-badge" style="background: rgba(251, 191, 36, 0.2);">⚡ SPD</span>
+                <p class="mt-3 small">Hız. Saldırı sırası ve kaçınma.</p>
+              </div>
+            </div>
+          </div>
+
+          <h4 class="mb-3">İdeal Takım Yapısı</h4>
+          <div class="row g-3 mb-4">
+            <div class="col-md-4">
+              <div class="guide-card">
+                <h5><i class="fas fa-shield-alt text-info me-2"></i>Tank</h5>
+                <p class="small">Yüksek HP ve DEF. Hasarı çeker.</p>
+                <p class="small text-secondary">Önerilen: Balina, Mamut, Kutup Ayısı</p>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="guide-card">
+                <h5><i class="fas fa-fist-raised text-danger me-2"></i>Hasar</h5>
+                <p class="small">Yüksek STR. Ana hasar kaynağı.</p>
+                <p class="small text-secondary">Önerilen: Ejderha, Cerberus, Beyaz Kaplan</p>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="guide-card">
+                <h5><i class="fas fa-bolt text-warning me-2"></i>Hızlı</h5>
+                <p class="small">Yüksek SPD. İlk saldırır.</p>
+                <p class="small text-secondary">Önerilen: Yıldız Tilkisi, Güneş Kartalı</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="warning-box">
+            <h5><i class="fas fa-exclamation-triangle me-2"></i>Dikkat</h5>
+            <p class="mb-0">Aynı türden iki hayvan takıma eklenemez! Farklı hayvanlar seçmelisin.</p>
+          </div>
+
+          <h4 class="mb-3 mt-4">Takım Komutları</h4>
+          <div class="row g-2">
+            <div class="col-md-6">
+              <div class="command-box">!takım</div>
+              <p class="small text-secondary">Mevcut takımını görüntüle</p>
+            </div>
+            <div class="col-md-6">
+              <div class="command-box">!takımekle &lt;id&gt;</div>
+              <p class="small text-secondary">Hayvan ekle</p>
+            </div>
+            <div class="col-md-6">
+              <div class="command-box">!takımçıkar &lt;slot&gt;</div>
+              <p class="small text-secondary">Slottan hayvan çıkar (1-3)</p>
+            </div>
+            <div class="col-md-6">
+              <div class="command-box">!profil</div>
+              <p class="small text-secondary">Genel profilini gör</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="ekipman">
+          <h2 class="section-title"><i class="fas fa-shield-halved"></i> 4. Ekipman Sistemi</h2>
+          <p class="text-secondary mb-4">Ekipmanlar hayvanlarını güçlendirir. Her hayvanın kendi silahı, zırhı ve aksesuarı olabilir.</p>
+
+          <div class="info-box">
+            <h5><i class="fas fa-paw me-2"></i>Hayvan Bazlı Ekipman</h5>
+            <p class="mb-0">Ekipmanlar hayvana özeldir! Bir silahı takıma eklediğin hayvana kuşandırırsın. Her hayvanın ayrı silah, zırh ve aksesuar slotu var.</p>
+          </div>
+
+          <h4 class="mb-3 mt-4">Ekipman Türleri</h4>
+          <div class="row g-3 mb-4">
+            <div class="col-md-4">
+              <div class="guide-card">
+                <h5>⚔️ Silahlar</h5>
+                <p class="small">STR artırır, özel efektler verir</p>
+                <p class="small text-secondary">Tahta Kılıç → Ejderha Kılıcı</p>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="guide-card">
+                <h5>🛡️ Zırhlar</h5>
+                <p class="small">DEF artırır, direnç verir</p>
+                <p class="small text-secondary">Kumaş Zırh → Ejderha Zırhı</p>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="guide-card">
+                <h5>💍 Aksesuarlar</h5>
+                <p class="small">Çeşitli bonuslar verir</p>
+                <p class="small text-secondary">Şans Yüzüğü → Kralın Tacı</p>
+              </div>
+            </div>
+          </div>
+
+          <h4 class="mb-3">Ekipman Nasıl Alınır?</h4>
+          <div class="step-box">
+            <div class="step-number">1</div>
+            <div>
+              <h5>Mağazaya Git</h5>
+              <div class="command-box">!lethemağaza silah</div>
+              <p class="text-secondary small">Kategoriler: silah, zırh, aksesuar, tüketim, yem, sandık</p>
+            </div>
+          </div>
+          <div class="step-box">
+            <div class="step-number">2</div>
+            <div>
+              <h5>Eşya Satın Al</h5>
+              <div class="command-box">!letheal silah iron_sword</div>
+              <p class="text-secondary small">Kategori ve eşya ID'si ile satın al</p>
+            </div>
+          </div>
+          <div class="step-box">
+            <div class="step-number">3</div>
+            <div>
+              <h5>Hayvana Kuşandır</h5>
+              <div class="command-box">!kuşan &lt;hayvan_id&gt; &lt;eşya_id&gt;</div>
+              <p class="text-secondary small">Örnek: <code>!kuşan 5 3</code> - 5 numaralı hayvana 3 numaralı eşyayı kuşandır</p>
+            </div>
+          </div>
+
+          <div class="tip-box">
+            <h5><i class="fas fa-lightbulb me-2"></i>Pro İpucu</h5>
+            <p class="mb-0">Eşya türünü yazmanıza gerek yok! <code>!kuşan</code> komutu eşyanın türünü otomatik algılar.</p>
+          </div>
+        </section>
+
+        <section class="section" id="savas">
+          <h2 class="section-title"><i class="fas fa-swords"></i> 5. Savaş Stratejileri</h2>
+          <p class="text-secondary mb-4">Savaş sistemi tur bazlıdır. Doğru strateji ile daha güçlü düşmanlara karşı bile kazanabilirsin.</p>
+
+          <h4 class="mb-3">Savaş Mekaniği</h4>
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <div class="guide-card">
+                <h5><i class="fas fa-arrow-right text-info me-2"></i>Saldırı Sırası</h5>
+                <p class="small">Yüksek SPD olan önce saldırır. Hız farkı %10'dan fazlaysa kaçınma şansı artar.</p>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="guide-card">
+                <h5><i class="fas fa-star text-warning me-2"></i>Kritik Vuruş</h5>
+                <p class="small">%15 şansla kritik vuruş. Hasar x1.5 olur. Bazı silahlar bu şansı artırır.</p>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="guide-card">
+                <h5><i class="fas fa-shield text-success me-2"></i>Hasar Azaltma</h5>
+                <p class="small">DEF, alınan hasarı azaltır. Formül: Hasar = STR * (1 - DEF/(DEF+100))</p>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="guide-card">
+                <h5><i class="fas fa-wind text-primary me-2"></i>Kaçınma</h5>
+                <p class="small">Hız farkına göre saldırılardan kaçınabilirsin. Max %30 kaçınma şansı.</p>
+              </div>
+            </div>
+          </div>
+
+          <h4 class="mb-3">Savaş Türleri</h4>
+          <div class="row g-3 mb-4">
+            <div class="col-md-4">
+              <div class="guide-card">
+                <h5>⚔️ PvE Savaş</h5>
+                <div class="command-box">!savaş</div>
+                <p class="small mt-2">Rastgele düşman takımına karşı savaş. XP ve para kazan.</p>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="guide-card">
+                <h5>🤺 PvP Düello</h5>
+                <div class="command-box">!düello @kullanıcı</div>
+                <p class="small mt-2">Başka oyuncularla savaş. Prestij kazan!</p>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="guide-card">
+                <h5>🐲 Boss Savaşı</h5>
+                <div class="command-box">!boss</div>
+                <p class="small mt-2">Güçlü boss'lara karşı savaş. Büyük ödüller!</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="boss">
+          <h2 class="section-title"><i class="fas fa-dragon"></i> 6. Boss Rehberi</h2>
+          <p class="text-secondary mb-4">Boss savaşları oyunun en zorlu ve en ödüllü içeriğidir.</p>
+
+          <div class="warning-box">
+            <h5><i class="fas fa-exclamation-triangle me-2"></i>Gereksinim</h5>
+            <p class="mb-0">Boss savaşı için <strong>tam takım (3/3 hayvan)</strong> gerekli!</p>
+          </div>
+
+          <h4 class="mb-3 mt-4">Boss Listesi ve Gereksinimleri</h4>
+          <div class="table-responsive">
+            <table class="table table-dark table-striped">
+              <thead>
+                <tr>
+                  <th>Boss</th>
+                  <th>Seviye</th>
+                  <th>HP</th>
+                  <th>Para</th>
+                  <th>Eşya Şansı</th>
+                  <th>Eşya Nadirliği</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>🐲 Genç Ejderha</td>
+                  <td>1+</td>
+                  <td>1,000</td>
+                  <td>500💰</td>
+                  <td>%40</td>
+                  <td class="rarity-rare">Nadir</td>
+                </tr>
+                <tr>
+                  <td>🦑 Dev Kraken</td>
+                  <td>5+</td>
+                  <td>2,500</td>
+                  <td>1,500💰</td>
+                  <td>%35</td>
+                  <td class="rarity-epic">Epik</td>
+                </tr>
+                <tr>
+                  <td>💀 İskelet Kral</td>
+                  <td>10+</td>
+                  <td>5,000</td>
+                  <td>3,000💰</td>
+                  <td>%30</td>
+                  <td class="rarity-legendary">Efsanevi</td>
+                </tr>
+                <tr>
+                  <td>👹 Şeytan Lord</td>
+                  <td>20+</td>
+                  <td>10,000</td>
+                  <td>10,000💰</td>
+                  <td>%25</td>
+                  <td class="rarity-mythic">Mitik</td>
+                </tr>
+                <tr>
+                  <td>🌌 Kaos Ejderhası</td>
+                  <td>30+</td>
+                  <td>25,000</td>
+                  <td>50,000💰</td>
+                  <td>%20</td>
+                  <td class="rarity-hidden">Gizli</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="tip-box">
+            <h5><i class="fas fa-lightbulb me-2"></i>Boss Stratejisi</h5>
+            <ul class="mb-0 small">
+              <li>Takımının toplam HP'si boss hasarını karşılayabilmeli</li>
+              <li>Yüksek DEF, uzun savaşlarda avantaj sağlar</li>
+              <li>Eşyalarla takımını güçlendir</li>
+              <li>Her boss yenildiğinde o nadirlikte eşya düşme şansı var!</li>
+            </ul>
+          </div>
+        </section>
+
+        <section class="section" id="ekonomi">
+          <h2 class="section-title"><i class="fas fa-coins"></i> 7. Para Kazanma</h2>
+          <p class="text-secondary mb-4">Para (💰) oyunun temel para birimidir. Birçok yolla kazanabilirsin.</p>
+
+          <h4 class="mb-3">Para Kaynakları</h4>
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <div class="guide-card">
+                <h5><i class="fas fa-gift text-success me-2"></i>Günlük Ödül</h5>
+                <div class="command-box">!günlük</div>
+                <p class="small mt-2">Her gün giriş yap! Streak bonusu ile 7. gün 1,000💰 + Gümüş Sandık!</p>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="guide-card">
+                <h5><i class="fas fa-briefcase text-warning me-2"></i>Çalışma</h5>
+                <div class="command-box">!çalış</div>
+                <p class="small mt-2">30 dakikada bir çalış. Meslek seçerek kazancı özelleştir.</p>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="guide-card">
+                <h5><i class="fas fa-store text-info me-2"></i>Hayvan Satma</h5>
+                <div class="command-box">!hayvansatver &lt;id&gt;</div>
+                <p class="small mt-2">Fazla hayvanları sat. Nadir hayvanlar daha değerli!</p>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="guide-card">
+                <h5><i class="fas fa-swords text-danger me-2"></i>Savaş ve Boss</h5>
+                <div class="command-box">!savaş / !boss</div>
+                <p class="small mt-2">Savaş kazan, para kazan. Boss'lar çok para verir!</p>
+              </div>
+            </div>
+          </div>
+
+          <h4 class="mb-3">Günlük Streak Tablosu</h4>
+          <div class="table-responsive">
+            <table class="table table-dark table-sm">
+              <thead>
+                <tr><th>Gün</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Ödül</td><td>100💰</td><td>150💰</td><td>200💰</td><td>300💰</td><td>400💰</td><td>600💰</td><td>1000💰 + 📦</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h4 class="mb-3 mt-4">Meslekler</h4>
+          <div class="row g-2">
+            <div class="col-md-3">
+              <div class="guide-card text-center">
+                <h6>🏹 Hunter</h6>
+                <p class="small mb-0">50-150💰<br>Av bonusu</p>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="guide-card text-center">
+                <h6>💼 Trader</h6>
+                <p class="small mb-0">80-200💰<br>Satış bonusu</p>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="guide-card text-center">
+                <h6>⚔️ Warrior</h6>
+                <p class="small mb-0">60-180💰<br>Savaş XP bonusu</p>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="guide-card text-center">
+                <h6>📦 Collector</h6>
+                <p class="small mb-0">70-160💰<br>Nadir bulma şansı</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="gorevler">
+          <h2 class="section-title"><i class="fas fa-tasks"></i> 8. Görev Sistemi</h2>
+          <p class="text-secondary mb-4">Günlük ve haftalık görevler ekstra ödül kazanmanı sağlar.</p>
+
+          <div class="info-box">
+            <h5><i class="fas fa-magic me-2"></i>Otomatik Ödül</h5>
+            <p class="mb-0">Görevler tamamlandığında ödüller <strong>otomatik olarak</strong> verilir! Manuel almanıza gerek yok.</p>
+          </div>
+
+          <div class="row g-4 mt-3">
+            <div class="col-md-6">
+              <div class="guide-card">
+                <h5><i class="fas fa-sun text-warning me-2"></i>Günlük Görevler (8 adet)</h5>
+                <ul class="small mb-0">
+                  <li>İlk Av - 1 hayvan avla</li>
+                  <li>Avcı - 10 hayvan avla</li>
+                  <li>Koleksiyoncu - 25 hayvan avla</li>
+                  <li>Savaşçı - 3 savaş yap</li>
+                  <li>Düellocu - 1 düello yap</li>
+                  <li>Nadir Buluş - Nadir+ hayvan bul</li>
+                  <li>Satıcı - 5 hayvan sat</li>
+                  <li>Takım Oyuncusu - Takıma hayvan ekle</li>
+                </ul>
+                <p class="small text-success mt-2 mb-0"><strong>Bonus:</strong> Hepsini tamamla = 1,000💰 + Gümüş Sandık</p>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="guide-card">
+                <h5><i class="fas fa-calendar-week text-info me-2"></i>Haftalık Görevler (7 adet)</h5>
+                <ul class="small mb-0">
+                  <li>Haftalık Avcı - 100 hayvan avla</li>
+                  <li>Boss Avcısı - 3 boss öldür</li>
+                  <li>PvP Ustası - 10 düello kazan</li>
+                  <li>Epik Buluş - Epik+ hayvan bul</li>
+                  <li>Zengin Ol - 10,000💰 kazan</li>
+                  <li>Koleksiyon Tamamla - 50 hayvan topla</li>
+                  <li>Savaş Lordu - 20 savaş kazan</li>
+                </ul>
+                <p class="small text-info mt-2 mb-0"><strong>Bonus:</strong> Hepsini tamamla = 15,000💰 + Elmas Sandık</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="command-box mt-4">!görev</div>
+          <p class="small text-secondary">Aktif görevlerini ve ilerlemeyi görüntüle</p>
+        </section>
+
+        <section class="section" id="evrim">
+          <h2 class="section-title"><i class="fas fa-dna"></i> 9. Evrim Sistemi</h2>
+          <p class="text-secondary mb-4">Hayvanlarını evrimleştirerek daha güçlü hale getir!</p>
+
+          <h4 class="mb-3">Evrim Nasıl Çalışır?</h4>
+          <div class="step-box">
+            <div class="step-number">1</div>
+            <div>
+              <h5>Aynı Türden 3 Hayvan Topla</h5>
+              <p class="text-secondary small">Örneğin 3 tane Köpek veya 3 tane Ejderha.</p>
+            </div>
+          </div>
+          <div class="step-box">
+            <div class="step-number">2</div>
+            <div>
+              <h5>Evrimleştir</h5>
+              <div class="command-box">!evrim &lt;id1&gt; &lt;id2&gt; &lt;id3&gt;</div>
+              <p class="text-secondary small">3 hayvanın ID'lerini gir. Evrim başarılı olursa daha güçlü bir versiyon elde edersin!</p>
+            </div>
+          </div>
+          <div class="step-box">
+            <div class="step-number">3</div>
+            <div>
+              <h5>Stat Bonusu Kazan</h5>
+              <p class="text-secondary small">Her evrim <strong>+20% stat artışı</strong> sağlar. Maksimum 5 evrim seviyesi!</p>
+            </div>
+          </div>
+
+          <h4 class="mb-3 mt-4">Evrim Taşları</h4>
+          <p class="text-secondary">Evrim başarı şansını artırmak için taşlar kullanabilirsin:</p>
+          <div class="row g-2">
+            <div class="col-md-3">
+              <div class="guide-card text-center">
+                <h6>🔵 Mavi Taş</h6>
+                <p class="small mb-0">+10% başarı</p>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="guide-card text-center">
+                <h6>🟣 Mor Taş</h6>
+                <p class="small mb-0">+25% başarı</p>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="guide-card text-center">
+                <h6>🟠 Turuncu Taş</h6>
+                <p class="small mb-0">+50% başarı</p>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="guide-card text-center">
+                <h6>💎 Elmas Taş</h6>
+                <p class="small mb-0">Garantili!</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="ipuclari">
+          <h2 class="section-title"><i class="fas fa-star"></i> 10. Pro İpuçları</h2>
+          <p class="text-secondary mb-4">Deneyimli oyuncuların bildiği sırlar!</p>
+
+          <div class="row g-3">
+            <div class="col-md-6">
+              <div class="tip-box">
+                <h5><i class="fas fa-clock me-2"></i>Zaman Yönetimi</h5>
+                <ul class="small mb-0">
+                  <li>Her 15 saniyede bir avlan</li>
+                  <li>Günlük ödülü her gün al (streak!)</li>
+                  <li>30 dakikada bir çalış</li>
+                  <li>Görevleri takip et</li>
+                </ul>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="tip-box">
+                <h5><i class="fas fa-coins me-2"></i>Para Stratejisi</h5>
+                <ul class="small mb-0">
+                  <li>Yaygın hayvanları hemen sat</li>
+                  <li>Para biriktir, iyi eşya al</li>
+                  <li>Trader mesleği en çok kazandırır</li>
+                  <li>Boss'ları düzenli öldür</li>
+                </ul>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="tip-box">
+                <h5><i class="fas fa-paw me-2"></i>Takım Optimizasyonu</h5>
+                <ul class="small mb-0">
+                  <li>Dengeyi hayvan seç (Tank+DPS+Hız)</li>
+                  <li>Herkese ekipman kuşandır</li>
+                  <li>Seviye atlat, stat artar</li>
+                  <li>Evrimle güçlendir</li>
+                </ul>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="tip-box">
+                <h5><i class="fas fa-target me-2"></i>Hedefler</h5>
+                <ul class="small mb-0">
+                  <li><strong>Kısa:</strong> 3 hayvan takım + ilk savaş</li>
+                  <li><strong>Orta:</strong> Boss yenme + ekipman setleri</li>
+                  <li><strong>Uzun:</strong> Mitik hayvan + tam evrimli takım</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div class="info-box mt-4">
+            <h5><i class="fas fa-globe me-2"></i>Global Sistem Hatırlatması</h5>
+            <p class="mb-0">Tüm ilerlemen global! Hangi sunucuda oynarsan oyna, hayvanların, paran, eşyaların ve görev ilerlemen her yerde geçerli.</p>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div class="container text-center">
+      <p class="text-secondary mb-2">Lethe Game Rehberi - Publisher Bot</p>
+      <p class="text-secondary small">Daha fazla bilgi için <a href="/lethe-game" class="text-info">Lethe Game</a> sayfasını ziyaret et!</p>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    document.querySelectorAll('.toc a').forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        const target = document.querySelector(link.getAttribute('href'));
+        if (target) {
+          window.scrollTo({
+            top: target.offsetTop - 80,
+            behavior: 'smooth'
+          });
+        }
+      });
+    });
+  </script>
+</body>
+</html>
