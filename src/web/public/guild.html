@@ -120,6 +120,10 @@
           <i class="fab fa-twitch"></i>
           <span>Twitch Bildirimleri</span>
         </a>
+        <a class="nav-item" data-feature="kick">
+          <i class="fas fa-play-circle"></i>
+          <span>Kick Bildirimleri</span>
+        </a>
         <a class="nav-item" data-feature="youtube">
           <i class="fab fa-youtube"></i>
           <span>YouTube Bildirimleri</span>
@@ -295,6 +299,7 @@
       ],
       social: [
         { id: 'twitch', name: 'Twitch Bildirimleri', description: 'Twitch canlı yayına geçtiğinizde otomatik olarak bir mesaj gönderin ve herkesi bilgilendirin.', icon: 'fa-twitch', iconType: 'fab', color: 'purple' },
+        { id: 'kick', name: 'Kick Bildirimleri', description: 'Kick canlı yayına geçtiğinizde otomatik olarak bir mesaj gönderin ve herkesi bilgilendirin.', icon: 'fa-play-circle', color: 'green', new: true },
         { id: 'twitter', name: 'X Bildirimleri', description: 'Birisi bir tweet gönderdiğinde otomatik olarak bir mesaj gönderin ve herkesi bilgilendirin.', icon: 'fa-x-twitter', iconType: 'fab', color: 'blue', premium: true },
         { id: 'youtube', name: 'YouTube Bildirimleri', description: 'Birisi bir YouTube videosu yayınladığında otomatik olarak bir mesaj gönderin ve herkesi bilgilendirin.', icon: 'fa-youtube', iconType: 'fab', color: 'red', premium: true },
         { id: 'reddit', name: 'Reddit Bildirimleri', description: "Reddit'te bir gönderi paylaşıldığında otomatik mesaj ile bilgilendirin.", icon: 'fa-reddit', iconType: 'fab', color: 'orange', premium: true },
@@ -675,23 +680,167 @@
                 ${guildData.channels.map(c => `<option value="${c.id}" ${settings.logChannel === c.id ? 'selected' : ''}>${c.name}</option>`).join('')}
               </select>
             </div>
-            <h4 style="margin: 20px 0 12px; font-size: 14px;">Log Türleri</h4>
-            <div class="form-group" style="display: flex; justify-content: space-between; align-items: center;">
-              <label class="form-label" style="margin: 0;">Mesaj Silme</label>
-              <div class="toggle-switch ${settings.logConfig?.messageDelete ? 'active' : ''}" onclick="this.classList.toggle('active')" id="logMessageDelete"></div>
+            
+            <h4 style="margin: 20px 0 12px; font-size: 14px; color: #5865F2;">Mesaj Olayları</h4>
+            <div class="log-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
+              <label class="log-checkbox">
+                <input type="checkbox" id="logMessageDelete" ${settings.logConfig?.messageDelete ? 'checked' : ''}>
+                <span>Mesaj Silme</span>
+              </label>
+              <label class="log-checkbox">
+                <input type="checkbox" id="logMessageEdit" ${settings.logConfig?.messageEdit ? 'checked' : ''}>
+                <span>Mesaj Düzenleme</span>
+              </label>
+              <label class="log-checkbox">
+                <input type="checkbox" id="logImageDelete" ${settings.logConfig?.imageDelete ? 'checked' : ''}>
+                <span>Görsel Silme</span>
+              </label>
+              <label class="log-checkbox">
+                <input type="checkbox" id="logBulkDelete" ${settings.logConfig?.bulkDelete ? 'checked' : ''}>
+                <span>Toplu Mesaj Silme</span>
+              </label>
+              <label class="log-checkbox">
+                <input type="checkbox" id="logInvites" ${settings.logConfig?.invites ? 'checked' : ''}>
+                <span>Davet Bilgileri</span>
+              </label>
+              <label class="log-checkbox">
+                <input type="checkbox" id="logModCommands" ${settings.logConfig?.modCommands ? 'checked' : ''}>
+                <span>Moderatör Komutları</span>
+              </label>
             </div>
-            <div class="form-group" style="display: flex; justify-content: space-between; align-items: center;">
-              <label class="form-label" style="margin: 0;">Mesaj Düzenleme</label>
-              <div class="toggle-switch ${settings.logConfig?.messageEdit ? 'active' : ''}" onclick="this.classList.toggle('active')" id="logMessageEdit"></div>
+            
+            <h4 style="margin: 20px 0 12px; font-size: 14px; color: #5865F2;">Üye Olayları</h4>
+            <div class="log-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
+              <label class="log-checkbox">
+                <input type="checkbox" id="logMemberJoin" ${settings.logConfig?.memberJoin ? 'checked' : ''}>
+                <span>Üye Katılma</span>
+              </label>
+              <label class="log-checkbox">
+                <input type="checkbox" id="logMemberLeave" ${settings.logConfig?.memberLeave ? 'checked' : ''}>
+                <span>Üye Ayrılma</span>
+              </label>
+              <label class="log-checkbox">
+                <input type="checkbox" id="logMemberRoleAdd" ${settings.logConfig?.memberRoleAdd ? 'checked' : ''}>
+                <span>Üye Rol Ekleme</span>
+              </label>
+              <label class="log-checkbox">
+                <input type="checkbox" id="logMemberRoleRemove" ${settings.logConfig?.memberRoleRemove ? 'checked' : ''}>
+                <span>Üye Rol Çıkarma</span>
+              </label>
+              <label class="log-checkbox">
+                <input type="checkbox" id="logMemberTimeout" ${settings.logConfig?.memberTimeout ? 'checked' : ''}>
+                <span>Üye Zaman Aşımı</span>
+              </label>
+              <label class="log-checkbox">
+                <input type="checkbox" id="logNicknameChange" ${settings.logConfig?.nicknameChange ? 'checked' : ''}>
+                <span>İsim Değişikliği</span>
+              </label>
+              <label class="log-checkbox">
+                <input type="checkbox" id="logMemberBan" ${settings.logConfig?.memberBan ? 'checked' : ''}>
+                <span>Üye Yasaklama</span>
+              </label>
+              <label class="log-checkbox">
+                <input type="checkbox" id="logMemberUnban" ${settings.logConfig?.memberUnban ? 'checked' : ''}>
+                <span>Üye Yasak Kaldırma</span>
+              </label>
             </div>
-            <div class="form-group" style="display: flex; justify-content: space-between; align-items: center;">
-              <label class="form-label" style="margin: 0;">Üye Katılma/Ayrılma</label>
-              <div class="toggle-switch ${settings.logConfig?.memberJoinLeave ? 'active' : ''}" onclick="this.classList.toggle('active')" id="logMemberJoinLeave"></div>
+            
+            <h4 style="margin: 20px 0 12px; font-size: 14px; color: #5865F2;">Rol Olayları</h4>
+            <div class="log-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
+              <label class="log-checkbox">
+                <input type="checkbox" id="logRoleCreate" ${settings.logConfig?.roleCreate ? 'checked' : ''}>
+                <span>Rol Oluşturma</span>
+              </label>
+              <label class="log-checkbox">
+                <input type="checkbox" id="logRoleDelete" ${settings.logConfig?.roleDelete ? 'checked' : ''}>
+                <span>Rol Silme</span>
+              </label>
+              <label class="log-checkbox">
+                <input type="checkbox" id="logRoleUpdate" ${settings.logConfig?.roleUpdate ? 'checked' : ''}>
+                <span>Rol Güncelleme</span>
+              </label>
             </div>
-            <div class="form-group" style="display: flex; justify-content: space-between; align-items: center;">
-              <label class="form-label" style="margin: 0;">Rol Değişiklikleri</label>
-              <div class="toggle-switch ${settings.logConfig?.roleChanges ? 'active' : ''}" onclick="this.classList.toggle('active')" id="logRoleChanges"></div>
+            
+            <h4 style="margin: 20px 0 12px; font-size: 14px; color: #5865F2;">Kanal Olayları</h4>
+            <div class="log-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
+              <label class="log-checkbox">
+                <input type="checkbox" id="logChannelCreate" ${settings.logConfig?.channelCreate ? 'checked' : ''}>
+                <span>Kanal Oluşturma</span>
+              </label>
+              <label class="log-checkbox">
+                <input type="checkbox" id="logChannelUpdate" ${settings.logConfig?.channelUpdate ? 'checked' : ''}>
+                <span>Kanal Güncelleme</span>
+              </label>
+              <label class="log-checkbox">
+                <input type="checkbox" id="logChannelDelete" ${settings.logConfig?.channelDelete ? 'checked' : ''}>
+                <span>Kanal Silme</span>
+              </label>
             </div>
+            
+            <h4 style="margin: 20px 0 12px; font-size: 14px; color: #5865F2;">Emoji Olayları</h4>
+            <div class="log-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
+              <label class="log-checkbox">
+                <input type="checkbox" id="logEmojiCreate" ${settings.logConfig?.emojiCreate ? 'checked' : ''}>
+                <span>Emoji Oluşturma</span>
+              </label>
+              <label class="log-checkbox">
+                <input type="checkbox" id="logEmojiUpdate" ${settings.logConfig?.emojiUpdate ? 'checked' : ''}>
+                <span>Emoji İsim Değişimi</span>
+              </label>
+              <label class="log-checkbox">
+                <input type="checkbox" id="logEmojiDelete" ${settings.logConfig?.emojiDelete ? 'checked' : ''}>
+                <span>Emoji Silme</span>
+              </label>
+            </div>
+            
+            <h4 style="margin: 20px 0 12px; font-size: 14px; color: #5865F2;">Ses Olayları</h4>
+            <div class="log-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
+              <label class="log-checkbox">
+                <input type="checkbox" id="logVoiceJoin" ${settings.logConfig?.voiceJoin ? 'checked' : ''}>
+                <span>Ses Kanalına Katılma</span>
+              </label>
+              <label class="log-checkbox">
+                <input type="checkbox" id="logVoiceLeave" ${settings.logConfig?.voiceLeave ? 'checked' : ''}>
+                <span>Ses Kanalından Ayrılma</span>
+              </label>
+              <label class="log-checkbox">
+                <input type="checkbox" id="logVoiceMove" ${settings.logConfig?.voiceMove ? 'checked' : ''}>
+                <span>Ses Kanalı Değiştirme</span>
+              </label>
+            </div>
+            
+            <style>
+              .log-checkbox {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                padding: 8px 12px;
+                background: var(--bg-tertiary);
+                border: 1px solid var(--border-color);
+                border-radius: 8px;
+                cursor: pointer;
+                transition: all 0.2s;
+                font-size: 13px;
+              }
+              .log-checkbox:hover {
+                border-color: #5865F2;
+              }
+              .log-checkbox input[type="checkbox"] {
+                width: 16px;
+                height: 16px;
+                accent-color: #5865F2;
+              }
+              .log-checkbox span {
+                color: var(--text-secondary);
+              }
+              .log-checkbox:has(input:checked) {
+                border-color: #5865F2;
+                background: rgba(88, 101, 242, 0.1);
+              }
+              .log-checkbox:has(input:checked) span {
+                color: var(--text-primary);
+              }
+            </style>
           `;
           footerContent = `
             <button class="btn btn-outline" onclick="disableFeature('logging')">Devre Dışı Bırak</button>
@@ -829,6 +978,7 @@
           break;
         
         case 'twitch':
+        case 'kick':
         case 'youtube':
         case 'tiktok':
         case 'twitter':
@@ -836,7 +986,7 @@
         case 'rss':
           loadSocialNotifications(featureId);
           const platformNames = {
-            twitch: 'Twitch', youtube: 'YouTube', tiktok: 'TikTok',
+            twitch: 'Twitch', kick: 'Kick', youtube: 'YouTube', tiktok: 'TikTok',
             twitter: 'X (Twitter)', instagram: 'Instagram', rss: 'RSS'
           };
           bodyContent = `
@@ -1006,10 +1156,32 @@
     
     async function saveLoggingSettings() {
       const logConfig = {
-        messageDelete: document.getElementById('logMessageDelete').classList.contains('active'),
-        messageEdit: document.getElementById('logMessageEdit').classList.contains('active'),
-        memberJoinLeave: document.getElementById('logMemberJoinLeave').classList.contains('active'),
-        roleChanges: document.getElementById('logRoleChanges').classList.contains('active')
+        messageDelete: document.getElementById('logMessageDelete')?.checked || false,
+        messageEdit: document.getElementById('logMessageEdit')?.checked || false,
+        imageDelete: document.getElementById('logImageDelete')?.checked || false,
+        bulkDelete: document.getElementById('logBulkDelete')?.checked || false,
+        invites: document.getElementById('logInvites')?.checked || false,
+        modCommands: document.getElementById('logModCommands')?.checked || false,
+        memberJoin: document.getElementById('logMemberJoin')?.checked || false,
+        memberLeave: document.getElementById('logMemberLeave')?.checked || false,
+        memberRoleAdd: document.getElementById('logMemberRoleAdd')?.checked || false,
+        memberRoleRemove: document.getElementById('logMemberRoleRemove')?.checked || false,
+        memberTimeout: document.getElementById('logMemberTimeout')?.checked || false,
+        nicknameChange: document.getElementById('logNicknameChange')?.checked || false,
+        memberBan: document.getElementById('logMemberBan')?.checked || false,
+        memberUnban: document.getElementById('logMemberUnban')?.checked || false,
+        roleCreate: document.getElementById('logRoleCreate')?.checked || false,
+        roleDelete: document.getElementById('logRoleDelete')?.checked || false,
+        roleUpdate: document.getElementById('logRoleUpdate')?.checked || false,
+        channelCreate: document.getElementById('logChannelCreate')?.checked || false,
+        channelUpdate: document.getElementById('logChannelUpdate')?.checked || false,
+        channelDelete: document.getElementById('logChannelDelete')?.checked || false,
+        emojiCreate: document.getElementById('logEmojiCreate')?.checked || false,
+        emojiUpdate: document.getElementById('logEmojiUpdate')?.checked || false,
+        emojiDelete: document.getElementById('logEmojiDelete')?.checked || false,
+        voiceJoin: document.getElementById('logVoiceJoin')?.checked || false,
+        voiceLeave: document.getElementById('logVoiceLeave')?.checked || false,
+        voiceMove: document.getElementById('logVoiceMove')?.checked || false
       };
       
       const logChannel = document.getElementById('logChannel').value;
