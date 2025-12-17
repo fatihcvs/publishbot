@@ -48,8 +48,8 @@ module.exports = {
         return message.reply('Henüz görev bulunmuyor. Birazdan tekrar dene!');
       }
       
-      const dailyQuests = quests.filter(q => q.questInfo.type === 'daily');
-      const weeklyQuests = quests.filter(q => q.questInfo.type === 'weekly');
+      const dailyQuests = quests.filter(q => q.questInfo.type === 'daily' && !q.claimed);
+      const weeklyQuests = quests.filter(q => q.questInfo.type === 'weekly' && !q.claimed);
       
       const showDaily = !subCommand || subCommand === 'günlük' || subCommand === 'gunluk' || subCommand === 'daily';
       const showWeekly = !subCommand || subCommand === 'haftalık' || subCommand === 'haftalik' || subCommand === 'weekly';
@@ -58,7 +58,7 @@ module.exports = {
         .setColor('#5865F2')
         .setTitle('📋 Lethe Game - Görevler')
         .setThumbnail(message.author.displayAvatarURL())
-        .setFooter({ text: 'Tamamlanan görevlerin ödülünü almak için: !görev ödül <görev_id>' });
+        .setFooter({ text: 'Görevler tamamlandığında ödüller otomatik verilir!' });
       
       if (showDaily) {
         const dailyList = dailyQuests.map(q => {
