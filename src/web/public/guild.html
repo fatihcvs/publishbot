@@ -585,6 +585,7 @@
       switch (featureId) {
         case 'welcome':
           bodyContent = `
+            <h4 style="margin: 0 0 12px; font-size: 14px; color: #5865F2;">👋 Hoşgeldin Ayarları</h4>
             <div class="form-group">
               <label class="form-label">Hoşgeldin Kanalı</label>
               <select class="form-select" id="welcomeChannel">
@@ -595,8 +596,23 @@
             <div class="form-group">
               <label class="form-label">Hoşgeldin Mesajı</label>
               <textarea class="form-textarea" id="welcomeMessage" placeholder="Hoş geldin {user}! {server} sunucusuna katıldın.">${settings.welcomeMessage || ''}</textarea>
-              <small style="color: var(--text-muted);">{user} = Kullanıcı, {server} = Sunucu, {memberCount} = Üye sayısı</small>
             </div>
+            <div class="form-group" style="display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <label class="form-label" style="margin: 0;">DM ile Hoşgeldin</label>
+                <small style="color: var(--text-muted); display: block;">Yeni üyelere özel mesaj gönder</small>
+              </div>
+              <div class="toggle-switch ${settings.welcomeDM ? 'active' : ''}" onclick="this.classList.toggle('active')" id="welcomeDMToggle"></div>
+            </div>
+            <div class="form-group" style="display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <label class="form-label" style="margin: 0;">Embed Formatı</label>
+                <small style="color: var(--text-muted); display: block;">Mesajı embed olarak gönder</small>
+              </div>
+              <div class="toggle-switch ${settings.welcomeEmbed ? 'active' : ''}" onclick="this.classList.toggle('active')" id="welcomeEmbedToggle"></div>
+            </div>
+            
+            <h4 style="margin: 20px 0 12px; font-size: 14px; color: #5865F2;">👋 Hoşçakal Ayarları</h4>
             <div class="form-group">
               <label class="form-label">Hoşçakal Kanalı</label>
               <select class="form-select" id="goodbyeChannel">
@@ -608,12 +624,18 @@
               <label class="form-label">Hoşçakal Mesajı</label>
               <textarea class="form-textarea" id="goodbyeMessage" placeholder="Güle güle {user}!">${settings.goodbyeMessage || ''}</textarea>
             </div>
+            
+            <h4 style="margin: 20px 0 12px; font-size: 14px; color: #5865F2;">🎭 Otomatik Rol</h4>
             <div class="form-group">
-              <label class="form-label">Otomatik Rol</label>
+              <label class="form-label">Yeni Üyelere Verilecek Rol</label>
               <select class="form-select" id="autoRole">
                 <option value="">Rol Seçin</option>
                 ${guildData.roles.map(r => `<option value="${r.id}" ${settings.autoRole === r.id ? 'selected' : ''}>${r.name}</option>`).join('')}
               </select>
+            </div>
+            
+            <div class="feature-card" style="background: rgba(88, 101, 242, 0.1); border: 1px solid #5865F2; margin-top: 12px;">
+              <p style="color: #5865F2; font-size: 13px; margin: 0;"><strong>Değişkenler:</strong> {user} = Kullanıcı, {server} = Sunucu, {memberCount} = Üye sayısı, {inviter} = Davet eden</p>
             </div>
           `;
           footerContent = `
@@ -624,20 +646,60 @@
           
         case 'leveling':
           bodyContent = `
+            <h4 style="margin: 0 0 12px; font-size: 14px; color: #5865F2;">📊 Seviye Bildirimi</h4>
             <div class="form-group">
               <label class="form-label">Seviye Atlama Bildirimi Kanalı</label>
               <select class="form-select" id="levelUpChannel">
-                <option value="">Mevcut Kanal</option>
+                <option value="">Mevcut Kanal (mesaj gönderilen yer)</option>
                 ${guildData.channels.map(c => `<option value="${c.id}" ${settings.levelUpChannel === c.id ? 'selected' : ''}>${c.name}</option>`).join('')}
               </select>
             </div>
             <div class="form-group">
               <label class="form-label">Seviye Atlama Mesajı</label>
               <textarea class="form-textarea" id="levelUpMessage" placeholder="Tebrikler {user}! Artık seviye {level} oldun!">${settings.levelUpMessage || ''}</textarea>
+              <small style="color: var(--text-muted);">{user} = Kullanıcı, {level} = Yeni seviye</small>
+            </div>
+            
+            <h4 style="margin: 20px 0 12px; font-size: 14px; color: #5865F2;">⚙️ XP Ayarları</h4>
+            <div class="form-group">
+              <label class="form-label">XP Çarpanı (1-5x)</label>
+              <input type="range" class="form-range" id="xpMultiplier" min="1" max="5" step="0.5" value="${settings.xpMultiplier || 1}" oninput="document.getElementById('xpValue').textContent = this.value + 'x'">
+              <span id="xpValue" style="color: #5865F2; font-weight: 600;">${settings.xpMultiplier || 1}x</span>
             </div>
             <div class="form-group">
-              <label class="form-label">XP Çarpanı</label>
-              <input type="number" class="form-input" id="xpMultiplier" value="${settings.xpMultiplier || 1}" min="1" max="5">
+              <label class="form-label">Mesaj Başına Minimum XP</label>
+              <input type="number" class="form-input" id="minXP" value="${settings.minXP || 15}" min="1" max="100">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Mesaj Başına Maksimum XP</label>
+              <input type="number" class="form-input" id="maxXP" value="${settings.maxXP || 25}" min="1" max="100">
+            </div>
+            <div class="form-group">
+              <label class="form-label">XP Cooldown (saniye)</label>
+              <input type="number" class="form-input" id="xpCooldown" value="${settings.xpCooldown || 60}" min="10" max="300">
+              <small style="color: var(--text-muted);">Kullanıcılar bu süre içinde tekrar XP kazanamaz</small>
+            </div>
+            
+            <h4 style="margin: 20px 0 12px; font-size: 14px; color: #5865F2;">🎁 Seviye Ödül Rolleri</h4>
+            <div id="levelRolesList" style="margin-bottom: 12px;">
+              ${(settings.levelRoles || []).map((lr, idx) => `
+                <div class="feature-card" style="background: var(--bg-tertiary); padding: 8px 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
+                  <span>Seviye ${lr.level}: ${guildData.roles.find(r => r.id === lr.roleId)?.name || 'Rol bulunamadı'}</span>
+                  <button class="btn btn-outline" style="padding: 4px 8px;" onclick="removeLevelRole(${idx})"><i class="fas fa-trash"></i></button>
+                </div>
+              `).join('') || '<p style="color: var(--text-muted); font-size: 13px;">Henüz seviye rolü ayarlanmamış.</p>'}
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <input type="number" class="form-input" id="newLevelRoleLevel" placeholder="Seviye" style="width: 80px;" min="1">
+              <select class="form-select" id="newLevelRoleRole" style="flex: 1;">
+                <option value="">Rol Seçin</option>
+                ${guildData.roles.map(r => `<option value="${r.id}">${r.name}</option>`).join('')}
+              </select>
+              <button class="btn btn-secondary" onclick="addLevelRole()"><i class="fas fa-plus"></i></button>
+            </div>
+            
+            <div class="feature-card" style="background: rgba(88, 101, 242, 0.1); border: 1px solid #5865F2; margin-top: 16px;">
+              <p style="color: #5865F2; font-size: 13px; margin: 0;"><i class="fas fa-info-circle"></i> Bot komutları: <code>!seviye</code>, <code>!sıralama</code></p>
             </div>
           `;
           footerContent = `
@@ -648,21 +710,77 @@
           
         case 'automod':
           bodyContent = `
+            <h4 style="margin: 0 0 12px; font-size: 14px; color: #5865F2;">🛡️ Mesaj Filtreleri</h4>
             <div class="form-group" style="display: flex; justify-content: space-between; align-items: center;">
-              <label class="form-label" style="margin: 0;">Küfür Filtresi</label>
+              <div>
+                <label class="form-label" style="margin: 0;">Küfür Filtresi</label>
+                <small style="color: var(--text-muted); display: block;">Kötü kelimeleri otomatik sil</small>
+              </div>
               <div class="toggle-switch ${settings.automodConfig?.badWords ? 'active' : ''}" onclick="this.classList.toggle('active')" id="badWordsToggle"></div>
             </div>
             <div class="form-group" style="display: flex; justify-content: space-between; align-items: center;">
-              <label class="form-label" style="margin: 0;">Spam Filtresi</label>
+              <div>
+                <label class="form-label" style="margin: 0;">Spam Filtresi</label>
+                <small style="color: var(--text-muted); display: block;">Tekrarlayan mesajları engelle</small>
+              </div>
               <div class="toggle-switch ${settings.automodConfig?.spam ? 'active' : ''}" onclick="this.classList.toggle('active')" id="spamToggle"></div>
             </div>
             <div class="form-group" style="display: flex; justify-content: space-between; align-items: center;">
-              <label class="form-label" style="margin: 0;">Link Filtresi</label>
+              <div>
+                <label class="form-label" style="margin: 0;">Link Filtresi</label>
+                <small style="color: var(--text-muted); display: block;">Tüm linkleri engelle</small>
+              </div>
               <div class="toggle-switch ${settings.automodConfig?.links ? 'active' : ''}" onclick="this.classList.toggle('active')" id="linksToggle"></div>
             </div>
             <div class="form-group" style="display: flex; justify-content: space-between; align-items: center;">
-              <label class="form-label" style="margin: 0;">Büyük Harf Filtresi</label>
+              <div>
+                <label class="form-label" style="margin: 0;">Discord Davet Filtresi</label>
+                <small style="color: var(--text-muted); display: block;">Discord davet linklerini engelle</small>
+              </div>
+              <div class="toggle-switch ${settings.automodConfig?.invites ? 'active' : ''}" onclick="this.classList.toggle('active')" id="invitesToggle"></div>
+            </div>
+            <div class="form-group" style="display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <label class="form-label" style="margin: 0;">Büyük Harf Filtresi</label>
+                <small style="color: var(--text-muted); display: block;">Aşırı büyük harf kullanımını engelle</small>
+              </div>
               <div class="toggle-switch ${settings.automodConfig?.caps ? 'active' : ''}" onclick="this.classList.toggle('active')" id="capsToggle"></div>
+            </div>
+            
+            <h4 style="margin: 20px 0 12px; font-size: 14px; color: #5865F2;">⚠️ Spam Koruması</h4>
+            <div class="form-group" style="display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <label class="form-label" style="margin: 0;">Etiket Spam Filtresi</label>
+                <small style="color: var(--text-muted); display: block;">Çok fazla etiket kullanımını engelle</small>
+              </div>
+              <div class="toggle-switch ${settings.automodConfig?.mentionSpam ? 'active' : ''}" onclick="this.classList.toggle('active')" id="mentionSpamToggle"></div>
+            </div>
+            <div class="form-group" style="display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <label class="form-label" style="margin: 0;">Emoji Spam Filtresi</label>
+                <small style="color: var(--text-muted); display: block;">Aşırı emoji kullanımını engelle</small>
+              </div>
+              <div class="toggle-switch ${settings.automodConfig?.emojiSpam ? 'active' : ''}" onclick="this.classList.toggle('active')" id="emojiSpamToggle"></div>
+            </div>
+            <div class="form-group" style="display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <label class="form-label" style="margin: 0;">Hızlı Mesaj Filtresi</label>
+                <small style="color: var(--text-muted); display: block;">Çok hızlı mesaj göndermeyi engelle</small>
+              </div>
+              <div class="toggle-switch ${settings.automodConfig?.rateLimit ? 'active' : ''}" onclick="this.classList.toggle('active')" id="rateLimitToggle"></div>
+            </div>
+            
+            <h4 style="margin: 20px 0 12px; font-size: 14px; color: #5865F2;">⚙️ Ayarlar</h4>
+            <div class="form-group">
+              <label class="form-label">Muaf Roller</label>
+              <select class="form-select" id="automodExemptRoles" multiple style="height: 80px;">
+                ${guildData.roles.map(r => `<option value="${r.id}" ${(settings.automodConfig?.exemptRoles || []).includes(r.id) ? 'selected' : ''}>${r.name}</option>`).join('')}
+              </select>
+              <small style="color: var(--text-muted);">Bu roller AutoMod'dan muaf tutulur</small>
+            </div>
+            
+            <div class="feature-card" style="background: rgba(88, 101, 242, 0.1); border: 1px solid #5865F2; margin-top: 12px;">
+              <p style="color: #5865F2; font-size: 13px; margin: 0;"><i class="fas fa-info-circle"></i> Bot komutu: <code>!automod</code> ile daha fazla ayar yapabilirsiniz.</p>
             </div>
           `;
           footerContent = `
@@ -1072,6 +1190,7 @@
         
         case 'birthday':
           bodyContent = `
+            <h4 style="margin: 0 0 12px; font-size: 14px; color: #5865F2;">🎂 Doğum Günü Bildirimleri</h4>
             <div class="form-group">
               <label class="form-label">Doğum Günü Duyuru Kanalı</label>
               <select class="form-select" id="birthdayChannel">
@@ -1080,16 +1199,36 @@
               </select>
             </div>
             <div class="form-group">
+              <label class="form-label">Kutlama Mesajı</label>
+              <textarea class="form-textarea" id="birthdayMessage" placeholder="🎂 Bugün {user} kullanıcısının doğum günü! Mutlu yıllar!">${settings.birthdayConfig?.message || ''}</textarea>
+              <small style="color: var(--text-muted);">{user} = Kullanıcı etiketi, {age} = Yaş (eğer biliniyorsa)</small>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Kutlama Saati</label>
+              <select class="form-select" id="birthdayTime">
+                ${Array.from({length: 24}, (_, i) => `<option value="${i}" ${(settings.birthdayConfig?.hour || 9) === i ? 'selected' : ''}>${i.toString().padStart(2, '0')}:00</option>`).join('')}
+              </select>
+              <small style="color: var(--text-muted);">Doğum günü mesajı bu saatte gönderilir</small>
+            </div>
+            
+            <h4 style="margin: 20px 0 12px; font-size: 14px; color: #5865F2;">🎁 Özel Rol</h4>
+            <div class="form-group">
               <label class="form-label">Doğum Günü Rolü (Opsiyonel)</label>
               <select class="form-select" id="birthdayRole">
-                <option value="">Rol Seçin</option>
+                <option value="">Rol Seçmeyin</option>
                 ${guildData.roles.map(r => `<option value="${r.id}" ${settings.birthdayConfig?.roleId === r.id ? 'selected' : ''}>${r.name}</option>`).join('')}
               </select>
               <small style="color: var(--text-muted);">Bu rol doğum gününde verilir ve gece yarısı kaldırılır</small>
             </div>
-            <div class="form-group">
-              <label class="form-label">Kutlama Mesajı</label>
-              <textarea class="form-textarea" id="birthdayMessage" placeholder="🎂 Bugün {user} kullanıcısının doğum günü! Mutlu yıllar!">${settings.birthdayConfig?.message || ''}</textarea>
+            
+            <h4 style="margin: 20px 0 12px; font-size: 14px; color: #5865F2;">📋 Kayıtlı Doğum Günleri</h4>
+            <div class="feature-card" style="background: var(--bg-tertiary);">
+              <p style="color: var(--text-muted); font-size: 13px; margin: 0;">Kullanıcılar <code>!doğumgünü ayarla &lt;gün&gt; &lt;ay&gt;</code> komutu ile doğum günlerini kaydedebilir.</p>
+              <p style="color: var(--text-muted); font-size: 13px; margin: 8px 0 0;">Yaklaşan doğum günlerini görmek için: <code>!doğumgünü liste</code></p>
+            </div>
+            
+            <div class="feature-card" style="background: rgba(88, 101, 242, 0.1); border: 1px solid #5865F2; margin-top: 12px;">
+              <p style="color: #5865F2; font-size: 13px; margin: 0;"><i class="fas fa-info-circle"></i> Bot komutları: <code>!doğumgünü ayarla</code>, <code>!doğumgünü sil</code>, <code>!doğumgünü liste</code></p>
             </div>
           `;
           footerContent = `
@@ -1099,48 +1238,67 @@
           break;
         
         case 'economy':
+          const letheChannels = settings.modules?.letheChannels || [];
           bodyContent = `
             <div class="feature-card" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border: 1px solid #5865F2; margin-bottom: 16px;">
-              <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+              <div style="display: flex; align-items: center; gap: 12px;">
                 <span style="font-size: 32px;">🎮</span>
                 <div>
                   <h3 style="margin: 0; color: #fff;">Lethe Game</h3>
-                  <p style="margin: 4px 0 0; color: var(--text-muted); font-size: 13px;">Hayvan avlama ve koleksiyon oyunu</p>
+                  <p style="margin: 4px 0 0; color: var(--text-muted); font-size: 13px;">OwO benzeri global hayvan koleksiyon oyunu</p>
                 </div>
               </div>
             </div>
             
+            <h4 style="margin: 16px 0 12px; font-size: 14px; color: #5865F2;">🎯 Oyun Kanalları</h4>
+            <div class="form-group">
+              <label class="form-label">Oyun Komutlarının Çalışacağı Kanallar</label>
+              <select class="form-select" id="letheChannelSelect" multiple style="height: 120px;">
+                ${guildData.channels.map(c => `<option value="${c.id}" ${letheChannels.includes(c.id) ? 'selected' : ''}>${c.name}</option>`).join('')}
+              </select>
+              <small style="color: var(--text-muted);">Hiç kanal seçilmezse oyun tüm kanallarda çalışır. Ctrl+tık ile birden fazla kanal seçin.</small>
+            </div>
+            
+            <h4 style="margin: 20px 0 12px; font-size: 14px; color: #5865F2;">📋 Oyun Komutları</h4>
             <div class="feature-card" style="background: var(--bg-tertiary);">
-              <p style="margin-bottom: 12px;"><strong>Oyun Komutları:</strong></p>
               <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; font-size: 13px;">
-                <div><code>!avla</code> - Hayvan avla</div>
+                <div><code>!avla</code> - Hayvan avla (15sn cooldown)</div>
                 <div><code>!koleksiyon</code> - Koleksiyonu gör</div>
-                <div><code>!takım</code> - Takımını gör</div>
-                <div><code>!takımekle</code> - Takıma ekle</div>
+                <div><code>!takım</code> - Savaş takımını gör</div>
+                <div><code>!takımekle &lt;id&gt;</code> - Takıma ekle</div>
+                <div><code>!takımçıkar &lt;slot&gt;</code> - Takımdan çıkar</div>
                 <div><code>!savaş</code> - PvE savaş</div>
                 <div><code>!boss</code> - Boss savaşı</div>
                 <div><code>!düello @kişi</code> - PvP düello</div>
                 <div><code>!sandık</code> - Sandık aç</div>
                 <div><code>!lethemağaza</code> - Mağaza</div>
+                <div><code>!letheal</code> - Eşya satın al</div>
+                <div><code>!letheenv</code> - Envanter</div>
+                <div><code>!kuşan</code> - Eşya kuşan</div>
                 <div><code>!profil</code> - Profil</div>
+                <div><code>!hayvansatver &lt;id&gt;</code> - Hayvan sat</div>
               </div>
             </div>
             
-            <div class="feature-card" style="background: var(--bg-tertiary); margin-top: 12px;">
-              <p style="margin-bottom: 8px;"><strong>Özellikler:</strong></p>
+            <h4 style="margin: 20px 0 12px; font-size: 14px; color: #5865F2;">✨ Özellikler</h4>
+            <div class="feature-card" style="background: var(--bg-tertiary);">
               <ul style="color: var(--text-muted); font-size: 13px; margin: 0; padding-left: 20px;">
-                <li>103 farklı hayvan (7 nadirlik seviyesi)</li>
-                <li>Ekipman ve güçlendirme sistemi</li>
-                <li>PvE savaşlar ve boss mücadeleleri</li>
-                <li>PvP düello sistemi</li>
-                <li>Loot crate ve ödüller</li>
-                <li>Başarım sistemi</li>
+                <li><strong>Global Sistem:</strong> Kullanıcı verileri tüm sunucularda paylaşılır</li>
+                <li><strong>103 Hayvan:</strong> 7 nadirlik seviyesi (Common → Mythic → Hidden)</li>
+                <li><strong>Savaş Sistemi:</strong> PvE savaşlar, boss mücadeleleri, PvP düellolar</li>
+                <li><strong>Ekipman:</strong> Silahlar, zırhlar, aksesuarlar</li>
+                <li><strong>Sandıklar:</strong> Loot crate sistemi</li>
+                <li><strong>Seviye Sistemi:</strong> XP kazan, seviye atla</li>
               </ul>
+            </div>
+            
+            <div class="feature-card" style="background: rgba(88, 101, 242, 0.1); border: 1px solid #5865F2; margin-top: 12px;">
+              <p style="color: #5865F2; font-size: 13px; margin: 0;"><i class="fas fa-info-circle"></i> Bot komutu: <code>!oyunkanal ekle/sil/liste #kanal</code> ile kanal ayarlarını yönetebilirsiniz.</p>
             </div>
           `;
           footerContent = `
             <button class="btn btn-outline" onclick="disableFeature('economy')">Devre Dışı Bırak</button>
-            <button class="btn btn-primary" onclick="closeModal()">Tamam</button>
+            <button class="btn btn-primary" onclick="saveLetheSettings()">Kaydet</button>
           `;
           break;
         
@@ -1290,6 +1448,8 @@
       const newSettings = {
         welcomeChannel: document.getElementById('welcomeChannel').value,
         welcomeMessage: document.getElementById('welcomeMessage').value,
+        welcomeDM: document.getElementById('welcomeDMToggle')?.classList.contains('active') || false,
+        welcomeEmbed: document.getElementById('welcomeEmbedToggle')?.classList.contains('active') || false,
         goodbyeChannel: document.getElementById('goodbyeChannel').value,
         goodbyeMessage: document.getElementById('goodbyeMessage').value,
         autoRole: document.getElementById('autoRole').value,
@@ -1303,19 +1463,63 @@
       const newSettings = {
         levelUpChannel: document.getElementById('levelUpChannel').value,
         levelUpMessage: document.getElementById('levelUpMessage').value,
-        xpMultiplier: parseInt(document.getElementById('xpMultiplier').value) || 1,
+        xpMultiplier: parseFloat(document.getElementById('xpMultiplier').value) || 1,
+        minXP: parseInt(document.getElementById('minXP')?.value) || 15,
+        maxXP: parseInt(document.getElementById('maxXP')?.value) || 25,
+        xpCooldown: parseInt(document.getElementById('xpCooldown')?.value) || 60,
+        levelRoles: settings.levelRoles || [],
         modules: { ...modules, leveling: true }
       };
       
       await saveSettings(newSettings);
     }
     
+    async function addLevelRole() {
+      const level = parseInt(document.getElementById('newLevelRoleLevel').value);
+      const roleId = document.getElementById('newLevelRoleRole').value;
+      
+      if (!level || !roleId) {
+        showToast('Lütfen seviye ve rol seçin', 'error');
+        return;
+      }
+      
+      const levelRoles = settings.levelRoles || [];
+      if (levelRoles.some(lr => lr.level === level)) {
+        showToast('Bu seviye için zaten bir rol var', 'error');
+        return;
+      }
+      
+      levelRoles.push({ level, roleId });
+      levelRoles.sort((a, b) => a.level - b.level);
+      settings.levelRoles = levelRoles;
+      
+      await saveSettings({ levelRoles, modules: { ...modules, leveling: true } });
+      openFeatureSettings('leveling');
+    }
+    
+    async function removeLevelRole(index) {
+      const levelRoles = settings.levelRoles || [];
+      levelRoles.splice(index, 1);
+      settings.levelRoles = levelRoles;
+      
+      await saveSettings({ levelRoles, modules: { ...modules, leveling: true } });
+      openFeatureSettings('leveling');
+    }
+    
     async function saveAutomodSettings() {
+      const exemptRolesSelect = document.getElementById('automodExemptRoles');
+      const exemptRoles = exemptRolesSelect ? Array.from(exemptRolesSelect.selectedOptions).map(opt => opt.value) : [];
+      
       const automodConfig = {
-        badWords: document.getElementById('badWordsToggle').classList.contains('active'),
-        spam: document.getElementById('spamToggle').classList.contains('active'),
-        links: document.getElementById('linksToggle').classList.contains('active'),
-        caps: document.getElementById('capsToggle').classList.contains('active')
+        badWords: document.getElementById('badWordsToggle')?.classList.contains('active') || false,
+        spam: document.getElementById('spamToggle')?.classList.contains('active') || false,
+        links: document.getElementById('linksToggle')?.classList.contains('active') || false,
+        invites: document.getElementById('invitesToggle')?.classList.contains('active') || false,
+        caps: document.getElementById('capsToggle')?.classList.contains('active') || false,
+        mentionSpam: document.getElementById('mentionSpamToggle')?.classList.contains('active') || false,
+        emojiSpam: document.getElementById('emojiSpamToggle')?.classList.contains('active') || false,
+        rateLimit: document.getElementById('rateLimitToggle')?.classList.contains('active') || false,
+        exemptRoles: exemptRoles
       };
       
       await saveSettings({ automodConfig, modules: { ...modules, automod: true } });
@@ -1380,21 +1584,19 @@
       const birthdayConfig = {
         channelId: document.getElementById('birthdayChannel').value,
         roleId: document.getElementById('birthdayRole').value,
-        message: document.getElementById('birthdayMessage').value
+        message: document.getElementById('birthdayMessage').value,
+        hour: parseInt(document.getElementById('birthdayTime')?.value) || 9
       };
       
       await saveSettings({ birthdayConfig, modules: { ...modules, birthday: true } });
     }
     
-    async function saveEconomySettings() {
-      const economyConfig = {
-        currencySymbol: document.getElementById('currencySymbol').value || '💰',
-        dailyAmount: parseInt(document.getElementById('dailyAmount').value) || 100,
-        workMin: parseInt(document.getElementById('workMin').value) || 50,
-        workMax: parseInt(document.getElementById('workMax').value) || 200
-      };
+    async function saveLetheSettings() {
+      const selectEl = document.getElementById('letheChannelSelect');
+      const selectedChannels = Array.from(selectEl.selectedOptions).map(opt => opt.value);
       
-      await saveSettings({ economyConfig, modules: { ...modules, economy: true } });
+      const updatedModules = { ...modules, economy: true, letheChannels: selectedChannels };
+      await saveSettings({ modules: updatedModules });
     }
     
     async function saveInviteSettings() {
