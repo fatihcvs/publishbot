@@ -514,6 +514,99 @@ async function equipItem(guildId, visitorId, itemType, itemId) {
   return { success: true };
 }
 
+async function getUserAchievements(guildId, visitorId) {
+  return await db.select({
+    userAchievement: userLetheAchievements,
+    achievementInfo: letheAchievements
+  })
+  .from(userLetheAchievements)
+  .leftJoin(letheAchievements, eq(userLetheAchievements.achievementId, letheAchievements.achievementId))
+  .where(and(eq(userLetheAchievements.guildId, guildId), eq(userLetheAchievements.visitorId, visitorId)));
+}
+
+async function getAllAchievements() {
+  return await db.select().from(letheAchievements);
+}
+
+async function grantAchievement(guildId, visitorId, achievementId) {
+  const existing = await db.select().from(userLetheAchievements)
+    .where(and(
+      eq(userLetheAchievements.guildId, guildId),
+      eq(userLetheAchievements.visitorId, visitorId),
+      eq(userLetheAchievements.achievementId, achievementId)
+    ))
+    .limit(1);
+
+  if (existing.length > 0) {
+    return { success: false, alreadyHas: true };
+  }
+
+  const achievement = await db.select().from(letheAchievements)
+    .where(eq(letheAchievements.achievementId, achievementId))
+    .limit(1);
+
+  if (achievement.length === 0) {
+    return { success: false, error: 'Achievement not found' };
+  }
+
+  await db.insert(userLetheAchievements).values({
+    guildId,
+    visitorId,
+    achievementId
+  });
+
+  if (achievement[0].rewardMoney > 0) {
+    await addMoney(guildId, visitorId, achievement[0].rewardMoney);
+  }
+
+  return { success: true, achievement: achievement[0] };
+}
+
+async function checkAndGrantAchievements(guildId, visitorId) {
+  const profile = await getOrCreateProfile(guildId, visitorId);
+  const economy = await ensureEconomy(guildId, visitorId);
+  const userAnimalsData = await getUserAnimals(guildId, visitorId);
+  const achievements = await getAllAchievements();
+  const userAchievementsData = await getUserAchievements(guildId, visitorId);
+  
+  const earnedIds = new Set(userAchievementsData.map(a => a.userAchievement.achievementId));
+  const newAchievements = [];
+
+  for (const achievement of achievements) {
+    if (earnedIds.has(achievement.achievementId)) continue;
+
+    let earned = false;
+
+    switch (achievement.requirement) {
+      case 'hunts':
+        earned = profile.totalHunts >= achievement.requirementValue;
+        break;
+      case 'battles_won':
+        earned = profile.battlesWon >= achievement.requirementValue;
+        break;
+      case 'bosses_killed':
+        earned = profile.bossesKilled >= achievement.requirementValue;
+        break;
+      case 'balance':
+        earned = economy.balance >= achievement.requirementValue;
+        break;
+      case 'collection':
+        const rarities = new Set(userAnimalsData.map(a => a.animalInfo?.rarity).filter(Boolean));
+        earned = rarities.size >= achievement.requirementValue;
+        break;
+    }
+
+    if (earned) {
+      const result = await grantAchievement(guildId, visitorId, achievement.achievementId);
+      if (result.success) {
+        newAchievements.push(achievement);
+      }
+    }
+  }
+
+  return newAchievements;
+}
+
 module.exports = {
   seedDatabase,
   huntAnimal,
@@ -537,5 +630,9 @@ module.exports = {
   addMoney,
   addBattleReward,
   checkLevelUp,
-  getTeamWithEquipment
+  getTeamWithEquipment,
+  getUserAchievements,
+  getAllAchievements,
+  grantAchievement,
+  checkAndGrantAchievements
 };
