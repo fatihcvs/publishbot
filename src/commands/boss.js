@@ -1,8 +1,54 @@
 const { EmbedBuilder } = require('discord.js');
 const letheStorage = require('../lethe/letheStorage');
+const { weapons, armors, accessories } = require('../lethe/seedData');
 
 function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+const bossDropRates = {
+  rare: 0.40,
+  epic: 0.35,
+  legendary: 0.30,
+  mythic: 0.25,
+  hidden: 0.20
+};
+
+function getRandomBossLoot(rarity) {
+  const roll = Math.random();
+  if (roll > bossDropRates[rarity]) {
+    return null;
+  }
+  
+  const rarityWeapons = weapons.filter(w => w.rarity === rarity);
+  const rarityArmors = armors.filter(a => a.rarity === rarity);
+  const rarityAccessories = accessories.filter(a => a.rarity === rarity);
+  
+  const allItems = [
+    ...rarityWeapons.map(w => ({ ...w, itemType: 'weapon' })),
+    ...rarityArmors.map(a => ({ ...a, itemType: 'armor' })),
+    ...rarityAccessories.map(a => ({ ...a, itemType: 'accessory' }))
+  ];
+  
+  if (allItems.length === 0) {
+    const lowerRarities = ['common', 'uncommon', 'rare', 'epic', 'legendary', 'mythic'];
+    const idx = lowerRarities.indexOf(rarity);
+    if (idx > 0) {
+      const lowerRarity = lowerRarities[idx - 1];
+      const lowerWeapons = weapons.filter(w => w.rarity === lowerRarity);
+      const lowerArmors = armors.filter(a => a.rarity === lowerRarity);
+      const lowerAccessories = accessories.filter(a => a.rarity === lowerRarity);
+      allItems.push(
+        ...lowerWeapons.map(w => ({ ...w, itemType: 'weapon' })),
+        ...lowerArmors.map(a => ({ ...a, itemType: 'armor' })),
+        ...lowerAccessories.map(a => ({ ...a, itemType: 'accessory' }))
+      );
+    }
+  }
+  
+  if (allItems.length === 0) return null;
+  
+  return allItems[Math.floor(Math.random() * allItems.length)];
 }
 
 function createHpBar(percent) {
@@ -200,8 +246,33 @@ module.exports = {
       { name: '🎯 Tur Sayısı', value: `${round}`, inline: true }
     );
 
+    let droppedItem = null;
     if (won) {
-      resultEmbed.addFields({ name: '🎁 Bonus', value: `${boss.rewardRarity} nadirliğinde eşya şansı!`, inline: true });
+      droppedItem = getRandomBossLoot(boss.rewardRarity);
+      
+      if (droppedItem) {
+        const itemId = droppedItem.weaponId || droppedItem.armorId || droppedItem.accessoryId;
+        await letheStorage.addInventoryItem(message.author.id, itemId, droppedItem.itemType);
+        
+        const rarityColors = {
+          common: '⬜', uncommon: '🟩', rare: '🟦', epic: '🟪', legendary: '🟨', mythic: '🟧', hidden: '🟥'
+        };
+        const rarityColor = rarityColors[droppedItem.rarity] || '⬜';
+        const dropChance = Math.round(bossDropRates[boss.rewardRarity] * 100);
+        
+        resultEmbed.addFields({ 
+          name: '🎁 Boss Ödülü!', 
+          value: `${rarityColor} **${droppedItem.emoji} ${droppedItem.name}** düştü!\n*(%${dropChance} şans - ${boss.rewardRarity} nadirlik)*`, 
+          inline: true 
+        });
+      } else {
+        const dropChance = Math.round(bossDropRates[boss.rewardRarity] * 100);
+        resultEmbed.addFields({ 
+          name: '🎁 Bonus', 
+          value: `Bu sefer eşya düşmedi.\n*(%${dropChance} şans - ${boss.rewardRarity} nadirlik)*`, 
+          inline: true 
+        });
+      }
     }
 
     if (completedQuests.length > 0) {
