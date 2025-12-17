@@ -270,7 +270,7 @@ async function getTeam(userId) {
   })
   .from(userAnimals)
   .leftJoin(letheAnimals, eq(userAnimals.animalId, letheAnimals.animalId))
-  .where(eq(userAnimals.userId, userId))
+  .where(and(eq(userAnimals.userId, userId), eq(userAnimals.isInTeam, true)))
   .orderBy(userAnimals.teamSlot);
 }
 
