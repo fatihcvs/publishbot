@@ -674,12 +674,32 @@ async function updateQuestProgress(userId, requirement, amount = 1) {
       .set({ 
         progress: newProgress, 
         completed,
-        completedAt: completed ? new Date() : null
+        completedAt: completed ? new Date() : null,
+        claimed: completed ? true : false
       })
       .where(eq(userLetheQuests.id, uq.id));
     
     if (completed && !uq.completed) {
-      updated.push({ ...uq, progress: newProgress, completed: true });
+      const qi = uq.questInfo;
+      let rewards = { coins: 0, xp: 0, item: null };
+      
+      if (qi.rewardMoney > 0) {
+        await addCoins(userId, qi.rewardMoney);
+        rewards.coins = qi.rewardMoney;
+      }
+      if (qi.rewardXp > 0) {
+        await db.update(userLetheProfile)
+          .set({ xp: sql`${userLetheProfile.xp} + ${qi.rewardXp}` })
+          .where(eq(userLetheProfile.visitorId, userId));
+        await checkLevelUp(userId);
+        rewards.xp = qi.rewardXp;
+      }
+      if (qi.rewardItem && qi.rewardItemType) {
+        await addInventoryItem(userId, qi.rewardItemType, qi.rewardItem, qi.rewardQuantity || 1);
+        rewards.item = { type: qi.rewardItemType, id: qi.rewardItem, quantity: qi.rewardQuantity || 1 };
+      }
+      
+      updated.push({ ...uq, progress: newProgress, completed: true, rewards });
     }
   }
   

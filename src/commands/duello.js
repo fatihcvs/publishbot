@@ -145,10 +145,19 @@ module.exports = {
           )
           .setTimestamp();
 
-        // Show completed quests
+        // Show completed quests with rewards
         if (completedQuests.length > 0) {
-          const questNames = completedQuests.map(q => `${q.questInfo.emoji} ${q.questInfo.name}`).join(', ');
-          resultEmbed.addFields({ name: '🎯 Görev Tamamlandı!', value: questNames, inline: false });
+          for (const q of completedQuests) {
+            let rewardText = [];
+            if (q.rewards?.coins > 0) rewardText.push(`+${q.rewards.coins}💰`);
+            if (q.rewards?.xp > 0) rewardText.push(`+${q.rewards.xp}✨`);
+            if (q.rewards?.item) rewardText.push(`+1 ${q.rewards.item.type}`);
+            resultEmbed.addFields({ 
+              name: `🎯 ${q.questInfo.emoji} ${q.questInfo.name} Tamamlandı!`, 
+              value: rewardText.length > 0 ? `Ödül: ${rewardText.join(' ')}` : 'Tamamlandı!', 
+              inline: false 
+            });
+          }
         }
 
         await interaction.update({ embeds: [resultEmbed], components: [] });
