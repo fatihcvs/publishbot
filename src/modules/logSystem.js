@@ -9,14 +9,17 @@ class LogSystem {
   async getLogChannel(guildId, logType) {
     const guildData = await this.storage.getGuild(guildId);
     const logConfig = guildData?.logConfig || {};
-    const setting = logConfig[logType];
+    const logChannel = guildData?.logChannel;
     
-    if (!setting || !setting.enabled || !setting.channel) return null;
+    // Check if this log type is enabled
+    const isEnabled = logConfig[logType] === true;
+    
+    if (!isEnabled || !logChannel) return null;
     
     const guild = this.client.guilds.cache.get(guildId);
     if (!guild) return null;
     
-    return guild.channels.cache.get(setting.channel);
+    return guild.channels.cache.get(logChannel);
   }
 
   async log(guildId, logType, embed) {
