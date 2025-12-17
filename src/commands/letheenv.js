@@ -12,6 +12,11 @@ module.exports = {
       return message.reply('❌ Lethe Game bu sunucuda devre dışı.');
     }
     
+    const letheChannels = guildData?.modules?.letheChannels || [];
+    if (letheChannels.length > 0 && !letheChannels.includes(message.channel.id)) {
+      return message.reply(`❌ Lethe Game komutları sadece belirlenen kanallarda çalışır! \`!oyunkanal liste\` ile kontrol et.`);
+    }
+    
     const inventory = await letheStorage.getInventory(message.author.id);
     const profile = await letheStorage.getProfile(message.author.id);
 

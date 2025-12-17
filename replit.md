@@ -87,6 +87,12 @@ Güçlü ve tam donanımlı Discord moderasyon botu + Web Dashboard.
 **Diğer:**
 - `!hayvansatver <id>` - Hayvan sat
 
+**Kanal Kontrolü:**
+- `!oyunkanal ekle #kanal` - Oyun kanalı ekle
+- `!oyunkanal sil #kanal` - Oyun kanalı kaldır
+- `!oyunkanal liste` - İzinli kanalları listele
+- `!oyunkanal sıfırla` - Tüm kısıtlamaları kaldır
+
 **Nadirlik Seviyeleri:** Common (58%), Uncommon (25%), Rare (10%), Epic (5%), Legendary (1.5%), Mythic (0.4%), Hidden (0.1%)
 
 **103 Hayvan, 5 Boss, Ekipman ve Başarım Sistemi**
