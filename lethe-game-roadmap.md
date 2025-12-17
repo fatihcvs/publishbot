@@ -60,24 +60,31 @@ Bu belge, Lethe Game'in gelecekteki özelliklerini ve geliştirme planını içe
 
 ---
 
-## Faz 3: Pet Evrimi (Planlandı)
+## Faz 3: Pet Evrimi ✅ TAMAMLANDI
 
-### Evrim Sistemi
-- [ ] Evrim taşları (Evolution Gems)
-- [ ] Aynı türden 3 hayvan birleştirerek evrim
-- [ ] Evrimleşen hayvanlar için yeni görünümler
-- [ ] Stat bonusları (+%20 tüm statlar)
+### Evrim Sistemi ✅
+- [x] Evrim taşları (7 farklı nadirlik)
+- [x] Aynı türden 3 hayvan birleştirerek evrim
+- [x] Evrim seviyesi göstergeleri (⭐⭐⭐ max)
+- [x] Stat bonusları (+HP, STR, DEF, SPD)
+- [x] Avlanırken evrim taşı düşürme
 
-### Eğitim Sistemi
-- [ ] `!eğit <hayvan_id>` - Hayvanı eğit (XP kazandır)
-- [ ] Eğitim cooldown (1 saat)
-- [ ] Eğitim bonusları (rastgele stat artışı)
-- [ ] Eğitim seviyeleri (Çaylak → Usta)
+### Eğitim Sistemi ✅
+- [x] `!eğit <hayvan_id>` - Hayvanı eğit
+- [x] Eğitim cooldown (1 saat)
+- [x] Rastgele stat artışları
+- [x] 10 eğitim seviyesi (artan maliyet)
 
-### Özel Yetenekler
-- [ ] Her nadirlik seviyesi için özel yetenek
-- [ ] Pasif yetenekler (Av şansı +%, Hasar +%)
-- [ ] Aktif yetenekler (Savaşta kullanılabilir)
+### Özel Yetenekler ✅
+- [x] 18 farklı yetenek (nadirliğe göre)
+- [x] Pasif yetenekler (Av şansı, Hasar, Kritik, vb.)
+- [x] Evrimleşince rastgele yetenek kazanma
+
+### Komutlar ✅
+- [x] `!evrim <id1> <id2> <id3>` - Hayvanları birleştir
+- [x] `!evrim taşlar` - Evrim taşlarını görüntüle
+- [x] `!evrim bilgi` - Evrim sistemi hakkında bilgi
+- [x] `!eğit <id>` - Hayvanı eğit
 
 ---
 
@@ -196,6 +203,7 @@ Bu belge, Lethe Game'in gelecekteki özelliklerini ve geliştirme planını içe
 | v1.0 | - | İlk sürüm: 103 hayvan, savaş, boss, ekipman |
 | v1.1 | 17 Aralık 2024 | Görev sistemi (8 günlük + 7 haftalık) |
 | v1.2 | 17 Aralık 2024 | Ekonomi sistemi (günlük ödül + çalışma) |
+| v1.3 | 17 Aralık 2024 | Pet evrimi (evrim taşları, eğitim, 18 yetenek) |
 
 ---
 

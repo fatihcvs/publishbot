@@ -3,7 +3,7 @@ const {
   letheAnimals, userAnimals, letheWeapons, letheArmors, letheAccessories,
   letheConsumables, letheBaits, letheCrates, letheBosses, userLetheInventory,
   userLetheProfile, letheAchievements, userLetheAchievements, letheBattles,
-  letheQuests, userLetheQuests, letheDaily, letheWork
+  letheQuests, userLetheQuests, letheDaily, letheWork, letheEvolutionGems, letheAbilities
 } = require('../../shared/schema');
 const { eq, sql, and, lt, gte } = require('drizzle-orm');
 const seedData = require('./seedData');
@@ -958,6 +958,321 @@ async function getWorkStatus(userId) {
   };
 }
 
+// ==================== EVOLUTION SYSTEM ====================
+
+const abilities = {
+  // Common abilities
+  quick_hunter: { id: 'quick_hunter', name: 'Hızlı Avcı', emoji: '🏃', description: 'Av cooldown\'u %10 azalır', rarity: 'common', type: 'passive', effect: 'hunt_cooldown', value: 10 },
+  tough_skin: { id: 'tough_skin', name: 'Sert Deri', emoji: '🛡️', description: 'Savunma +5', rarity: 'common', type: 'passive', effect: 'defense', value: 5 },
+  sharp_claws: { id: 'sharp_claws', name: 'Keskin Pençeler', emoji: '🐾', description: 'Saldırı +5', rarity: 'common', type: 'passive', effect: 'attack', value: 5 },
+  
+  // Uncommon abilities
+  lucky_charm: { id: 'lucky_charm', name: 'Şans Tılsımı', emoji: '🍀', description: 'Nadir hayvan şansı +5%', rarity: 'uncommon', type: 'passive', effect: 'rare_chance', value: 5 },
+  battle_fury: { id: 'battle_fury', name: 'Savaş Öfkesi', emoji: '😤', description: 'HP düşükken hasar +20%', rarity: 'uncommon', type: 'passive', effect: 'low_hp_damage', value: 20 },
+  regeneration: { id: 'regeneration', name: 'Rejenerasyon', emoji: '💚', description: 'Her turda HP +5', rarity: 'uncommon', type: 'passive', effect: 'regen', value: 5 },
+  
+  // Rare abilities
+  critical_strike: { id: 'critical_strike', name: 'Kritik Vuruş', emoji: '💥', description: '%15 kritik şansı (x2 hasar)', rarity: 'rare', type: 'passive', effect: 'crit_chance', value: 15 },
+  evasion: { id: 'evasion', name: 'Kaçınma', emoji: '💨', description: '%10 saldırılardan kaçınma', rarity: 'rare', type: 'passive', effect: 'dodge', value: 10 },
+  life_steal: { id: 'life_steal', name: 'Can Çalma', emoji: '🩸', description: 'Verilen hasarın %10\'u HP olarak geri döner', rarity: 'rare', type: 'passive', effect: 'lifesteal', value: 10 },
+  
+  // Epic abilities
+  berserker: { id: 'berserker', name: 'Berserker', emoji: '🔥', description: 'Tüm statlar +10, savunma -5', rarity: 'epic', type: 'passive', effect: 'berserker', value: 10 },
+  iron_will: { id: 'iron_will', name: 'Demir İrade', emoji: '🧠', description: 'Ölümcül darbeden %20 şansla 1 HP ile hayatta kal', rarity: 'epic', type: 'passive', effect: 'survive', value: 20 },
+  double_strike: { id: 'double_strike', name: 'Çift Vuruş', emoji: '⚔️', description: '%15 şansla 2 kez saldır', rarity: 'epic', type: 'passive', effect: 'double_attack', value: 15 },
+  
+  // Legendary abilities
+  phoenix_rebirth: { id: 'phoenix_rebirth', name: 'Anka Doğuşu', emoji: '🔥', description: 'Savaşta bir kez öldüğünde %50 HP ile geri dön', rarity: 'legendary', type: 'passive', effect: 'rebirth', value: 50 },
+  elemental_mastery: { id: 'elemental_mastery', name: 'Element Ustalığı', emoji: '🌈', description: 'Tüm hasar türlerine +25% bonus', rarity: 'legendary', type: 'passive', effect: 'all_damage', value: 25 },
+  
+  // Mythic abilities
+  godslayer: { id: 'godslayer', name: 'Tanrı Katili', emoji: '⚡', description: 'Boss\'lara %50 ekstra hasar', rarity: 'mythic', type: 'passive', effect: 'boss_damage', value: 50 },
+  time_warp: { id: 'time_warp', name: 'Zaman Bükücü', emoji: '⏰', description: '%25 şansla ekstra tur kazan', rarity: 'mythic', type: 'passive', effect: 'extra_turn', value: 25 },
+  
+  // Hidden abilities
+  void_touch: { id: 'void_touch', name: 'Boşluk Dokunuşu', emoji: '🕳️', description: 'Tüm statlar +20, savaşta hasar %30 artırılır', rarity: 'hidden', type: 'passive', effect: 'void_power', value: 30 }
+};
+
+const evolutionGemRequirements = {
+  common: { gemType: 'common', amount: 3, coinCost: 500 },
+  uncommon: { gemType: 'uncommon', amount: 3, coinCost: 1500 },
+  rare: { gemType: 'rare', amount: 5, coinCost: 5000 },
+  epic: { gemType: 'epic', amount: 5, coinCost: 15000 },
+  legendary: { gemType: 'legendary', amount: 10, coinCost: 50000 },
+  mythic: { gemType: 'mythic', amount: 15, coinCost: 150000 },
+  hidden: { gemType: 'hidden', amount: 20, coinCost: 500000 }
+};
+
+async function getUserGems(userId) {
+  const gems = await db.select().from(letheEvolutionGems)
+    .where(eq(letheEvolutionGems.visitorId, userId));
+  
+  const gemMap = {};
+  for (const gem of gems) {
+    gemMap[gem.gemType] = gem.quantity;
+  }
+  
+  return {
+    common: gemMap.common || 0,
+    uncommon: gemMap.uncommon || 0,
+    rare: gemMap.rare || 0,
+    epic: gemMap.epic || 0,
+    legendary: gemMap.legendary || 0,
+    mythic: gemMap.mythic || 0,
+    hidden: gemMap.hidden || 0
+  };
+}
+
+async function addGems(userId, gemType, amount) {
+  const existing = await db.select().from(letheEvolutionGems)
+    .where(and(eq(letheEvolutionGems.visitorId, userId), eq(letheEvolutionGems.gemType, gemType)))
+    .limit(1);
+  
+  if (existing.length === 0) {
+    await db.insert(letheEvolutionGems).values({ visitorId: userId, gemType, quantity: amount });
+  } else {
+    await db.update(letheEvolutionGems)
+      .set({ quantity: sql`${letheEvolutionGems.quantity} + ${amount}` })
+      .where(and(eq(letheEvolutionGems.visitorId, userId), eq(letheEvolutionGems.gemType, gemType)));
+  }
+}
+
+async function evolveAnimal(userId, animalId1, animalId2, animalId3) {
+  // Get all three animals
+  const animals = await db.select().from(userAnimals)
+    .where(and(eq(userAnimals.userId, userId), sql`${userAnimals.id} IN (${animalId1}, ${animalId2}, ${animalId3})`));
+  
+  if (animals.length !== 3) {
+    return { success: false, error: 'Üç geçerli hayvan ID\'si gerekli.' };
+  }
+  
+  // Check if all are the same type
+  const animalTypes = [...new Set(animals.map(a => a.animalId))];
+  if (animalTypes.length !== 1) {
+    return { success: false, error: 'Evrim için aynı türden 3 hayvan gerekli!' };
+  }
+  
+  // Check if any is already evolved
+  const alreadyEvolved = animals.find(a => a.evolutionLevel >= 3);
+  if (alreadyEvolved) {
+    return { success: false, error: 'Bu hayvan zaten maksimum evrim seviyesinde!' };
+  }
+  
+  // Check if any is in team
+  const inTeam = animals.find(a => a.isInTeam);
+  if (inTeam) {
+    return { success: false, error: 'Takımdaki hayvanları birleştiremezsin! Önce takımdan çıkar.' };
+  }
+  
+  // Get animal info for rarity
+  const animalInfo = await db.select().from(letheAnimals)
+    .where(eq(letheAnimals.animalId, animalTypes[0]))
+    .limit(1);
+  
+  if (animalInfo.length === 0) {
+    return { success: false, error: 'Hayvan bilgisi bulunamadı.' };
+  }
+  
+  const rarity = animalInfo[0].rarity;
+  const requirement = evolutionGemRequirements[rarity];
+  
+  // Check gems
+  const userGems = await getUserGems(userId);
+  if ((userGems[requirement.gemType] || 0) < requirement.amount) {
+    return { success: false, error: `Evrim için ${requirement.amount} ${requirement.gemType} taşı gerekli! (Sahip: ${userGems[requirement.gemType] || 0})` };
+  }
+  
+  // Check coins
+  const profile = await getOrCreateProfile(userId);
+  if (profile.coins < requirement.coinCost) {
+    return { success: false, error: `Evrim için ${requirement.coinCost}💰 gerekli! (Sahip: ${profile.coins}💰)` };
+  }
+  
+  // Find the highest level animal to keep
+  const bestAnimal = animals.sort((a, b) => b.level - a.level)[0];
+  const otherAnimals = animals.filter(a => a.id !== bestAnimal.id);
+  
+  // Calculate combined stats bonus
+  const statBonus = Math.floor((otherAnimals[0].level + otherAnimals[1].level) * 2);
+  const newEvolutionLevel = Math.min(bestAnimal.evolutionLevel + 1, 3);
+  
+  // Assign ability based on rarity
+  const rarityAbilities = Object.values(abilities).filter(a => a.rarity === rarity);
+  const randomAbility = rarityAbilities.length > 0 ? rarityAbilities[Math.floor(Math.random() * rarityAbilities.length)] : null;
+  
+  // Update the best animal
+  await db.update(userAnimals)
+    .set({
+      evolutionLevel: newEvolutionLevel,
+      hp: sql`${userAnimals.hp} + ${statBonus + 20}`,
+      str: sql`${userAnimals.str} + ${Math.floor(statBonus / 2) + 5}`,
+      def: sql`${userAnimals.def} + ${Math.floor(statBonus / 2) + 5}`,
+      spd: sql`${userAnimals.spd} + ${Math.floor(statBonus / 3) + 3}`,
+      ability: randomAbility ? randomAbility.id : bestAnimal.ability
+    })
+    .where(eq(userAnimals.id, bestAnimal.id));
+  
+  // Delete the other two animals
+  for (const animal of otherAnimals) {
+    await db.delete(userAnimals).where(eq(userAnimals.id, animal.id));
+  }
+  
+  // Deduct gems and coins
+  await db.update(letheEvolutionGems)
+    .set({ quantity: sql`${letheEvolutionGems.quantity} - ${requirement.amount}` })
+    .where(and(eq(letheEvolutionGems.visitorId, userId), eq(letheEvolutionGems.gemType, requirement.gemType)));
+  
+  await db.update(userLetheProfile)
+    .set({ coins: sql`${userLetheProfile.coins} - ${requirement.coinCost}` })
+    .where(eq(userLetheProfile.visitorId, userId));
+  
+  // Get updated animal
+  const evolvedAnimal = await db.select().from(userAnimals)
+    .where(eq(userAnimals.id, bestAnimal.id))
+    .limit(1);
+  
+  return {
+    success: true,
+    animal: evolvedAnimal[0],
+    animalInfo: animalInfo[0],
+    newEvolutionLevel,
+    statBonus,
+    ability: randomAbility,
+    gemsUsed: requirement.amount,
+    coinsUsed: requirement.coinCost
+  };
+}
+
+// ==================== TRAINING SYSTEM ====================
+
+const trainingCooldown = 60 * 60 * 1000; // 1 hour in milliseconds
+
+async function trainAnimal(userId, animalId) {
+  const animal = await db.select().from(userAnimals)
+    .where(and(eq(userAnimals.userId, userId), eq(userAnimals.id, animalId)))
+    .limit(1);
+  
+  if (animal.length === 0) {
+    return { success: false, error: 'Bu hayvan sana ait değil!' };
+  }
+  
+  const pet = animal[0];
+  
+  // Check cooldown
+  if (pet.lastTrained) {
+    const timeSince = Date.now() - new Date(pet.lastTrained).getTime();
+    if (timeSince < trainingCooldown) {
+      const minutesLeft = Math.ceil((trainingCooldown - timeSince) / (1000 * 60));
+      return { success: false, error: `Bu hayvan dinleniyor! ${minutesLeft} dakika bekle.`, cooldown: minutesLeft };
+    }
+  }
+  
+  // Check if max training level
+  if (pet.trainingLevel >= 10) {
+    return { success: false, error: 'Bu hayvan maksimum eğitim seviyesine ulaştı!' };
+  }
+  
+  // Training cost increases with level
+  const trainingCost = 100 + (pet.trainingLevel * 50);
+  
+  // Check coins
+  const profile = await getOrCreateProfile(userId);
+  if (profile.coins < trainingCost) {
+    return { success: false, error: `Eğitim için ${trainingCost}💰 gerekli! (Sahip: ${profile.coins}💰)` };
+  }
+  
+  // Random stat gains
+  const statGains = {
+    hp: Math.floor(Math.random() * 10) + 5,
+    str: Math.floor(Math.random() * 3) + 1,
+    def: Math.floor(Math.random() * 3) + 1,
+    spd: Math.floor(Math.random() * 2) + 1
+  };
+  
+  // XP gain
+  const xpGain = 20 + (pet.trainingLevel * 5);
+  
+  // Update animal
+  await db.update(userAnimals)
+    .set({
+      hp: sql`${userAnimals.hp} + ${statGains.hp}`,
+      str: sql`${userAnimals.str} + ${statGains.str}`,
+      def: sql`${userAnimals.def} + ${statGains.def}`,
+      spd: sql`${userAnimals.spd} + ${statGains.spd}`,
+      xp: sql`${userAnimals.xp} + ${xpGain}`,
+      trainingLevel: sql`${userAnimals.trainingLevel} + 1`,
+      lastTrained: new Date()
+    })
+    .where(eq(userAnimals.id, animalId));
+  
+  // Deduct coins
+  await db.update(userLetheProfile)
+    .set({ coins: sql`${userLetheProfile.coins} - ${trainingCost}` })
+    .where(eq(userLetheProfile.visitorId, userId));
+  
+  // Get updated animal
+  const updatedAnimal = await db.select().from(userAnimals)
+    .where(eq(userAnimals.id, animalId))
+    .limit(1);
+  
+  // Get animal info
+  const animalInfo = await db.select().from(letheAnimals)
+    .where(eq(letheAnimals.animalId, pet.animalId))
+    .limit(1);
+  
+  return {
+    success: true,
+    animal: updatedAnimal[0],
+    animalInfo: animalInfo[0],
+    statGains,
+    xpGain,
+    cost: trainingCost,
+    newTrainingLevel: pet.trainingLevel + 1
+  };
+}
+
+async function getAnimalDetails(userId, animalId) {
+  const animal = await db.select().from(userAnimals)
+    .where(and(eq(userAnimals.userId, userId), eq(userAnimals.id, animalId)))
+    .limit(1);
+  
+  if (animal.length === 0) {
+    return null;
+  }
+  
+  const pet = animal[0];
+  const animalInfo = await db.select().from(letheAnimals)
+    .where(eq(letheAnimals.animalId, pet.animalId))
+    .limit(1);
+  
+  // Get ability info
+  let abilityInfo = null;
+  if (pet.ability && abilities[pet.ability]) {
+    abilityInfo = abilities[pet.ability];
+  }
+  
+  // Calculate training cooldown
+  let canTrain = true;
+  let trainingCooldownLeft = 0;
+  if (pet.lastTrained) {
+    const timeSince = Date.now() - new Date(pet.lastTrained).getTime();
+    if (timeSince < trainingCooldown) {
+      canTrain = false;
+      trainingCooldownLeft = Math.ceil((trainingCooldown - timeSince) / (1000 * 60));
+    }
+  }
+  
+  return {
+    ...pet,
+    animalInfo: animalInfo[0],
+    abilityInfo,
+    canTrain,
+    trainingCooldownLeft,
+    trainingCost: 100 + (pet.trainingLevel * 50),
+    maxTrainingLevel: pet.trainingLevel >= 10
+  };
+}
+
 module.exports = {
   seedDatabase,
   huntAnimal,
@@ -998,5 +1313,14 @@ module.exports = {
   doWork,
   changeJob,
   getWorkStatus,
-  jobs
+  jobs,
+  // Evolution System
+  getUserGems,
+  addGems,
+  evolveAnimal,
+  abilities,
+  evolutionGemRequirements,
+  // Training System
+  trainAnimal,
+  getAnimalDetails
 };

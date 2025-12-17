@@ -68,6 +68,28 @@ module.exports = {
     // Update unique catch progress
     await letheStorage.updateQuestProgress(message.author.id, 'unique_catch', 1);
 
+    // Gem drop chance based on rarity
+    const gemDropChances = {
+      common: 0.05,      // 5%
+      uncommon: 0.08,    // 8%
+      rare: 0.12,        // 12%
+      epic: 0.18,        // 18%
+      legendary: 0.25,   // 25%
+      mythic: 0.35,      // 35%
+      hidden: 0.50       // 50%
+    };
+    
+    const gemEmojis = {
+      common: '⬜', uncommon: '🟩', rare: '🟦', epic: '🟪', legendary: '🟨', mythic: '🟧', hidden: '❓'
+    };
+    
+    let gemDropped = null;
+    const dropChance = gemDropChances[animal.rarity] || 0.05;
+    if (Math.random() < dropChance) {
+      gemDropped = animal.rarity;
+      await letheStorage.addGems(message.author.id, animal.rarity, 1);
+    }
+
     const embed = new EmbedBuilder()
       .setColor(rarityColor)
       .setTitle(`${animal.emoji} ${animal.name} Yakaladın!`)
@@ -82,6 +104,15 @@ module.exports = {
       )
       .setFooter({ text: 'Koleksiyonunu görmek için: !koleksiyon' })
       .setTimestamp();
+
+    // Show gem drop
+    if (gemDropped) {
+      embed.addFields({ 
+        name: '💎 Evrim Taşı Düştü!', 
+        value: `${gemEmojis[gemDropped]} +1 ${gemDropped} taşı kazandın!`, 
+        inline: false 
+      });
+    }
 
     // Show completed quests
     if (completedQuests.length > 0) {

@@ -380,6 +380,10 @@ const userAnimals = pgTable('user_animals', {
   spd: integer('spd').default(10),
   isInTeam: boolean('is_in_team').default(false),
   teamSlot: integer('team_slot'),
+  evolutionLevel: integer('evolution_level').default(0),
+  ability: text('ability'),
+  trainingLevel: integer('training_level').default(0),
+  lastTrained: timestamp('last_trained'),
   caughtAt: timestamp('caught_at').defaultNow()
 });
 
@@ -577,6 +581,29 @@ const letheWork = pgTable('lethe_work', {
   createdAt: timestamp('created_at').defaultNow()
 });
 
+// Lethe Game - Evolution Gems
+const letheEvolutionGems = pgTable('lethe_evolution_gems', {
+  id: serial('id').primaryKey(),
+  visitorId: text('user_id').notNull(),
+  gemType: text('gem_type').notNull(), // 'common', 'rare', 'epic', 'legendary', 'mythic'
+  quantity: integer('quantity').default(0),
+  createdAt: timestamp('created_at').defaultNow()
+});
+
+// Lethe Game - Abilities
+const letheAbilities = pgTable('lethe_abilities', {
+  id: serial('id').primaryKey(),
+  abilityId: text('ability_id').notNull().unique(),
+  name: text('name').notNull(),
+  description: text('description').notNull(),
+  emoji: text('emoji').notNull(),
+  rarity: text('rarity').notNull(), // Which rarity animals can have this
+  type: text('type').notNull(), // 'passive' or 'active'
+  effect: text('effect').notNull(), // 'hunt_bonus', 'battle_damage', 'defense', 'crit', 'heal', 'stun'
+  effectValue: integer('effect_value').default(10),
+  cooldown: integer('cooldown').default(0) // For active abilities, turns
+});
+
 module.exports = {
   guilds,
   warnings,
@@ -626,5 +653,7 @@ module.exports = {
   letheQuests,
   userLetheQuests,
   letheDaily,
-  letheWork
+  letheWork,
+  letheEvolutionGems,
+  letheAbilities
 };
