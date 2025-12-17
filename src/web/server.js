@@ -786,6 +786,10 @@ app.get('/lethe-game', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'lethe-game.html'));
 });
 
+app.get('/lethe-rehber', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'lethe-rehber.html'));
+});
+
 const PORT = 5000;
 
 function startServer() {
