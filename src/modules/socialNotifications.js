@@ -5,6 +5,7 @@ class SocialNotificationSystem {
     this.client = client;
     this.storage = storage;
     this.liveStatus = new Map();
+    this.lastVideoIds = new Map();
     this.checkInterval = 3 * 60 * 1000;
     
     this.startChecker();
@@ -27,6 +28,8 @@ class SocialNotificationSystem {
             await this.checkTwitch(notification, guild);
           } else if (notification.platform === 'kick') {
             await this.checkKick(notification, guild);
+          } else if (notification.platform === 'youtube') {
+            await this.checkYouTube(notification, guild);
           }
         }
       }
@@ -88,6 +91,58 @@ class SocialNotificationSystem {
     }
   }
 
+  async checkYouTube(notification, guild) {
+    const key = `youtube:${notification.username}:${guild.id}`;
+    
+    try {
+      const rssUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${notification.username}`;
+      const response = await fetch(rssUrl);
+      
+      if (!response.ok) {
+        return;
+      }
+      
+      const text = await response.text();
+      
+      const videoIdMatch = text.match(/<yt:videoId>([^<]+)<\/yt:videoId>/);
+      const titleMatch = text.match(/<media:title>([^<]+)<\/media:title>/);
+      const authorMatch = text.match(/<author>\s*<name>([^<]+)<\/name>/);
+      const publishedMatch = text.match(/<published>([^<]+)<\/published>/);
+      
+      if (!videoIdMatch) return;
+      
+      const videoId = videoIdMatch[1];
+      const lastVideoId = this.lastVideoIds.get(key) || notification.lastPostId;
+      
+      if (!lastVideoId) {
+        this.lastVideoIds.set(key, videoId);
+        await this.storage.updateSocialNotification(notification.id, { lastPostId: videoId });
+        return;
+      }
+      
+      if (videoId !== lastVideoId) {
+        const published = publishedMatch ? new Date(publishedMatch[1]) : new Date();
+        const now = new Date();
+        const hoursDiff = (now - published) / (1000 * 60 * 60);
+        
+        if (hoursDiff < 168) {
+          await this.sendNotification(notification, guild, 'youtube', {
+            username: authorMatch ? authorMatch[1] : notification.username,
+            channelId: notification.username,
+            videoId: videoId,
+            title: titleMatch ? titleMatch[1] : 'Yeni Video',
+            url: `https://www.youtube.com/watch?v=${videoId}`
+          });
+        }
+        
+        this.lastVideoIds.set(key, videoId);
+        await this.storage.updateSocialNotification(notification.id, { lastPostId: videoId });
+      }
+    } catch (error) {
+      console.error(`YouTube check error for ${notification.username}:`, error);
+    }
+  }
+
   async sendNotification(notification, guild, platform, streamData) {
     try {
       const channel = guild.channels.cache.get(notification.channelId);
@@ -105,6 +160,12 @@ class SocialNotificationSystem {
           emoji: '🟢',
           name: 'Kick',
           url: `https://kick.com/${streamData.username}`
+        },
+        youtube: {
+          color: '#FF0000',
+          emoji: '🔴',
+          name: 'YouTube',
+          url: streamData.url || `https://youtube.com/channel/${streamData.channelId}`
         }
       };
 
@@ -112,20 +173,29 @@ class SocialNotificationSystem {
 
       const embed = new EmbedBuilder()
         .setColor(config.color)
-        .setTitle(`${config.emoji} ${streamData.username} Yayında!`)
-        .setURL(config.url)
         .setTimestamp();
 
-      if (platform === 'kick' && streamData.title) {
-        embed.setDescription(streamData.title);
-        embed.addFields(
-          { name: 'Kategori', value: streamData.category, inline: true },
-          { name: 'İzleyici', value: `${streamData.viewers}`, inline: true }
-        );
+      if (platform === 'youtube') {
+        embed.setTitle(`${config.emoji} ${streamData.username} Yeni Video Yükledi!`);
+        embed.setDescription(`**${streamData.title}**`);
+        embed.setURL(streamData.url);
+        embed.setImage(`https://img.youtube.com/vi/${streamData.videoId}/maxresdefault.jpg`);
+      } else if (platform === 'kick') {
+        embed.setTitle(`${config.emoji} ${streamData.username} Yayında!`);
+        embed.setURL(config.url);
+        if (streamData.title) {
+          embed.setDescription(streamData.title);
+          embed.addFields(
+            { name: 'Kategori', value: streamData.category, inline: true },
+            { name: 'İzleyici', value: `${streamData.viewers}`, inline: true }
+          );
+        }
         if (streamData.thumbnail) {
           embed.setThumbnail(streamData.thumbnail);
         }
       } else if (platform === 'twitch') {
+        embed.setTitle(`${config.emoji} ${streamData.username} Yayında!`);
+        embed.setURL(config.url);
         embed.setDescription(`${streamData.username} Twitch'te yayın yapıyor!`);
         if (streamData.uptime) {
           embed.addFields({ name: 'Yayın Süresi', value: streamData.uptime, inline: true });
@@ -134,7 +204,12 @@ class SocialNotificationSystem {
 
       embed.addFields({ name: 'Platform', value: config.name, inline: true });
 
-      let content = notification.customMessage || `🔴 **${streamData.username}** yayında!`;
+      const defaultMessages = {
+        twitch: `🔴 **${streamData.username}** yayında!`,
+        kick: `🔴 **${streamData.username}** yayında!`,
+        youtube: `📺 **${streamData.username}** yeni video yükledi!`
+      };
+      let content = notification.customMessage || defaultMessages[platform] || `🔔 **${streamData.username}** yeni içerik!`;
       content = content
         .replace(/{user}/g, streamData.username)
         .replace(/{platform}/g, config.name)

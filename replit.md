@@ -54,6 +54,12 @@ Güçlü ve tam donanımlı Discord moderasyon botu + Web Dashboard.
 - `!hatırlat <süre> <mesaj>` - Hatırlatıcı oluşturur
 - `!afk [sebep]` - AFK durumunu ayarlar
 
+### Zamanlanmış Mesajlar
+- `!zamanlı ekle #kanal <dakika> <mesaj>` - Zamanlanmış mesaj ekler
+- `!zamanlı sil <id>` - Zamanlanmış mesajı siler
+- `!zamanlı liste` - Tüm zamanlanmış mesajları listeler
+- `!zamanlı toggle <id>` - Mesajı açar/kapatır
+
 ### Ekonomi Sistemi
 - `!para` / `!bal` - Bakiye görüntüleme
 - `!günlük` - Günlük ödül alma
