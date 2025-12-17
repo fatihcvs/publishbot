@@ -113,6 +113,25 @@ module.exports = {
         .setTimestamp();
       return message.reply({ embeds: [embed] });
     }
+
+    if (category === 'ai' || category === 'yapay' || category === 'yapay zeka') {
+      const embed = new EmbedBuilder()
+        .setColor('#00d4ff')
+        .setTitle('🤖 Yapay Zeka Komutları')
+        .setDescription('GPT-4o ve DALL-E 3 ile desteklenen gelişmiş AI özellikleri!')
+        .addFields(
+          { name: '@Publisher <mesaj>', value: 'Botu etiketleyerek sohbet edin. Hangi dilde yazarsanız o dilde yanıt verir!' },
+          { name: '!görsel <açıklama>', value: 'DALL-E 3 ile görsel oluşturun\nÖrnek: `!görsel güneş batımında sahilde yürüyen kedi`' },
+          { name: '!analiz [soru]', value: 'Görselleri analiz edin (görsel ekleyin veya yanıtlayın)' },
+          { name: '!çevir <dil> <metin>', value: '20+ dile çeviri yapın\nÖrnek: `!çevir en Merhaba!`' }
+        )
+        .addFields(
+          { name: '🌐 Desteklenen Diller', value: '🇹🇷 Türkçe, 🇬🇧 İngilizce, 🇩🇪 Almanca, 🇫🇷 Fransızca, 🇪🇸 İspanyolca, 🇳🇱 Felemenkçe, 🇮🇹 İtalyanca, 🇵🇹 Portekizce, 🇷🇺 Rusça, 🇯🇵 Japonca, 🇰🇷 Korece, 🇨🇳 Çince ve daha fazlası...', inline: false }
+        )
+        .setFooter({ text: 'OpenAI GPT-4o & DALL-E 3 ile desteklenmektedir' })
+        .setTimestamp();
+      return message.reply({ embeds: [embed] });
+    }
     
     const embed = new EmbedBuilder()
       .setColor('#5865F2')
@@ -125,6 +144,7 @@ module.exports = {
         { name: '💰 Ekonomi', value: '`!yardım ekonomi`', inline: true },
         { name: '📈 Seviye', value: '`!yardım seviye`', inline: true },
         { name: '🎉 Eğlence', value: '`!yardım eğlence`', inline: true },
+        { name: '🤖 Yapay Zeka', value: '`!yardım ai`', inline: true },
         { name: '📝 Özel Komutlar', value: '`!komutekle` `!komutsil` `!komutlar`', inline: false },
         { name: 'ℹ️ Bilgi', value: '`!sunucu` `!kullanıcı` `!avatar` `!ping`', inline: false }
       )
