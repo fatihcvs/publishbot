@@ -345,6 +345,11 @@ class DatabaseStorage {
     await db.delete(scheduledMessages).where(eq(scheduledMessages.id, id));
   }
 
+  async toggleScheduledMessage(id, enabled) {
+    if (!db) return;
+    await db.update(scheduledMessages).set({ enabled }).where(eq(scheduledMessages.id, id));
+  }
+
   async getUserAchievements(guildId, userId) {
     if (!db) return [];
     return db.select().from(userAchievements).where(
