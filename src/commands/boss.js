@@ -1,6 +1,23 @@
 const { EmbedBuilder } = require('discord.js');
 const letheStorage = require('../lethe/letheStorage');
 
+function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function createHpBar(percent) {
+  const filled = Math.round(percent / 10);
+  const empty = 10 - filled;
+  const color = percent > 60 ? '🟩' : percent > 30 ? '🟨' : '🟥';
+  return color.repeat(filled) + '⬛'.repeat(empty) + ` ${percent}%`;
+}
+
+const battleAnimations = [
+  ['⚔️', '💥', '✨', '🌟'],
+  ['🗡️', '💢', '⚡', '💫'],
+  ['🔥', '💨', '❄️', '🌀']
+];
+
 module.exports = {
   name: 'boss',
   aliases: ['bosssavas', 'bossfight'],
@@ -44,8 +61,58 @@ module.exports = {
     });
 
     const boss = availableBosses[Math.floor(Math.random() * availableBosses.length)];
-
     const userStats = teamData.stats;
+
+    const introEmbed = new EmbedBuilder()
+      .setColor('#fbbf24')
+      .setTitle('⚔️ BOSS SAVAŞI BAŞLIYOR! ⚔️')
+      .setDescription('```\n' + '═'.repeat(30) + '\n```');
+
+    let userTeamStr = teamData.team.map(t => {
+      const base = `${t.animalInfo.emoji} **${t.userAnimal.nickname || t.animalInfo.name}** Lv.${t.userAnimal.level}`;
+      const eff = t.effectiveStats || t.userAnimal;
+      let stats = `┣ ❤️${eff.hp} ⚔️${eff.str} 🛡️${eff.def} ⚡${eff.spd}`;
+      
+      let equipLine = '';
+      if (t.equipment) {
+        const eqParts = [];
+        if (t.equipment.weaponInfo) eqParts.push(`⚔️${t.equipment.weaponInfo.emoji}`);
+        if (t.equipment.armorInfo) eqParts.push(`🛡️${t.equipment.armorInfo.emoji}`);
+        if (t.equipment.accessoryInfo) eqParts.push(`💍${t.equipment.accessoryInfo.emoji}`);
+        if (eqParts.length > 0) equipLine = `\n┗ ${eqParts.join(' ')}`;
+      }
+      
+      return base + '\n' + stats + equipLine;
+    }).join('\n\n');
+
+    let bossStr = `${boss.emoji} **${boss.name}**\n┗ ❤️${boss.hp} ⚔️${boss.str} 🛡️${boss.def}`;
+
+    introEmbed.addFields(
+      { name: '🟢 Senin Takımın', value: userTeamStr || 'Boş', inline: true },
+      { name: '⚔️', value: '\u200b', inline: true },
+      { name: `🔴 ${boss.emoji} BOSS`, value: bossStr, inline: true }
+    );
+
+    let userEquip = '';
+    if (teamData.allEquipment && teamData.allEquipment.length > 0) {
+      userEquip = teamData.allEquipment.map(eq => {
+        if (eq.type === 'weapon') return `⚔️ ${eq.emoji} ${eq.name} (+${eq.damage})`;
+        if (eq.type === 'armor') return `🛡️ ${eq.emoji} ${eq.name} (+${eq.defense})`;
+        if (eq.type === 'accessory') return `💍 ${eq.emoji} ${eq.name} (+${eq.effectValue})`;
+        return '';
+      }).filter(e => e).join('\n');
+    }
+
+    introEmbed.addFields(
+      { name: '🎒 Ekipmanlarınız', value: userEquip || '*Ekipman yok*', inline: true },
+      { name: '📊', value: '\u200b', inline: true },
+      { name: '💀 Boss Özelliği', value: `Ödül: 💰 ${boss.rewardMoney}\nNadirlik: ${boss.rewardRarity}`, inline: true }
+    );
+
+    introEmbed.setTimestamp();
+    const battleMsg = await message.reply({ embeds: [introEmbed] });
+
+    await delay(2500);
 
     let userHp = userStats.hp;
     let bossHp = boss.hp;
@@ -57,13 +124,36 @@ module.exports = {
 
       const userDamage = Math.max(1, Math.floor(userStats.str * (1 - boss.def / (boss.def + 100)) * (0.85 + Math.random() * 0.3)));
       bossHp -= userDamage;
-      battleLog.push(`⚔️ Takımın **${userDamage}** hasar verdi! (Boss HP: ${Math.max(0, bossHp)})`);
+      battleLog.push(`⚔️ Takımın **${userDamage}** hasar verdi!`);
 
       if (bossHp <= 0) break;
 
       const bossDamage = Math.max(1, Math.floor(boss.str * (1 - userStats.def / (userStats.def + 100)) * (0.9 + Math.random() * 0.2)));
       userHp -= bossDamage;
-      battleLog.push(`💀 ${boss.emoji} **${bossDamage}** hasar verdi! (Takım HP: ${Math.max(0, userHp)})`);
+      battleLog.push(`💀 ${boss.emoji} **${bossDamage}** hasar verdi!`);
+
+      if (round % 3 === 0 && round < 30) {
+        const animSet = battleAnimations[Math.floor(Math.random() * battleAnimations.length)];
+        const anim = animSet[Math.floor(Math.random() * animSet.length)];
+        
+        const userHpPercent = Math.max(0, Math.round((userHp / userStats.hp) * 100));
+        const bossHpPercent = Math.max(0, Math.round((bossHp / boss.hp) * 100));
+
+        const battleEmbed = new EmbedBuilder()
+          .setColor('#ef4444')
+          .setTitle(`${anim} TUR ${round} ${anim}`)
+          .setDescription('```ansi\n\u001b[1;31m⚔️ BOSS SAVAŞI DEVAM EDİYOR ⚔️\u001b[0m\n```')
+          .addFields(
+            { name: '🟢 Takımın', value: `${createHpBar(userHpPercent)}\n❤️ ${Math.max(0, userHp)}/${userStats.hp}`, inline: true },
+            { name: '⚔️ vs ⚔️', value: '\u200b', inline: true },
+            { name: `🔴 ${boss.emoji} ${boss.name}`, value: `${createHpBar(bossHpPercent)}\n❤️ ${Math.max(0, bossHp)}/${boss.hp}`, inline: true }
+          )
+          .addFields({ name: '📜 Savaş Günlüğü', value: battleLog.slice(-4).join('\n') || '...', inline: false })
+          .setTimestamp();
+
+        await battleMsg.edit({ embeds: [battleEmbed] });
+        await delay(1500);
+      }
     }
 
     const won = bossHp <= 0;
@@ -72,7 +162,6 @@ module.exports = {
 
     await letheStorage.addBattleReward(message.author.id, xpReward, moneyReward, won, true);
 
-    // Update quest progress
     const completedQuests = [];
     const battleQuests = await letheStorage.updateQuestProgress(message.author.id, 'battle', 1);
     completedQuests.push(...battleQuests);
@@ -83,47 +172,45 @@ module.exports = {
       const winQuests = await letheStorage.updateQuestProgress(message.author.id, 'battle_win', 1);
       completedQuests.push(...winQuests);
       
-      // Update earn money quest
       if (moneyReward > 0) {
         await letheStorage.updateQuestProgress(message.author.id, 'earn_money', moneyReward);
       }
     }
 
-    const lastLogs = battleLog.slice(-8).join('\n');
-
-    let equipmentStr = '';
-    if (teamData.weapon.name) equipmentStr += `⚔️ ${teamData.weapon.emoji || ''} ${teamData.weapon.name} (+${teamData.weapon.damage} hasar)\n`;
-    if (teamData.armor.name) equipmentStr += `🛡️ ${teamData.armor.emoji || ''} ${teamData.armor.name} (+${teamData.armor.defense} savunma)\n`;
-
-    const embed = new EmbedBuilder()
+    const resultEmbed = new EmbedBuilder()
       .setColor(won ? '#10b981' : '#ef4444')
-      .setTitle(won ? `🏆 ${boss.emoji} ${boss.name} Yenildi!` : `💀 ${boss.emoji} ${boss.name} Kazandı!`)
-      .setDescription(won ? 'Boss savaşını kazandın!' : 'Boss çok güçlüydü...')
-      .addFields(
-        { name: '📜 Savaş Özeti', value: lastLogs || 'Savaş hızlıca bitti!', inline: false },
-        { name: '🎯 Tur', value: `${round}`, inline: true },
-        { name: '✨ XP', value: `+${Math.floor(xpReward)}`, inline: true },
-        { name: '💰 Para', value: `+${moneyReward}`, inline: true }
-      )
-      .setFooter({ text: won ? 'Tebrikler! Bir sonraki boss daha güçlü olacak!' : 'Takımını güçlendir ve tekrar dene!' })
-      .setTimestamp();
+      .setTitle(won ? `🏆 ${boss.emoji} ${boss.name} YENİLDİ! 🏆` : `💀 YENİLGİ! 💀`)
+      .setDescription(won 
+        ? `\`\`\`diff\n+ ${boss.name} mağlup edildi!\n\`\`\`` 
+        : `\`\`\`diff\n- ${boss.name} çok güçlüydü...\n\`\`\``);
 
-    if (equipmentStr) {
-      embed.addFields({ name: '🎒 Ekipman Bonusları', value: equipmentStr, inline: false });
-    }
+    resultEmbed.addFields(
+      { name: `${won ? '🏆' : '💀'} Senin Takımın`, value: userTeamStr || 'Boş', inline: true },
+      { name: won ? '✅' : '❌', value: '\u200b', inline: true },
+      { name: `${won ? '💀' : '🏆'} ${boss.emoji} BOSS`, value: bossStr, inline: true }
+    );
+
+    resultEmbed.addFields(
+      { name: '🎒 Ekipmanlarınız', value: userEquip || '*Ekipman yok*', inline: true },
+      { name: '📊', value: '\u200b', inline: true },
+      { name: '🎁 Ödüller', value: `💰 +${moneyReward}\n✨ +${Math.floor(xpReward)} XP`, inline: true }
+    );
+
+    resultEmbed.addFields(
+      { name: '🎯 Tur Sayısı', value: `${round}`, inline: true }
+    );
 
     if (won) {
-      embed.addFields({ name: '🎁 Ödül', value: `${boss.rewardRarity} nadirliğinde eşya şansı!`, inline: false });
+      resultEmbed.addFields({ name: '🎁 Bonus', value: `${boss.rewardRarity} nadirliğinde eşya şansı!`, inline: true });
     }
 
-    // Show completed quests with rewards
     if (completedQuests.length > 0) {
       for (const q of completedQuests) {
         let rewardText = [];
         if (q.rewards?.coins > 0) rewardText.push(`+${q.rewards.coins}💰`);
         if (q.rewards?.xp > 0) rewardText.push(`+${q.rewards.xp}✨`);
         if (q.rewards?.item) rewardText.push(`+1 ${q.rewards.item.type}`);
-        embed.addFields({ 
+        resultEmbed.addFields({ 
           name: `🎯 ${q.questInfo.emoji} ${q.questInfo.name} Tamamlandı!`, 
           value: rewardText.length > 0 ? `Ödül: ${rewardText.join(' ')}` : 'Tamamlandı!', 
           inline: false 
@@ -131,6 +218,9 @@ module.exports = {
       }
     }
 
-    await message.reply({ embeds: [embed] });
+    resultEmbed.setFooter({ text: won ? 'Tebrikler! Bir sonraki boss daha güçlü olacak!' : 'Takımını güçlendir ve tekrar dene!' })
+      .setTimestamp();
+
+    await battleMsg.edit({ embeds: [resultEmbed] });
   }
 };
