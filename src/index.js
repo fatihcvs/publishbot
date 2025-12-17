@@ -9,6 +9,7 @@ const { LogSystem } = require('./modules/logSystem');
 const { LevelingSystem } = require('./modules/leveling');
 const { TempVoiceSystem } = require('./modules/tempVoice');
 const { StatChannelSystem } = require('./modules/statChannels');
+const { SocialNotificationSystem } = require('./modules/socialNotifications');
 const { chat: chatGPT } = require('./modules/chatgpt');
 
 const client = new Client({
@@ -49,6 +50,7 @@ let logSystem;
 let levelingSystem;
 let tempVoiceSystem;
 let statChannelSystem;
+let socialNotificationSystem;
 
 client.once(Events.ClientReady, () => {
   console.log(`Publisher online! ${client.user.tag} olarak giriş yapıldı.`);
@@ -62,6 +64,7 @@ client.once(Events.ClientReady, () => {
   levelingSystem = new LevelingSystem(client, storage);
   tempVoiceSystem = new TempVoiceSystem(client, storage);
   statChannelSystem = new StatChannelSystem(client, storage);
+  socialNotificationSystem = new SocialNotificationSystem(client, storage);
   console.log('All systems started');
 });
 

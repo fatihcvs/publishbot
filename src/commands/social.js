@@ -2,6 +2,7 @@ const { EmbedBuilder, PermissionFlagsBits } = require('discord.js');
 
 const platforms = {
   twitch: { name: 'Twitch', emoji: '🟣', color: '#9146FF' },
+  kick: { name: 'Kick', emoji: '🟢', color: '#53FC18' },
   youtube: { name: 'YouTube', emoji: '🔴', color: '#FF0000' },
   tiktok: { name: 'TikTok', emoji: '🎵', color: '#00F7EF' },
   twitter: { name: 'X (Twitter)', emoji: '🐦', color: '#1DA1F2' },
