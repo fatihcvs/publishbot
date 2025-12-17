@@ -74,6 +74,119 @@ async function getOrCreateProfile(guildId, visitorId) {
   return profile[0];
 }
 
+async function ensureEconomy(guildId, userId) {
+  let economy = await db.select().from(userEconomy)
+    .where(and(eq(userEconomy.guildId, guildId), eq(userEconomy.userId, userId)))
+    .limit(1);
+
+  if (economy.length === 0) {
+    await db.insert(userEconomy).values({ guildId, userId, balance: 0, bank: 0 });
+    economy = await db.select().from(userEconomy)
+      .where(and(eq(userEconomy.guildId, guildId), eq(userEconomy.userId, userId)))
+      .limit(1);
+  }
+
+  return economy[0];
+}
+
+async function addMoney(guildId, userId, amount) {
+  await ensureEconomy(guildId, userId);
+  await db.update(userEconomy)
+    .set({ balance: sql`${userEconomy.balance} + ${amount}` })
+    .where(and(eq(userEconomy.guildId, guildId), eq(userEconomy.userId, userId)));
+}
+
+async function addBattleReward(guildId, userId, xpAmount, moneyAmount, won, isBoss = false) {
+  await getOrCreateProfile(guildId, userId);
+  
+  const updateData = {
+    totalBattles: sql`${userLetheProfile.totalBattles} + 1`,
+    xp: sql`${userLetheProfile.xp} + ${xpAmount}`
+  };
+  
+  if (won) {
+    updateData.battlesWon = sql`${userLetheProfile.battlesWon} + 1`;
+  }
+  
+  if (isBoss && won) {
+    updateData.bossesKilled = sql`${userLetheProfile.bossesKilled} + 1`;
+  }
+  
+  await db.update(userLetheProfile)
+    .set(updateData)
+    .where(and(eq(userLetheProfile.guildId, guildId), eq(userLetheProfile.visitorId, userId)));
+
+  if (moneyAmount > 0) {
+    await addMoney(guildId, userId, moneyAmount);
+  }
+
+  await checkLevelUp(guildId, userId);
+}
+
+async function checkLevelUp(guildId, userId) {
+  const profile = await getOrCreateProfile(guildId, userId);
+  const xpNeeded = profile.level * 100;
+  
+  if (profile.xp >= xpNeeded) {
+    await db.update(userLetheProfile)
+      .set({ 
+        level: sql`${userLetheProfile.level} + 1`,
+        xp: sql`${userLetheProfile.xp} - ${xpNeeded}`
+      })
+      .where(and(eq(userLetheProfile.guildId, guildId), eq(userLetheProfile.visitorId, userId)));
+    return true;
+  }
+  return false;
+}
+
+async function getTeamWithEquipment(guildId, userId) {
+  const team = await getTeam(guildId, userId);
+  const profile = await getOrCreateProfile(guildId, userId);
+  
+  let weaponBonus = { damage: 0 };
+  let armorBonus = { defense: 0 };
+  let accessoryBonus = {};
+
+  if (profile.equippedWeapon) {
+    const weapons = await db.select().from(letheWeapons).where(eq(letheWeapons.weaponId, profile.equippedWeapon)).limit(1);
+    if (weapons.length > 0) weaponBonus = weapons[0];
+  }
+  
+  if (profile.equippedArmor) {
+    const armors = await db.select().from(letheArmors).where(eq(letheArmors.armorId, profile.equippedArmor)).limit(1);
+    if (armors.length > 0) armorBonus = armors[0];
+  }
+  
+  if (profile.equippedAccessory) {
+    const accessories = await db.select().from(letheAccessories).where(eq(letheAccessories.accessoryId, profile.equippedAccessory)).limit(1);
+    if (accessories.length > 0) accessoryBonus = accessories[0];
+  }
+
+  const baseStats = {
+    hp: team.reduce((sum, t) => sum + t.userAnimal.hp, 0),
+    str: team.reduce((sum, t) => sum + t.userAnimal.str, 0),
+    def: team.reduce((sum, t) => sum + t.userAnimal.def, 0),
+    spd: team.length > 0 ? Math.round(team.reduce((sum, t) => sum + t.userAnimal.spd, 0) / team.length) : 0
+  };
+
+  baseStats.str += weaponBonus.damage || 0;
+  baseStats.def += armorBonus.defense || 0;
+  
+  if (accessoryBonus.effect === 'str_boost') baseStats.str += accessoryBonus.effectValue || 0;
+  if (accessoryBonus.effect === 'def_boost') baseStats.def += accessoryBonus.effectValue || 0;
+  if (accessoryBonus.effect === 'spd_boost') baseStats.spd += accessoryBonus.effectValue || 0;
+  if (accessoryBonus.effect === 'hp_boost') baseStats.hp += accessoryBonus.effectValue || 0;
+  if (accessoryBonus.effect === 'luck_boost') { /* luck affects drop rates */ }
+  if (accessoryBonus.effect === 'all_stats') {
+    baseStats.hp += accessoryBonus.effectValue || 0;
+    baseStats.str += accessoryBonus.effectValue || 0;
+    baseStats.def += accessoryBonus.effectValue || 0;
+    baseStats.spd += accessoryBonus.effectValue || 0;
+  }
+
+  return { team, stats: baseStats, weapon: weaponBonus, armor: armorBonus, accessory: accessoryBonus };
+}
+
 async function huntAnimal(guildId, visitorId) {
   const profile = await getOrCreateProfile(guildId, visitorId);
   
@@ -164,9 +277,7 @@ async function sellAnimal(guildId, visitorId, userAnimalId) {
 
   await db.delete(userAnimals).where(eq(userAnimals.id, userAnimalId));
   
-  await db.update(userEconomy)
-    .set({ balance: sql`${userEconomy.balance} + ${sellPrice}` })
-    .where(and(eq(userEconomy.guildId, guildId), eq(userEconomy.userId, visitorId)));
+  await addMoney(guildId, visitorId, sellPrice);
 
   return { success: true, animal: animal[0].animalInfo, price: sellPrice };
 }
@@ -331,17 +442,13 @@ async function buyItem(guildId, visitorId, itemType, itemId) {
     return { success: false, error: 'Item not found' };
   }
 
-  const economy = await db.select().from(userEconomy)
-    .where(and(eq(userEconomy.guildId, guildId), eq(userEconomy.userId, visitorId)))
-    .limit(1);
+  const economy = await ensureEconomy(guildId, visitorId);
 
-  if (economy.length === 0 || economy[0].balance < item.price) {
+  if (economy.balance < item.price) {
     return { success: false, error: 'Not enough money' };
   }
 
-  await db.update(userEconomy)
-    .set({ balance: sql`${userEconomy.balance} - ${item.price}` })
-    .where(and(eq(userEconomy.guildId, guildId), eq(userEconomy.userId, visitorId)));
+  await addMoney(guildId, visitorId, -item.price);
 
   const existingItem = await db.select().from(userLetheInventory)
     .where(and(
@@ -425,5 +532,10 @@ module.exports = {
   getInventory,
   buyItem,
   equipItem,
-  getOrCreateProfile
+  getOrCreateProfile,
+  ensureEconomy,
+  addMoney,
+  addBattleReward,
+  checkLevelUp,
+  getTeamWithEquipment
 };
