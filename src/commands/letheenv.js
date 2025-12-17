@@ -39,15 +39,15 @@ module.exports = {
     let equippedStr = '';
     if (profile.equippedWeapon) {
       const w = itemMap[profile.equippedWeapon];
-      if (w) equippedStr += `⚔️ **Silah:** ${w.emoji} ${w.name}\n`;
+      if (w) equippedStr += `⚔️ **Silah:** ${w.emoji} ${w.name} (+${w.damage} hasar)\n`;
     }
     if (profile.equippedArmor) {
       const a = itemMap[profile.equippedArmor];
-      if (a) equippedStr += `🛡️ **Zırh:** ${a.emoji} ${a.name}\n`;
+      if (a) equippedStr += `🛡️ **Zırh:** ${a.emoji} ${a.name} (+${a.defense} savunma)\n`;
     }
     if (profile.equippedAccessory) {
       const a = itemMap[profile.equippedAccessory];
-      if (a) equippedStr += `💍 **Aksesuar:** ${a.emoji} ${a.name}\n`;
+      if (a) equippedStr += `💍 **Aksesuar:** ${a.emoji} ${a.name} (${a.effect || a.bonus || 'Bonus'})\n`;
     }
 
     if (equippedStr) {
@@ -66,38 +66,40 @@ module.exports = {
       if (weapons.length > 0) {
         const weaponStr = weapons.map(w => {
           const item = itemMap[w.itemId];
-          return item ? `${item.emoji} ${item.name} x${w.quantity}` : `${w.itemId} x${w.quantity}`;
-        }).join('\n');
-        embed.addFields({ name: '⚔️ Silahlar', value: weaponStr, inline: true });
+          return item ? `${item.emoji} ${item.name} x${w.quantity}\n┗ ID: \`${w.itemId}\` | +${item.damage} hasar` : `${w.itemId} x${w.quantity}`;
+        }).join('\n\n');
+        embed.addFields({ name: '⚔️ Silahlar', value: weaponStr, inline: false });
       }
 
       if (armors.length > 0) {
         const armorStr = armors.map(a => {
           const item = itemMap[a.itemId];
-          return item ? `${item.emoji} ${item.name} x${a.quantity}` : `${a.itemId} x${a.quantity}`;
-        }).join('\n');
-        embed.addFields({ name: '🛡️ Zırhlar', value: armorStr, inline: true });
+          return item ? `${item.emoji} ${item.name} x${a.quantity}\n┗ ID: \`${a.itemId}\` | +${item.defense} savunma` : `${a.itemId} x${a.quantity}`;
+        }).join('\n\n');
+        embed.addFields({ name: '🛡️ Zırhlar', value: armorStr, inline: false });
       }
 
       if (accessories.length > 0) {
         const accStr = accessories.map(a => {
           const item = itemMap[a.itemId];
-          return item ? `${item.emoji} ${item.name} x${a.quantity}` : `${a.itemId} x${a.quantity}`;
-        }).join('\n');
-        embed.addFields({ name: '💍 Aksesuarlar', value: accStr, inline: true });
+          const effect = item?.effect || item?.bonus || 'Özel bonus';
+          return item ? `${item.emoji} ${item.name} x${a.quantity}\n┗ ID: \`${a.itemId}\` | ${effect}` : `${a.itemId} x${a.quantity}`;
+        }).join('\n\n');
+        embed.addFields({ name: '💍 Aksesuarlar', value: accStr, inline: false });
       }
 
       if (consumables.length > 0) {
         const consStr = consumables.map(c => {
           const item = itemMap[c.itemId];
-          return item ? `${item.emoji} ${item.name} x${c.quantity}` : `${c.itemId} x${c.quantity}`;
-        }).join('\n');
-        embed.addFields({ name: '🧪 İksirler', value: consStr, inline: true });
+          const effect = item?.effect || 'Kullanılabilir';
+          return item ? `${item.emoji} ${item.name} x${c.quantity}\n┗ ID: \`${c.itemId}\` | ${effect}` : `${c.itemId} x${c.quantity}`;
+        }).join('\n\n');
+        embed.addFields({ name: '🧪 İksirler', value: consStr, inline: false });
       }
 
       if (baits.length > 0) {
-        const baitStr = baits.map(b => `${b.itemId} x${b.quantity}`).join('\n');
-        embed.addFields({ name: '🍖 Yemler', value: baitStr, inline: true });
+        const baitStr = baits.map(b => `🍖 ${b.itemId} x${b.quantity}`).join('\n');
+        embed.addFields({ name: '🍖 Yemler', value: baitStr, inline: false });
       }
     }
 
