@@ -21,6 +21,20 @@ const rarityEmojis = {
   hidden: '❓'
 };
 
+const effectNames = {
+  'hunt_bonus': 'Avlanma',
+  'str_boost': 'STR',
+  'def_boost': 'DEF',
+  'spd_boost': 'SPD',
+  'hp_boost': 'HP',
+  'magic_boost': 'Büyü',
+  'all_stats': 'Tüm Stat',
+  'crit_boost': 'Kritik',
+  'dodge_boost': 'Kaçınma',
+  'xp_boost': 'XP',
+  'coin_boost': 'Para'
+};
+
 module.exports = {
   name: 'takim',
   aliases: ['takım', 'team', 'petler', 'pets'],
@@ -75,9 +89,9 @@ module.exports = {
         }
         if (equipment.accessoryInfo) {
           equipStr += equipStr ? ' | ' : '';
-          equipStr += `💍 ${equipment.accessoryInfo.emoji} ${equipment.accessoryInfo.name}`;
-          const effect = equipment.accessoryInfo.effect || equipment.accessoryInfo.bonus || '';
-          if (effect) bonusStr += `(${effect})`;
+          const accEffect = effectNames[equipment.accessoryInfo.effect] || equipment.accessoryInfo.effect;
+          const accValue = equipment.accessoryInfo.effectValue || 0;
+          equipStr += `💍 ${equipment.accessoryInfo.emoji} ${equipment.accessoryInfo.name} (+${accValue} ${accEffect})`;
         }
         
         const effectiveStr = user.str + totalBonusDamage;

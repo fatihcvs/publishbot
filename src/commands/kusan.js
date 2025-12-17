@@ -70,21 +70,38 @@ module.exports = {
     const allArmors = await letheStorage.getAllArmors();
     const allAccessories = await letheStorage.getAllAccessories();
 
+    const effectNames = {
+      'hunt_bonus': '🎯 Avlanma Bonusu',
+      'str_boost': '⚔️ Güç (STR)',
+      'def_boost': '🛡️ Savunma (DEF)',
+      'spd_boost': '⚡ Hız (SPD)',
+      'hp_boost': '❤️ Can (HP)',
+      'magic_boost': '🔮 Büyü Gücü',
+      'all_stats': '✨ Tüm İstatistikler',
+      'crit_boost': '💥 Kritik Şansı',
+      'dodge_boost': '💨 Kaçınma Şansı',
+      'xp_boost': '📈 XP Kazanımı',
+      'coin_boost': '💰 Para Kazanımı'
+    };
+
     let itemInfo = null;
     let statBonus = '';
     
     switch (mappedType) {
       case 'weapon':
         itemInfo = allWeapons.find(w => w.weaponId === itemId);
-        if (itemInfo) statBonus = `⚔️ +${itemInfo.damage} Hasar`;
+        if (itemInfo) statBonus = `⚔️ **+${itemInfo.damage}** Hasar`;
         break;
       case 'armor':
         itemInfo = allArmors.find(a => a.armorId === itemId);
-        if (itemInfo) statBonus = `🛡️ +${itemInfo.defense} Savunma`;
+        if (itemInfo) statBonus = `🛡️ **+${itemInfo.defense}** Savunma`;
         break;
       case 'accessory':
         itemInfo = allAccessories.find(a => a.accessoryId === itemId);
-        if (itemInfo) statBonus = `✨ ${itemInfo.effect || itemInfo.bonus || 'Özel Bonus'}`;
+        if (itemInfo) {
+          const effectName = effectNames[itemInfo.effect] || itemInfo.effect;
+          statBonus = `${effectName} **+${itemInfo.effectValue}**`;
+        }
         break;
     }
 

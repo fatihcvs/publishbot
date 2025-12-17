@@ -80,10 +80,24 @@ module.exports = {
       }
 
       if (accessories.length > 0) {
+        const effectNames = {
+          'hunt_bonus': '🎯 Avlanma Bonusu',
+          'str_boost': '⚔️ Güç (STR)',
+          'def_boost': '🛡️ Savunma (DEF)',
+          'spd_boost': '⚡ Hız (SPD)',
+          'hp_boost': '❤️ Can (HP)',
+          'magic_boost': '🔮 Büyü Gücü',
+          'all_stats': '✨ Tüm İstatistikler',
+          'crit_boost': '💥 Kritik Şansı',
+          'dodge_boost': '💨 Kaçınma Şansı'
+        };
+        
         const accStr = accessories.map(a => {
           const item = itemMap[a.itemId];
-          const effect = item?.effect || item?.bonus || 'Özel bonus';
-          return item ? `${item.emoji} ${item.name} x${a.quantity}\n┗ ID: \`${a.itemId}\` | ${effect}` : `${a.itemId} x${a.quantity}`;
+          if (!item) return `${a.itemId} x${a.quantity}`;
+          const effectName = effectNames[item.effect] || item.effect;
+          const effectValue = item.effectValue || 0;
+          return `${item.emoji} ${item.name} x${a.quantity}\n┗ ID: \`${a.itemId}\` | ${effectName} **+${effectValue}**`;
         }).join('\n\n');
         embed.addFields({ name: '💍 Aksesuarlar', value: accStr, inline: false });
       }
