@@ -24,12 +24,14 @@ module.exports = {
     const allArmors = await letheStorage.getAllArmors();
     const allAccessories = await letheStorage.getAllAccessories();
     const allConsumables = await letheStorage.getAllConsumables();
+    const allCrates = await letheStorage.getAllCrates();
 
     const itemMap = {};
     allWeapons.forEach(w => itemMap[w.weaponId] = { ...w, type: 'weapon' });
     allArmors.forEach(a => itemMap[a.armorId] = { ...a, type: 'armor' });
     allAccessories.forEach(a => itemMap[a.accessoryId] = { ...a, type: 'accessory' });
     allConsumables.forEach(c => itemMap[c.consumableId] = { ...c, type: 'consumable' });
+    allCrates.forEach(c => itemMap[c.crateId] = { ...c, type: 'crate' });
 
     const embed = new EmbedBuilder()
       .setColor('#8b5cf6')
@@ -115,9 +117,19 @@ module.exports = {
         const baitStr = baits.map(b => `🍖 ${b.itemId} x${b.quantity}`).join('\n');
         embed.addFields({ name: '🍖 Yemler', value: baitStr, inline: false });
       }
+
+      const crates = inventory.filter(i => i.itemType === 'crate');
+      if (crates.length > 0) {
+        const crateStr = crates.map(c => {
+          const item = itemMap[c.itemId];
+          if (!item) return `📦 ${c.itemId} x${c.quantity}`;
+          return `${item.emoji} **${item.name}** x${c.quantity}\n┗ ID: \`${c.itemId}\` | Nadirlik: ${item.minRarity}-${item.maxRarity}`;
+        }).join('\n\n');
+        embed.addFields({ name: '📦 Sandıklar', value: crateStr, inline: false });
+      }
     }
 
-    embed.setFooter({ text: 'Kuşanmak için: !kusan <kategori> <eşya_id>' });
+    embed.setFooter({ text: 'Kuşanmak: !kusan <kategori> <id> | Sandık açmak: !sandık aç <id>' });
 
     await message.reply({ embeds: [embed] });
   }

@@ -396,6 +396,10 @@ async function getAllConsumables() {
   return await db.select().from(letheConsumables);
 }
 
+async function getAllCrates() {
+  return await db.select().from(letheCrates);
+}
+
 async function getInventory(userId) {
   return await db.select().from(userLetheInventory)
     .where(eq(userLetheInventory.visitorId, userId));
@@ -1431,6 +1435,7 @@ module.exports = {
   getAllArmors,
   getAllAccessories,
   getAllConsumables,
+  getAllCrates,
   getInventory,
   buyItem,
   equipItem,
