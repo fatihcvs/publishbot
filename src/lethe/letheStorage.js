@@ -127,50 +127,74 @@ async function checkLevelUp(userId) {
 
 async function getTeamWithEquipment(userId) {
   const team = await getTeam(userId);
-  const profile = await getOrCreateProfile(userId);
   
-  let weaponBonus = { damage: 0 };
-  let armorBonus = { defense: 0 };
-  let accessoryBonus = {};
-
-  if (profile.equippedWeapon) {
-    const weapons = await db.select().from(letheWeapons).where(eq(letheWeapons.weaponId, profile.equippedWeapon)).limit(1);
-    if (weapons.length > 0) weaponBonus = weapons[0];
-  }
+  let totalWeaponDamage = 0;
+  let totalArmorDefense = 0;
+  let allEquipment = [];
   
-  if (profile.equippedArmor) {
-    const armors = await db.select().from(letheArmors).where(eq(letheArmors.armorId, profile.equippedArmor)).limit(1);
-    if (armors.length > 0) armorBonus = armors[0];
-  }
-  
-  if (profile.equippedAccessory) {
-    const accessories = await db.select().from(letheAccessories).where(eq(letheAccessories.accessoryId, profile.equippedAccessory)).limit(1);
-    if (accessories.length > 0) accessoryBonus = accessories[0];
-  }
-
   const baseStats = {
-    hp: team.reduce((sum, t) => sum + t.userAnimal.hp, 0),
-    str: team.reduce((sum, t) => sum + t.userAnimal.str, 0),
-    def: team.reduce((sum, t) => sum + t.userAnimal.def, 0),
-    spd: team.length > 0 ? Math.round(team.reduce((sum, t) => sum + t.userAnimal.spd, 0) / team.length) : 0
+    hp: 0,
+    str: 0,
+    def: 0,
+    spd: 0
   };
 
-  baseStats.str += weaponBonus.damage || 0;
-  baseStats.def += armorBonus.defense || 0;
+  for (const t of team) {
+    const animal = t.userAnimal;
+    const equipment = await getAnimalEquipmentDetails(animal);
+    
+    let animalStr = animal.str;
+    let animalDef = animal.def;
+    let animalHp = animal.hp;
+    let animalSpd = animal.spd;
+    
+    if (equipment.weaponInfo) {
+      animalStr += equipment.weaponInfo.damage || 0;
+      totalWeaponDamage += equipment.weaponInfo.damage || 0;
+      allEquipment.push({ type: 'weapon', ...equipment.weaponInfo, animalName: t.animalInfo.name });
+    }
+    
+    if (equipment.armorInfo) {
+      animalDef += equipment.armorInfo.defense || 0;
+      totalArmorDefense += equipment.armorInfo.defense || 0;
+      allEquipment.push({ type: 'armor', ...equipment.armorInfo, animalName: t.animalInfo.name });
+    }
+    
+    if (equipment.accessoryInfo) {
+      const acc = equipment.accessoryInfo;
+      if (acc.effect === 'str_boost') animalStr += acc.effectValue || 0;
+      if (acc.effect === 'def_boost') animalDef += acc.effectValue || 0;
+      if (acc.effect === 'spd_boost') animalSpd += acc.effectValue || 0;
+      if (acc.effect === 'hp_boost') animalHp += acc.effectValue || 0;
+      if (acc.effect === 'all_stats') {
+        animalHp += acc.effectValue || 0;
+        animalStr += acc.effectValue || 0;
+        animalDef += acc.effectValue || 0;
+        animalSpd += acc.effectValue || 0;
+      }
+      allEquipment.push({ type: 'accessory', ...acc, animalName: t.animalInfo.name });
+    }
+    
+    t.effectiveStats = { hp: animalHp, str: animalStr, def: animalDef, spd: animalSpd };
+    t.equipment = equipment;
+    
+    baseStats.hp += animalHp;
+    baseStats.str += animalStr;
+    baseStats.def += animalDef;
+    baseStats.spd += animalSpd;
+  }
   
-  if (accessoryBonus.effect === 'str_boost') baseStats.str += accessoryBonus.effectValue || 0;
-  if (accessoryBonus.effect === 'def_boost') baseStats.def += accessoryBonus.effectValue || 0;
-  if (accessoryBonus.effect === 'spd_boost') baseStats.spd += accessoryBonus.effectValue || 0;
-  if (accessoryBonus.effect === 'hp_boost') baseStats.hp += accessoryBonus.effectValue || 0;
-  if (accessoryBonus.effect === 'luck_boost') { /* luck affects drop rates */ }
-  if (accessoryBonus.effect === 'all_stats') {
-    baseStats.hp += accessoryBonus.effectValue || 0;
-    baseStats.str += accessoryBonus.effectValue || 0;
-    baseStats.def += accessoryBonus.effectValue || 0;
-    baseStats.spd += accessoryBonus.effectValue || 0;
+  if (team.length > 0) {
+    baseStats.spd = Math.round(baseStats.spd / team.length);
   }
 
-  return { team, stats: baseStats, weapon: weaponBonus, armor: armorBonus, accessory: accessoryBonus };
+  return { 
+    team, 
+    stats: baseStats, 
+    allEquipment,
+    weapon: { damage: totalWeaponDamage, name: totalWeaponDamage > 0 ? `+${totalWeaponDamage} Hasar` : null },
+    armor: { defense: totalArmorDefense, name: totalArmorDefense > 0 ? `+${totalArmorDefense} Savunma` : null }
+  };
 }
 
 async function huntAnimal(userId) {

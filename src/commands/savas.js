@@ -115,13 +115,26 @@ function createBattleEmbed(phase, userTeam, enemyTeam, userStats, enemyStats, cu
       .setTitle('⚔️ SAVAŞ BAŞLIYOR! ⚔️')
       .setDescription('```\n' + '═'.repeat(30) + '\n```');
     
-    let userTeamStr = userTeam.map(t => 
-      `${t.animalInfo.emoji} **${t.userAnimal.nickname || t.animalInfo.name}** Lv.${t.userAnimal.level}\n┗ ❤️${t.userAnimal.hp} ⚔️${t.userAnimal.str} 🛡️${t.userAnimal.def} ⚡${t.userAnimal.spd}`
-    ).join('\n');
+    let userTeamStr = userTeam.map(t => {
+      const base = `${t.animalInfo.emoji} **${t.userAnimal.nickname || t.animalInfo.name}** Lv.${t.userAnimal.level}`;
+      const eff = t.effectiveStats || t.userAnimal;
+      let stats = `┣ ❤️${eff.hp} ⚔️${eff.str} 🛡️${eff.def} ⚡${eff.spd}`;
+      
+      let equipLine = '';
+      if (t.equipment) {
+        const eqParts = [];
+        if (t.equipment.weaponInfo) eqParts.push(`⚔️${t.equipment.weaponInfo.emoji}`);
+        if (t.equipment.armorInfo) eqParts.push(`🛡️${t.equipment.armorInfo.emoji}`);
+        if (t.equipment.accessoryInfo) eqParts.push(`💍${t.equipment.accessoryInfo.emoji}`);
+        if (eqParts.length > 0) equipLine = `\n┗ ${eqParts.join(' ')}`;
+      }
+      
+      return base + '\n' + stats + equipLine;
+    }).join('\n\n');
     
     let enemyTeamStr = enemyTeam.animals.map(a => 
       `${a.emoji} **${a.name}**\n┗ ❤️${a.hp} ⚔️${a.str} 🛡️${a.def} ⚡${a.spd}`
-    ).join('\n');
+    ).join('\n\n');
     
     embed.addFields(
       { name: '🟢 Senin Takımın', value: userTeamStr || 'Boş', inline: true },
@@ -130,13 +143,21 @@ function createBattleEmbed(phase, userTeam, enemyTeam, userStats, enemyStats, cu
     );
     
     let userEquip = '';
-    if (teamData.weapon.name) userEquip += `${teamData.weapon.emoji || '⚔️'} ${teamData.weapon.name}\n`;
-    if (teamData.armor.name) userEquip += `${teamData.armor.emoji || '🛡️'} ${teamData.armor.name}`;
+    if (teamData.allEquipment && teamData.allEquipment.length > 0) {
+      userEquip = teamData.allEquipment.map(eq => {
+        if (eq.type === 'weapon') return `⚔️ ${eq.emoji} ${eq.name} (+${eq.damage})`;
+        if (eq.type === 'armor') return `🛡️ ${eq.emoji} ${eq.name} (+${eq.defense})`;
+        if (eq.type === 'accessory') return `💍 ${eq.emoji} ${eq.name} (+${eq.effectValue})`;
+        return '';
+      }).filter(e => e).join('\n');
+    }
+    if (!userEquip && teamData.weapon?.name) userEquip += `⚔️ ${teamData.weapon.name}\n`;
+    if (!userEquip && teamData.armor?.name) userEquip += `🛡️ ${teamData.armor.name}`;
     
     let enemyEquip = `${enemyTeam.equipment.weapon}\n${enemyTeam.equipment.armor}`;
     
     embed.addFields(
-      { name: '🎒 Ekipmanın', value: userEquip || 'Yok', inline: true },
+      { name: '🎒 Ekipmanlarınız', value: userEquip || '*Ekipman yok*', inline: true },
       { name: '📊', value: '\u200b', inline: true },
       { name: '🎒 Düşman Ekipmanı', value: enemyEquip, inline: true }
     );
