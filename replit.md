@@ -110,7 +110,7 @@ Güçlü ve tam donanımlı Discord moderasyon botu + Web Dashboard.
 - `!eğit <id>` - Hayvanı eğit ve güçlendir
 
 **Diğer:**
-- `!hayvansatver <id>` - Hayvan sat
+- `!hayvansat <id>` - Hayvan sat
 
 **Kanal Kontrolü:**
 - `!oyunkanal ekle #kanal` - Oyun kanalı ekle

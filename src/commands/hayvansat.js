@@ -2,8 +2,8 @@ const { EmbedBuilder } = require('discord.js');
 const letheStorage = require('../lethe/letheStorage');
 
 module.exports = {
-  name: 'hayvansatver',
-  aliases: ['hayvansat', 'animalsell', 'sathayvan'],
+  name: 'hayvansat',
+  aliases: ['hayvansatver', 'animalsell', 'sathayvan', 'sat'],
   description: 'Bir hayvanı sat',
   category: 'lethe',
   async execute(message, args, client, storage) {
@@ -20,7 +20,7 @@ module.exports = {
     const animalId = parseInt(args[0]);
 
     if (!animalId) {
-      return message.reply('❌ Kullanım: `!hayvansatver <hayvan_id>`\nHayvan ID\'lerini görmek için: `!koleksiyon`');
+      return message.reply('❌ Kullanım: `!hayvansat <hayvan_id>`\nHayvan ID\'lerini görmek için: `!koleksiyon`');
     }
 
     const result = await letheStorage.sellAnimal(message.author.id, animalId);
