@@ -8,7 +8,8 @@ const rarityColors = {
   epic: '#8b5cf6',
   legendary: '#f59e0b',
   mythic: '#f97316',
-  hidden: '#ef4444'
+  hidden: '#ef4444',
+  eternal: '#ffd700'
 };
 
 const rarityNames = {
@@ -18,7 +19,8 @@ const rarityNames = {
   epic: '🟪 Epik',
   legendary: '🟨 Efsanevi',
   mythic: '🟧 Mitik',
-  hidden: '❓ Gizli'
+  hidden: '❓ Gizli',
+  eternal: '👑 Ebedi'
 };
 
 module.exports = {
@@ -54,13 +56,13 @@ module.exports = {
     const completedQuests = await letheStorage.updateQuestProgress(message.author.id, 'hunt', 1);
     
     // Check for rare+ catch
-    const rareRarities = ['rare', 'epic', 'legendary', 'mythic', 'hidden'];
+    const rareRarities = ['rare', 'epic', 'legendary', 'mythic', 'hidden', 'eternal'];
     if (rareRarities.includes(animal.rarity)) {
       await letheStorage.updateQuestProgress(message.author.id, 'rare_catch', 1);
     }
     
     // Check for epic+ catch
-    const epicRarities = ['epic', 'legendary', 'mythic', 'hidden'];
+    const epicRarities = ['epic', 'legendary', 'mythic', 'hidden', 'eternal'];
     if (epicRarities.includes(animal.rarity)) {
       await letheStorage.updateQuestProgress(message.author.id, 'epic_catch', 1);
     }
@@ -76,11 +78,12 @@ module.exports = {
       epic: 0.18,        // 18%
       legendary: 0.25,   // 25%
       mythic: 0.35,      // 35%
-      hidden: 0.50       // 50%
+      hidden: 0.50,      // 50%
+      eternal: 1.00      // 100%
     };
     
     const gemEmojis = {
-      common: '⬜', uncommon: '🟩', rare: '🟦', epic: '🟪', legendary: '🟨', mythic: '🟧', hidden: '❓'
+      common: '⬜', uncommon: '🟩', rare: '🟦', epic: '🟪', legendary: '🟨', mythic: '🟧', hidden: '❓', eternal: '👑'
     };
     
     let gemDropped = null;

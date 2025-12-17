@@ -9,13 +9,14 @@ const { eq, sql, and, lt, gte } = require('drizzle-orm');
 const seedData = require('./seedData');
 
 const rarityChances = {
-  common: 0.58,
+  common: 0.579999,
   uncommon: 0.25,
   rare: 0.10,
   epic: 0.05,
   legendary: 0.015,
   mythic: 0.004,
-  hidden: 0.001
+  hidden: 0.001,
+  eternal: 0.000001
 };
 
 async function seedDatabase() {
