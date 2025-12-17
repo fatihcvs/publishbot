@@ -91,7 +91,8 @@ module.exports = {
 
       const crate = crates.find(c => c.crateId === crateId);
       if (!crate) {
-        return message.reply('❌ Bu sandık bulunamadı!');
+        const validIds = crates.map(c => c.crateId).join(', ');
+        return message.reply(`❌ Bu sandık bulunamadı! Geçerli ID'ler: ${validIds}`);
       }
 
       const inventory = await letheStorage.getInventory(message.author.id);
