@@ -36,22 +36,34 @@ function getVipBonuses(guildId) {
   return null;
 }
 
-function canSendDailyDm(userId) {
-  const today = new Date().toDateString();
-  const key = `${userId}_${today}`;
-  return !dailyDmTracker.has(key);
+async function canSendDailyDm(userId) {
+  try {
+    const profile = await db.select().from(userLetheProfile)
+      .where(eq(userLetheProfile.visitorId, userId))
+      .limit(1);
+    
+    if (!profile[0] || !profile[0].lastPromoDm) {
+      return true;
+    }
+    
+    const lastDm = new Date(profile[0].lastPromoDm);
+    const now = new Date();
+    const hoursSince = (now - lastDm) / (1000 * 60 * 60);
+    
+    return hoursSince >= 24;
+  } catch {
+    return true;
+  }
 }
 
-function markDmSent(userId) {
-  const today = new Date().toDateString();
-  const key = `${userId}_${today}`;
-  dailyDmTracker.set(key, true);
-  
-  // Clean old entries
-  for (const [k] of dailyDmTracker) {
-    if (!k.endsWith(today)) {
-      dailyDmTracker.delete(k);
-    }
+async function markDmSent(userId) {
+  try {
+    await getOrCreateProfile(userId);
+    await db.update(userLetheProfile)
+      .set({ lastPromoDm: new Date() })
+      .where(eq(userLetheProfile.visitorId, userId));
+  } catch (e) {
+    console.error('Error marking DM sent:', e);
   }
 }
 

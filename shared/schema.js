@@ -501,6 +501,7 @@ const userLetheProfile = pgTable('user_lethe_profile', {
   lastHunt: timestamp('last_hunt'),
   lastBattle: timestamp('last_battle'),
   lastBoss: timestamp('last_boss'),
+  lastPromoDm: timestamp('last_promo_dm'),
   createdAt: timestamp('created_at').defaultNow()
 });
 

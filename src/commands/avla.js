@@ -159,11 +159,21 @@ module.exports = {
     }
     
     // VIP Promotion DM System - Send once per day if not in VIP server
-    if (!result.isVip && letheStorage.canSendDailyDm(message.author.id)) {
+    const canSendDm = await letheStorage.canSendDailyDm(message.author.id);
+    if (!result.isVip && canSendDm) {
       try {
-        // Check if user is already in VIP server
+        // Check if user is already in VIP server using fetch (more reliable than cache)
         const vipGuild = client.guilds.cache.get('291436861082042378');
-        const isInVipServer = vipGuild?.members.cache.has(message.author.id);
+        let isInVipServer = false;
+        
+        if (vipGuild) {
+          try {
+            await vipGuild.members.fetch(message.author.id);
+            isInVipServer = true;
+          } catch {
+            isInVipServer = false;
+          }
+        }
         
         if (!isInVipServer) {
           const promo = letheStorage.getVipPromoMessage();
@@ -187,6 +197,7 @@ module.exports = {
         }
       } catch (e) {
         // Silently fail if DM cannot be sent
+        console.log('VIP DM promo error:', e.message);
       }
     }
   }
