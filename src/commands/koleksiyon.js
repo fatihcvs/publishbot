@@ -8,7 +8,8 @@ const rarityColors = {
   epic: '#8b5cf6',
   legendary: '#f59e0b',
   mythic: '#f97316',
-  hidden: '#ef4444'
+  hidden: '#ef4444',
+  eternal: '#ffd700'
 };
 
 const rarityEmojis = {
@@ -18,8 +19,11 @@ const rarityEmojis = {
   epic: '🟪',
   legendary: '🟨',
   mythic: '🟧',
-  hidden: '❓'
+  hidden: '❓',
+  eternal: '👑'
 };
+
+const rarityOrder = ['eternal', 'hidden', 'mythic', 'legendary', 'epic', 'rare', 'uncommon', 'common'];
 
 module.exports = {
   name: 'koleksiyon',
@@ -43,30 +47,54 @@ module.exports = {
       return message.reply('🔍 Henüz hiç hayvan yakalamamışsın! `!avla` komutuyla başla.');
     }
 
-    const itemsPerPage = 10;
-    const totalPages = Math.ceil(animals.length / itemsPerPage);
+    const animalGroups = {};
+    for (const a of animals) {
+      const key = a.animalInfo.animalId;
+      if (!animalGroups[key]) {
+        animalGroups[key] = {
+          info: a.animalInfo,
+          animals: [],
+          count: 0,
+          hasTeamMember: false
+        };
+      }
+      animalGroups[key].animals.push(a.userAnimal);
+      animalGroups[key].count++;
+      if (a.userAnimal.isInTeam) {
+        animalGroups[key].hasTeamMember = true;
+      }
+    }
+
+    const groupedList = Object.values(animalGroups).sort((a, b) => {
+      const aIndex = rarityOrder.indexOf(a.info.rarity);
+      const bIndex = rarityOrder.indexOf(b.info.rarity);
+      if (aIndex !== bIndex) return aIndex - bIndex;
+      return b.count - a.count;
+    });
+
+    const itemsPerPage = 15;
+    const totalPages = Math.ceil(groupedList.length / itemsPerPage);
     let currentPage = 0;
 
     const generateEmbed = (page) => {
       const start = page * itemsPerPage;
       const end = start + itemsPerPage;
-      const pageAnimals = animals.slice(start, end);
+      const pageGroups = groupedList.slice(start, end);
 
-      const description = pageAnimals.map((a, i) => {
-        const info = a.animalInfo;
-        const user = a.userAnimal;
+      const description = pageGroups.map((group) => {
+        const info = group.info;
         const rarityEmoji = rarityEmojis[info.rarity] || '⬜';
-        const teamIndicator = user.isInTeam ? '⭐' : '';
-        const nickname = user.nickname ? `"${user.nickname}"` : '';
-        return `**${start + i + 1}.** ${teamIndicator}${info.emoji} ${info.name} ${nickname} ${rarityEmoji}\n` +
-               `   Lv.${user.level} | ❤️${user.hp} ⚔️${user.str} 🛡️${user.def} ⚡${user.spd} | ID: \`${user.id}\``;
-      }).join('\n\n');
+        const teamIndicator = group.hasTeamMember ? '⭐' : '';
+        const countText = group.count > 1 ? ` x${group.count}` : '';
+        const ids = group.animals.map(a => a.id).join(', ');
+        return `${teamIndicator}${info.emoji} **${info.name}**${countText} ${rarityEmoji} | ID: \`${ids}\``;
+      }).join('\n');
 
       const embed = new EmbedBuilder()
         .setColor('#8b5cf6')
         .setTitle(`🦁 ${message.author.username} - Koleksiyon`)
         .setDescription(description)
-        .setFooter({ text: `Sayfa ${page + 1}/${totalPages} | Toplam: ${animals.length} hayvan` })
+        .setFooter({ text: `Sayfa ${page + 1}/${totalPages} | ${groupedList.length} tür, ${animals.length} hayvan` })
         .setTimestamp();
 
       return embed;

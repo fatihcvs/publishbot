@@ -17,10 +17,58 @@ module.exports = {
       return message.reply(`❌ Lethe Game komutları sadece belirlenen kanallarda çalışır! \`!oyunkanal liste\` ile kontrol et.`);
     }
     
+    if (args[0]?.toLowerCase() === 'hepsi' || args[0]?.toLowerCase() === 'all') {
+      const result = await letheStorage.sellDuplicateAnimals(message.author.id);
+      
+      if (!result.success) {
+        return message.reply('❌ ' + (result.error || 'Bir hata oluştu.'));
+      }
+      
+      if (result.soldCount === 0) {
+        return message.reply('❌ Satılacak fazla hayvan yok! Her hayvandan en fazla 1 tane var.');
+      }
+      
+      const completedQuests = await letheStorage.updateQuestProgress(message.author.id, 'sell', result.soldCount);
+      await letheStorage.updateQuestProgress(message.author.id, 'earn_money', result.totalEarned);
+      
+      const embed = new EmbedBuilder()
+        .setColor('#f59e0b')
+        .setTitle('💰 Toplu Satış Tamamlandı!')
+        .setDescription(`Her hayvandan 1 tane bırakılarak fazlalar satıldı.`)
+        .addFields(
+          { name: '📦 Satılan', value: `${result.soldCount} hayvan`, inline: true },
+          { name: '💰 Kazanılan', value: `${result.totalEarned.toLocaleString()} coin`, inline: true }
+        )
+        .setTimestamp();
+      
+      if (result.soldDetails && result.soldDetails.length > 0) {
+        const detailsText = result.soldDetails.slice(0, 10).map(d => 
+          `${d.emoji} ${d.name} x${d.count} = ${d.earned}💰`
+        ).join('\n');
+        embed.addFields({ name: '📋 Detay', value: detailsText + (result.soldDetails.length > 10 ? '\n...' : ''), inline: false });
+      }
+      
+      if (completedQuests.length > 0) {
+        for (const q of completedQuests) {
+          let rewardText = [];
+          if (q.rewards?.coins > 0) rewardText.push(`+${q.rewards.coins}💰`);
+          if (q.rewards?.xp > 0) rewardText.push(`+${q.rewards.xp}✨`);
+          if (q.rewards?.item) rewardText.push(`+1 ${q.rewards.item.type}`);
+          embed.addFields({ 
+            name: `🎯 ${q.questInfo.emoji} ${q.questInfo.name} Tamamlandı!`, 
+            value: rewardText.length > 0 ? `Ödül: ${rewardText.join(' ')}` : 'Tamamlandı!', 
+            inline: false 
+          });
+        }
+      }
+      
+      return message.reply({ embeds: [embed] });
+    }
+    
     const animalId = parseInt(args[0]);
 
     if (!animalId) {
-      return message.reply('❌ Kullanım: `!hayvansat <hayvan_id>`\nHayvan ID\'lerini görmek için: `!koleksiyon`');
+      return message.reply('❌ Kullanım:\n`!hayvansat <hayvan_id>` - Tek hayvan sat\n`!hayvansat hepsi` - Fazla hayvanları sat (her türden 1 tane kalır)\nHayvan ID\'lerini görmek için: `!koleksiyon`');
     }
 
     const result = await letheStorage.sellAnimal(message.author.id, animalId);
@@ -33,7 +81,6 @@ module.exports = {
       return message.reply(errorMessages[result.error] || '❌ Bir hata oluştu.');
     }
 
-    // Update quest progress
     const completedQuests = await letheStorage.updateQuestProgress(message.author.id, 'sell', 1);
     await letheStorage.updateQuestProgress(message.author.id, 'earn_money', result.price);
 
@@ -46,7 +93,6 @@ module.exports = {
       )
       .setTimestamp();
 
-    // Show completed quests with rewards
     if (completedQuests.length > 0) {
       for (const q of completedQuests) {
         let rewardText = [];

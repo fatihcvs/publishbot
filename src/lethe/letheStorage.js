@@ -319,6 +319,70 @@ async function sellAnimal(userId, userAnimalId) {
   return { success: true, animal: animal[0].animalInfo, price: sellPrice };
 }
 
+async function sellDuplicateAnimals(userId) {
+  const allAnimals = await db.select({
+    userAnimal: userAnimals,
+    animalInfo: letheAnimals
+  })
+  .from(userAnimals)
+  .leftJoin(letheAnimals, eq(userAnimals.animalId, letheAnimals.animalId))
+  .where(eq(userAnimals.userId, userId));
+
+  const animalGroups = {};
+  for (const a of allAnimals) {
+    const key = a.animalInfo.animalId;
+    if (!animalGroups[key]) {
+      animalGroups[key] = [];
+    }
+    animalGroups[key].push(a);
+  }
+
+  let totalEarned = 0;
+  let soldCount = 0;
+  const soldDetails = [];
+
+  for (const [animalId, group] of Object.entries(animalGroups)) {
+    if (group.length <= 1) continue;
+    
+    group.sort((a, b) => {
+      if (a.userAnimal.isInTeam && !b.userAnimal.isInTeam) return -1;
+      if (!a.userAnimal.isInTeam && b.userAnimal.isInTeam) return 1;
+      return b.userAnimal.level - a.userAnimal.level;
+    });
+
+    const toSell = group.slice(1).filter(a => !a.userAnimal.isInTeam);
+    
+    if (toSell.length === 0) continue;
+
+    for (const animal of toSell) {
+      await db.delete(userAnimals).where(eq(userAnimals.id, animal.userAnimal.id));
+    }
+
+    const sellPrice = toSell[0].animalInfo.sellPrice;
+    const earned = sellPrice * toSell.length;
+
+    totalEarned += earned;
+    soldCount += toSell.length;
+    soldDetails.push({
+      name: toSell[0].animalInfo.name,
+      emoji: toSell[0].animalInfo.emoji,
+      count: toSell.length,
+      earned: earned
+    });
+  }
+
+  if (totalEarned > 0) {
+    await addCoins(userId, totalEarned);
+  }
+
+  return { 
+    success: true, 
+    soldCount, 
+    totalEarned, 
+    soldDetails 
+  };
+}
+
 async function getTeam(userId) {
   return await db.select({
     userAnimal: userAnimals,
@@ -1457,6 +1521,7 @@ module.exports = {
   huntAnimal,
   getUserAnimals,
   sellAnimal,
+  sellDuplicateAnimals,
   getTeam,
   addToTeam,
   removeFromTeam,
