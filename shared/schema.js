@@ -384,6 +384,9 @@ const userAnimals = pgTable('user_animals', {
   ability: text('ability'),
   trainingLevel: integer('training_level').default(0),
   lastTrained: timestamp('last_trained'),
+  equippedWeapon: text('equipped_weapon'),
+  equippedArmor: text('equipped_armor'),
+  equippedAccessory: text('equipped_accessory'),
   caughtAt: timestamp('caught_at').defaultNow()
 });
 

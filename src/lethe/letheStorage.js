@@ -472,6 +472,105 @@ async function equipItem(userId, itemType, itemId) {
   return { success: true };
 }
 
+async function equipItemToAnimal(userId, animalId, itemType, itemId) {
+  const inventoryItems = await db.select().from(userLetheInventory)
+    .where(eq(userLetheInventory.visitorId, userId));
+
+  const inventoryItem = inventoryItems.find(i => i.itemType === itemType && i.itemId === itemId);
+
+  if (!inventoryItem) {
+    return { success: false, error: 'Item not in inventory' };
+  }
+
+  const animal = await db.select().from(userAnimals)
+    .where(eq(userAnimals.id, parseInt(animalId)))
+    .limit(1);
+
+  if (animal.length === 0 || animal[0].userId !== userId) {
+    return { success: false, error: 'Animal not found' };
+  }
+
+  if (!animal[0].isInTeam) {
+    return { success: false, error: 'Animal not in team' };
+  }
+
+  const updateData = {};
+  switch (itemType) {
+    case 'weapon':
+      updateData.equippedWeapon = itemId;
+      break;
+    case 'armor':
+      updateData.equippedArmor = itemId;
+      break;
+    case 'accessory':
+      updateData.equippedAccessory = itemId;
+      break;
+    default:
+      return { success: false, error: 'Cannot equip this item type' };
+  }
+
+  await db.update(userAnimals)
+    .set(updateData)
+    .where(eq(userAnimals.id, parseInt(animalId)));
+
+  return { success: true, animal: animal[0] };
+}
+
+async function unequipFromAnimal(userId, animalId, itemType) {
+  const animal = await db.select().from(userAnimals)
+    .where(eq(userAnimals.id, parseInt(animalId)))
+    .limit(1);
+
+  if (animal.length === 0 || animal[0].userId !== userId) {
+    return { success: false, error: 'Animal not found' };
+  }
+
+  const updateData = {};
+  switch (itemType) {
+    case 'weapon':
+      updateData.equippedWeapon = null;
+      break;
+    case 'armor':
+      updateData.equippedArmor = null;
+      break;
+    case 'accessory':
+      updateData.equippedAccessory = null;
+      break;
+    default:
+      return { success: false, error: 'Invalid item type' };
+  }
+
+  await db.update(userAnimals)
+    .set(updateData)
+    .where(eq(userAnimals.id, parseInt(animalId)));
+
+  return { success: true };
+}
+
+async function getAnimalEquipmentDetails(animal) {
+  let weaponInfo = null, armorInfo = null, accessoryInfo = null;
+
+  if (animal.equippedWeapon) {
+    const weapons = await db.select().from(letheWeapons)
+      .where(eq(letheWeapons.weaponId, animal.equippedWeapon)).limit(1);
+    if (weapons.length > 0) weaponInfo = weapons[0];
+  }
+
+  if (animal.equippedArmor) {
+    const armors = await db.select().from(letheArmors)
+      .where(eq(letheArmors.armorId, animal.equippedArmor)).limit(1);
+    if (armors.length > 0) armorInfo = armors[0];
+  }
+
+  if (animal.equippedAccessory) {
+    const accessories = await db.select().from(letheAccessories)
+      .where(eq(letheAccessories.accessoryId, animal.equippedAccessory)).limit(1);
+    if (accessories.length > 0) accessoryInfo = accessories[0];
+  }
+
+  return { weaponInfo, armorInfo, accessoryInfo };
+}
+
 async function getUserAchievements(userId) {
   return await db.select({
     userAchievement: userLetheAchievements,
@@ -1311,6 +1410,9 @@ module.exports = {
   getInventory,
   buyItem,
   equipItem,
+  equipItemToAnimal,
+  unequipFromAnimal,
+  getAnimalEquipmentDetails,
   getOrCreateProfile,
   addCoins,
   addBattleReward,

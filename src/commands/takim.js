@@ -47,15 +47,57 @@ module.exports = {
     if (team.length === 0) {
       embed.setDescription('Takımın boş! `!takımekle <hayvan_id>` ile hayvan ekle.');
     } else {
-      const teamDescription = team.map(t => {
+      let teamDescription = '';
+      
+      for (const t of team) {
         const info = t.animalInfo;
         const user = t.userAnimal;
         const rarityEmoji = rarityEmojis[info.rarity] || '⬜';
         const nickname = user.nickname ? `"${user.nickname}"` : info.name;
         
-        return `**Slot ${user.teamSlot}:** ${info.emoji} ${nickname} ${rarityEmoji}\n` +
-               `Lv.${user.level} | ❤️ ${user.hp} | ⚔️ ${user.str} | 🛡️ ${user.def} | ⚡ ${user.spd}`;
-      }).join('\n\n');
+        const equipment = await letheStorage.getAnimalEquipmentDetails(user);
+        
+        let equipStr = '';
+        let bonusStr = '';
+        let totalBonusDamage = 0;
+        let totalBonusDefense = 0;
+        
+        if (equipment.weaponInfo) {
+          equipStr += `⚔️ ${equipment.weaponInfo.emoji} ${equipment.weaponInfo.name}`;
+          totalBonusDamage += equipment.weaponInfo.damage || 0;
+          bonusStr += `+${equipment.weaponInfo.damage} DMG `;
+        }
+        if (equipment.armorInfo) {
+          equipStr += equipStr ? ' | ' : '';
+          equipStr += `🛡️ ${equipment.armorInfo.emoji} ${equipment.armorInfo.name}`;
+          totalBonusDefense += equipment.armorInfo.defense || 0;
+          bonusStr += `+${equipment.armorInfo.defense} DEF `;
+        }
+        if (equipment.accessoryInfo) {
+          equipStr += equipStr ? ' | ' : '';
+          equipStr += `💍 ${equipment.accessoryInfo.emoji} ${equipment.accessoryInfo.name}`;
+          const effect = equipment.accessoryInfo.effect || equipment.accessoryInfo.bonus || '';
+          if (effect) bonusStr += `(${effect})`;
+        }
+        
+        const effectiveStr = user.str + totalBonusDamage;
+        const effectiveDef = user.def + totalBonusDefense;
+        
+        teamDescription += `**Slot ${user.teamSlot}:** ${info.emoji} ${nickname} ${rarityEmoji} \`ID:${user.id}\`\n`;
+        teamDescription += `┣ Lv.${user.level} | ❤️ ${user.hp} | ⚔️ ${user.str}`;
+        if (totalBonusDamage > 0) teamDescription += ` (+${totalBonusDamage})`;
+        teamDescription += ` | 🛡️ ${user.def}`;
+        if (totalBonusDefense > 0) teamDescription += ` (+${totalBonusDefense})`;
+        teamDescription += ` | ⚡ ${user.spd}\n`;
+        
+        if (equipStr) {
+          teamDescription += `┗ **Ekipman:** ${equipStr}\n`;
+        } else {
+          teamDescription += `┗ *Ekipman yok* - \`!kuşan ${user.id} <kategori> <eşya>\`\n`;
+        }
+        
+        teamDescription += '\n';
+      }
 
       embed.setDescription(teamDescription);
 
@@ -69,7 +111,7 @@ module.exports = {
       );
     }
 
-    embed.setFooter({ text: `${team.length}/3 slot dolu` });
+    embed.setFooter({ text: `${team.length}/3 slot dolu | !kuşan <hayvan_id> <kategori> <eşya_id>` });
 
     await message.reply({ embeds: [embed] });
   }
