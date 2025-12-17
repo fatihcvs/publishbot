@@ -395,7 +395,8 @@
             <p class="feature-description">${feature.description}</p>
             <div class="feature-actions">
               ${isActive 
-                ? `<button class="btn btn-success" onclick="openFeatureSettings('${feature.id}')"><i class="fas fa-check"></i> Aktif</button>`
+                ? `<button class="btn btn-success" onclick="event.stopPropagation(); toggleFeature('${feature.id}')"><i class="fas fa-check"></i> Aktif</button>
+                   <button class="btn btn-secondary" onclick="event.stopPropagation(); openFeatureSettings('${feature.id}')"><i class="fas fa-cog"></i> Ayarlar</button>`
                 : `<button class="btn btn-primary" onclick="enableFeature('${feature.id}')"><i class="fas fa-plus"></i> Etkinleştir</button>`
               }
             </div>
@@ -524,6 +525,23 @@
         });
         
         showToast('Özellik etkinleştirildi!', 'success');
+        renderFeatures();
+      } catch (error) {
+        showToast('Hata oluştu', 'error');
+      }
+    }
+    
+    async function toggleFeature(featureId) {
+      modules[featureId] = false;
+      
+      try {
+        await fetch(`/api/guild/${guildId}/settings`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ modules })
+        });
+        
+        showToast('Özellik devre dışı bırakıldı', 'success');
         renderFeatures();
       } catch (error) {
         showToast('Hata oluştu', 'error');
