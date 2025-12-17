@@ -595,6 +595,10 @@
     <section class="section" id="equipment">
       <h2 class="section-title"><i class="fas fa-shield-halved"></i> Ekipman Sistemi</h2>
       
+      <div class="feature-card mb-4" style="background: rgba(249, 115, 22, 0.1); border: 1px solid var(--accent-orange); padding: 16px; border-radius: 12px;">
+        <p style="margin: 0; color: var(--accent-orange);"><i class="fas fa-paw me-2"></i><strong>Hayvan Bazlı Ekipman:</strong> Her hayvanın kendi silahı, zırhı ve aksesuarı var! <code>!kuşan &lt;hayvan_id&gt; &lt;eşya_id&gt;</code> ile hayvana eşya kuşandır. Savaş ve boss ekranlarında her hayvanın eşyaları ve bonus statları gösterilir.</p>
+      </div>
+      
       <div class="tab-container">
         <button class="tab-btn active" data-tab="weapons">Silahlar</button>
         <button class="tab-btn" data-tab="armors">Zırhlar</button>
@@ -856,6 +860,10 @@
         <p style="margin: 0; color: var(--accent-red);"><i class="fas fa-fire me-2"></i><strong>Animasyonlu Savaş:</strong> Gerçek zamanlı savaş animasyonları! HP barları, kritik vuruşlar, kaçınmalar ve 6 farklı düşman takımı ile heyecanlı savaşlar!</p>
       </div>
       
+      <div class="feature-card mb-4" style="background: rgba(88, 101, 242, 0.1); border: 1px solid var(--accent-blue); padding: 16px; border-radius: 12px;">
+        <p style="margin: 0; color: var(--accent-blue);"><i class="fas fa-shield-halved me-2"></i><strong>Detaylı Takım Görünümü:</strong> Savaş başlangıcında ve sonunda her hayvanın eşyaları ve bonus statları (Güç, Savunma, Hız) gösterilir. Boss savaşlarında da aynı şekilde!</p>
+      </div>
+      
       <div class="row g-4 mb-4">
         <div class="col-md-4">
           <div class="card-custom">
@@ -949,7 +957,11 @@
 
     <section class="section" id="crates">
       <h2 class="section-title"><i class="fas fa-box-open"></i> Sandık Sistemi</h2>
-      <p class="text-secondary mb-4">Sandıklar rastgele eşyalar içerir. Ne kadar değerli sandık, o kadar iyi ödüller!</p>
+      <p class="text-secondary mb-4">Sandıklar rastgele eşyalar içerir. Ne kadar değerli sandık, o kadar iyi ödüller! Görevlerden kazandığın sandıklar envanterinde saklanır.</p>
+      
+      <div class="feature-card mb-4" style="background: rgba(139, 92, 246, 0.1); border: 1px solid var(--accent-purple); padding: 16px; border-radius: 12px;">
+        <p style="margin: 0; color: var(--accent-purple);"><i class="fas fa-info-circle me-2"></i><strong>Sandık Açma:</strong> Envanterindeki sandıkları <code>!sandık aç &lt;id&gt;</code> ile aç. Envanterinde yoksa otomatik olarak satın alınır. Her sandıktan o sandığa özel eşyalar çıkar!</p>
+      </div>
       
       <div class="row g-4">
         <div class="col-md-4 col-lg">
@@ -1107,9 +1119,9 @@
             <div class="command-box">!letheal &lt;kategori&gt; &lt;id&gt;</div>
             <p class="command-desc">Eşya satın al</p>
             <div class="command-box">!letheenv</div>
-            <p class="command-desc">Envanterini görüntüle</p>
-            <div class="command-box">!kuşan &lt;kategori&gt; &lt;id&gt;</div>
-            <p class="command-desc">Eşya kuşan (silah/zırh/aksesuar)</p>
+            <p class="command-desc">Envanterini görüntüle (sandıklar dahil!)</p>
+            <div class="command-box">!kuşan &lt;hayvan_id&gt; &lt;eşya_id&gt;</div>
+            <p class="command-desc">Hayvana eşya kuşan (otomatik tür algılama)</p>
           </div>
         </div>
 
