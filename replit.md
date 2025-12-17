@@ -80,6 +80,15 @@ Güçlü ve tam donanımlı Discord moderasyon botu + Web Dashboard.
 - `!embed basit/gelişmiş/alan` - Özel embed mesaj oluşturma
 - `!anket "Soru" "Seçenek1" "Seçenek2"` - Anket oluşturma (10 seçeneğe kadar)
 
+### Yapay Zeka Özellikleri (GPT-4o & DALL-E 3)
+- `@Publisher <mesaj>` - Botu etiketleyerek sohbet edin (çok dilli destek!)
+- `!görsel <açıklama>` - DALL-E 3 ile görsel oluşturma
+- `!analiz [soru]` - Görselleri yapay zeka ile analiz etme
+- `!çevir <dil> <metin>` - 20+ dile çeviri yapma
+
+**Desteklenen Diller:**
+Türkçe, İngilizce, Almanca, Fransızca, İspanyolca, Felemenkçe (Hollandaca), İtalyanca, Portekizce, Rusça, Japonca, Korece, Çince, Arapça, Lehçe, İsveççe, Norveççe, Fince, Danca, Yunanca, Ukraynaca
+
 ### Bilgi Komutları
 - `!sunucu` - Sunucu bilgilerini gösterir
 - `!kullanıcı @kullanıcı` - Kullanıcı bilgilerini gösterir
@@ -136,3 +145,4 @@ Dashboard için gereken environment variables:
 - Express.js (web dashboard)
 - PostgreSQL + Drizzle ORM (database)
 - Passport.js + Discord OAuth2 (authentication)
+- OpenAI GPT-4o & DALL-E 3 (AI features)
