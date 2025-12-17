@@ -198,6 +198,7 @@
     .category-icon.settings { background: rgba(88, 166, 255, 0.15); color: var(--accent-blue); }
     .category-icon.leveling { background: rgba(236, 72, 153, 0.15); color: var(--accent-pink); }
     .category-icon.economy { background: rgba(234, 179, 8, 0.15); color: var(--accent-yellow); }
+    .category-icon.games { background: rgba(236, 72, 153, 0.15); color: var(--accent-pink); }
     .category-icon.fun { background: rgba(16, 185, 129, 0.15); color: var(--accent-green); }
     .category-icon.utility { background: rgba(6, 182, 212, 0.15); color: var(--accent-cyan); }
     .category-icon.info { background: rgba(245, 158, 11, 0.15); color: var(--accent-orange); }
@@ -369,10 +370,15 @@
               <a href="#economy" class="category-link">
                 <i class="fas fa-coins"></i>
                 Ekonomi
-                <span class="count">5</span>
+                <span class="count">6</span>
+              </a>
+              <a href="#games" class="category-link">
+                <i class="fas fa-dice"></i>
+                Oyunlar
+                <span class="count">15</span>
               </a>
               <a href="#fun" class="category-link">
-                <i class="fas fa-gamepad"></i>
+                <i class="fas fa-party-horn"></i>
                 Eglence
                 <span class="count">6</span>
               </a>
@@ -727,6 +733,114 @@
                   <span class="command-name">!satin [urun]</span>
                 </div>
                 <p class="command-desc">Magazadan urun satin alin.</p>
+              </div>
+            </div>
+
+            <div class="category-section" id="games">
+              <div class="category-header">
+                <div class="category-icon games"><i class="fas fa-dice"></i></div>
+                <div>
+                  <h3>Oyunlar</h3>
+                  <span>Casino, PvP ve eglence oyunlari</span>
+                </div>
+              </div>
+              <div class="command-card">
+                <div class="command-header">
+                  <span class="command-name">!coinflip <yazi/tura> <miktar></span>
+                </div>
+                <p class="command-desc">Yazi tura oyna ve para kazan! 2x carpan.</p>
+                <div class="command-usage">!coinflip yazi 100</div>
+              </div>
+              <div class="command-card">
+                <div class="command-header">
+                  <span class="command-name">!slots [miktar]</span>
+                </div>
+                <p class="command-desc">Slot makinesi oyna! 3 eslesme ile buyuk kazanc.</p>
+                <div class="command-usage">!slots 100</div>
+              </div>
+              <div class="command-card">
+                <div class="command-header">
+                  <span class="command-name">!blackjack <miktar></span>
+                </div>
+                <p class="command-desc">Klasik 21 oyunu. Krupiyeyi yen!</p>
+                <div class="command-usage">!blackjack 200</div>
+              </div>
+              <div class="command-card">
+                <div class="command-header">
+                  <span class="command-name">!dice <alt/ust/sayi> <miktar></span>
+                </div>
+                <p class="command-desc">Zar at ve tahmin et! Alt/Ust 2x, Sayi 6x.</p>
+                <div class="command-usage">!dice ust 100 | !dice 6 50</div>
+              </div>
+              <div class="command-card">
+                <div class="command-header">
+                  <span class="command-name">!crash <miktar></span>
+                </div>
+                <p class="command-desc">Carpan yukselirken dogru zamanda cik!</p>
+                <div class="command-usage">!crash 100</div>
+              </div>
+              <div class="command-card">
+                <div class="command-header">
+                  <span class="command-name">!roulette <bahis> <miktar></span>
+                </div>
+                <p class="command-desc">Rulet oyna! Kirmizi, siyah, yesil veya sayi sec.</p>
+                <div class="command-usage">!rulet kirmizi 100 | !rulet 17 50</div>
+              </div>
+              <div class="command-card">
+                <div class="command-header">
+                  <span class="command-name">!duel @kullanici <miktar></span>
+                </div>
+                <p class="command-desc">Baska bir oyuncuya coinflip duellosu yolla!</p>
+                <div class="command-usage">!duel @user 500</div>
+              </div>
+              <div class="command-card">
+                <div class="command-header">
+                  <span class="command-name">!rps [miktar] veya !rps @kullanici [miktar]</span>
+                </div>
+                <p class="command-desc">Tas Kagit Makas oyna! Bot veya oyuncuya karsi.</p>
+                <div class="command-usage">!rps 100 | !rps @user 200</div>
+              </div>
+              <div class="command-card">
+                <div class="command-header">
+                  <span class="command-name">!fish</span>
+                </div>
+                <p class="command-desc">Balik tut ve sat! Nadir baliklar daha degerli.</p>
+              </div>
+              <div class="command-card">
+                <div class="command-header">
+                  <span class="command-name">!mine</span>
+                </div>
+                <p class="command-desc">Maden kaz ve degerli taslar bul!</p>
+              </div>
+              <div class="command-card">
+                <div class="command-header">
+                  <span class="command-name">!hunt</span>
+                </div>
+                <p class="command-desc">Hayvan avla ve satarak para kazan!</p>
+              </div>
+              <div class="command-card">
+                <div class="command-header">
+                  <span class="command-name">!rob @kullanici</span>
+                </div>
+                <p class="command-desc">Baska bir kullaniciyi soymaya calis! Riskli.</p>
+              </div>
+              <div class="command-card">
+                <div class="command-header">
+                  <span class="command-name">!gamestats [@kullanici]</span>
+                </div>
+                <p class="command-desc">Oyun istatistiklerini goster.</p>
+              </div>
+              <div class="command-card">
+                <div class="command-header">
+                  <span class="command-name">!gleaderboard</span>
+                </div>
+                <p class="command-desc">Oyun kazanc siralamasini goster.</p>
+              </div>
+              <div class="command-card">
+                <div class="command-header">
+                  <span class="command-name">!jackpotinfo</span>
+                </div>
+                <p class="command-desc">Jackpot havuzu bilgisini goster.</p>
               </div>
             </div>
 
