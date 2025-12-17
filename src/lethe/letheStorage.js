@@ -190,7 +190,7 @@ async function getTeamWithEquipment(guildId, userId) {
 async function huntAnimal(guildId, visitorId) {
   const profile = await getOrCreateProfile(guildId, visitorId);
   
-  const huntCooldown = 5000;
+  const huntCooldown = 15000;
   if (profile.lastHunt) {
     const timeSinceHunt = Date.now() - new Date(profile.lastHunt).getTime();
     if (timeSinceHunt < huntCooldown) {
