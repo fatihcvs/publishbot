@@ -8,6 +8,69 @@ const {
 const { eq, sql, and, lt, gte } = require('drizzle-orm');
 const seedData = require('./seedData');
 
+// VIP Server Configuration - ThePublisher
+const VIP_CONFIG = {
+  serverId: '291436861082042378',
+  inviteLink: 'https://discord.gg/thepublisher',
+  bonuses: {
+    rarityBoost: 0.15,       // %15 daha yüksek nadir hayvan şansı
+    coinMultiplier: 1.25,    // %25 ekstra para
+    xpMultiplier: 1.25,      // %25 ekstra XP
+    dailyMultiplier: 1.50,   // %50 ekstra günlük ödül
+    shopDiscount: 0.15       // %15 mağaza indirimi
+  },
+  exclusiveAnimals: ['vip_phoenix', 'vip_guardian', 'vip_spirit']
+};
+
+// Track daily DM sends per user
+const dailyDmTracker = new Map();
+
+function isVipServer(guildId) {
+  return guildId === VIP_CONFIG.serverId;
+}
+
+function getVipBonuses(guildId) {
+  if (isVipServer(guildId)) {
+    return VIP_CONFIG.bonuses;
+  }
+  return null;
+}
+
+function canSendDailyDm(userId) {
+  const today = new Date().toDateString();
+  const key = `${userId}_${today}`;
+  return !dailyDmTracker.has(key);
+}
+
+function markDmSent(userId) {
+  const today = new Date().toDateString();
+  const key = `${userId}_${today}`;
+  dailyDmTracker.set(key, true);
+  
+  // Clean old entries
+  for (const [k] of dailyDmTracker) {
+    if (!k.endsWith(today)) {
+      dailyDmTracker.delete(k);
+    }
+  }
+}
+
+function getVipPromoMessage() {
+  return {
+    title: '🌟 VIP Sunucu Bonusları!',
+    description: `**ThePublisher** sunucusunda Lethe Game oyna ve exclusive bonuslar kazan!`,
+    bonuses: [
+      '🎯 **%15 Nadir Hayvan Şansı** - Daha fazla epic/legendary hayvan yakala!',
+      '💰 **%25 Ekstra Para** - Tüm kazançlarında bonus altın!',
+      '✨ **%25 Ekstra XP** - Daha hızlı seviye atla!',
+      '🎁 **%50 Günlük Bonus** - Günlük ödüllerde ekstra para!',
+      '🛒 **%15 Mağaza İndirimi** - Tüm eşyalarda indirim!',
+      '🦅 **3 Özel VIP Hayvan** - Sadece bu sunucuda yakalanabilir!'
+    ],
+    inviteLink: VIP_CONFIG.inviteLink
+  };
+}
+
 const rarityChances = {
   common: 0.579999,
   uncommon: 0.25,
@@ -83,12 +146,27 @@ async function addCoins(userId, amount) {
     .where(eq(userLetheProfile.visitorId, userId));
 }
 
-async function addBattleReward(userId, xpAmount, moneyAmount, won, isBoss = false) {
+async function addBattleReward(userId, xpAmount, moneyAmount, won, isBoss = false, guildId = null) {
   await getOrCreateProfile(userId);
+  const isVip = isVipServer(guildId);
+  const vipBonuses = getVipBonuses(guildId);
+  
+  // Apply VIP bonuses
+  let finalXp = xpAmount;
+  let finalMoney = moneyAmount;
+  let xpBonus = 0;
+  let moneyBonus = 0;
+  
+  if (isVip && vipBonuses) {
+    xpBonus = Math.floor(xpAmount * (vipBonuses.xpMultiplier - 1));
+    moneyBonus = Math.floor(moneyAmount * (vipBonuses.coinMultiplier - 1));
+    finalXp = Math.floor(xpAmount * vipBonuses.xpMultiplier);
+    finalMoney = Math.floor(moneyAmount * vipBonuses.coinMultiplier);
+  }
   
   const updateData = {
     totalBattles: sql`${userLetheProfile.totalBattles} + 1`,
-    xp: sql`${userLetheProfile.xp} + ${xpAmount}`
+    xp: sql`${userLetheProfile.xp} + ${finalXp}`
   };
   
   if (won) {
@@ -103,11 +181,13 @@ async function addBattleReward(userId, xpAmount, moneyAmount, won, isBoss = fals
     .set(updateData)
     .where(eq(userLetheProfile.visitorId, userId));
 
-  if (moneyAmount > 0) {
-    await addCoins(userId, moneyAmount);
+  if (finalMoney > 0) {
+    await addCoins(userId, finalMoney);
   }
 
   await checkLevelUp(userId);
+  
+  return { xpBonus, moneyBonus, isVip };
 }
 
 async function checkLevelUp(userId) {
@@ -198,8 +278,10 @@ async function getTeamWithEquipment(userId) {
   };
 }
 
-async function huntAnimal(userId) {
+async function huntAnimal(userId, guildId = null) {
   const profile = await getOrCreateProfile(userId);
+  const isVip = isVipServer(guildId);
+  const vipBonuses = getVipBonuses(guildId);
   
   const huntCooldown = 15000;
   if (profile.lastHunt) {
@@ -213,7 +295,21 @@ async function huntAnimal(userId) {
   let cumulative = 0;
   let selectedRarity = 'common';
 
-  for (const [rarity, chance] of Object.entries(rarityChances)) {
+  // Apply VIP rarity boost - shifts roll to favor rarer animals
+  let adjustedRarityChances = { ...rarityChances };
+  if (isVip && vipBonuses) {
+    const boost = vipBonuses.rarityBoost;
+    // Reduce common chance and distribute to rarer tiers
+    adjustedRarityChances.common -= boost;
+    adjustedRarityChances.uncommon += boost * 0.3;
+    adjustedRarityChances.rare += boost * 0.25;
+    adjustedRarityChances.epic += boost * 0.2;
+    adjustedRarityChances.legendary += boost * 0.15;
+    adjustedRarityChances.mythic += boost * 0.08;
+    adjustedRarityChances.hidden += boost * 0.02;
+  }
+
+  for (const [rarity, chance] of Object.entries(adjustedRarityChances)) {
     cumulative += chance;
     if (roll <= cumulative) {
       selectedRarity = rarity;
@@ -221,14 +317,30 @@ async function huntAnimal(userId) {
     }
   }
 
-  const animalsOfRarity = await db.select().from(letheAnimals)
-    .where(eq(letheAnimals.rarity, selectedRarity));
-
-  if (animalsOfRarity.length === 0) {
-    return { success: false, error: 'No animals found' };
+  // Check for VIP exclusive animal chance (only in VIP server)
+  let caughtAnimal = null;
+  if (isVip && Math.random() < 0.02) { // 2% chance for VIP exclusive
+    const vipAnimals = await db.select().from(letheAnimals)
+      .where(sql`${letheAnimals.animalId} IN ('vip_phoenix', 'vip_guardian', 'vip_spirit')`);
+    if (vipAnimals.length > 0) {
+      caughtAnimal = vipAnimals[Math.floor(Math.random() * vipAnimals.length)];
+    }
   }
 
-  const caughtAnimal = animalsOfRarity[Math.floor(Math.random() * animalsOfRarity.length)];
+  // Regular animal selection if no VIP exclusive
+  if (!caughtAnimal) {
+    const animalsOfRarity = await db.select().from(letheAnimals)
+      .where(and(
+        eq(letheAnimals.rarity, selectedRarity),
+        sql`${letheAnimals.animalId} NOT IN ('vip_phoenix', 'vip_guardian', 'vip_spirit')`
+      ));
+
+    if (animalsOfRarity.length === 0) {
+      return { success: false, error: 'No animals found' };
+    }
+
+    caughtAnimal = animalsOfRarity[Math.floor(Math.random() * animalsOfRarity.length)];
+  }
 
   await db.insert(userAnimals).values({
     userId,
@@ -239,15 +351,26 @@ async function huntAnimal(userId) {
     spd: caughtAnimal.baseSpd
   });
 
+  // Apply VIP XP bonus
+  let xpReward = caughtAnimal.xpReward;
+  if (isVip && vipBonuses) {
+    xpReward = Math.floor(xpReward * vipBonuses.xpMultiplier);
+  }
+
   await db.update(userLetheProfile)
     .set({ 
       totalHunts: sql`${userLetheProfile.totalHunts} + 1`,
-      xp: sql`${userLetheProfile.xp} + ${caughtAnimal.xpReward}`,
+      xp: sql`${userLetheProfile.xp} + ${xpReward}`,
       lastHunt: new Date()
     })
     .where(eq(userLetheProfile.visitorId, userId));
 
-  return { success: true, animal: caughtAnimal };
+  return { 
+    success: true, 
+    animal: caughtAnimal, 
+    isVip,
+    xpBonus: isVip ? Math.floor(caughtAnimal.xpReward * (vipBonuses.xpMultiplier - 1)) : 0
+  };
 }
 
 async function getUserAnimals(userId) {
@@ -574,7 +697,10 @@ async function getInventory(userId) {
     .where(eq(userLetheInventory.visitorId, userId));
 }
 
-async function buyItem(userId, itemType, itemId) {
+async function buyItem(userId, itemType, itemId, guildId = null) {
+  const isVip = isVipServer(guildId);
+  const vipBonuses = getVipBonuses(guildId);
+  
   let item;
   switch (itemType) {
     case 'weapon':
@@ -606,12 +732,20 @@ async function buyItem(userId, itemType, itemId) {
   }
 
   const profile = await getOrCreateProfile(userId);
+  
+  // Apply VIP discount
+  let finalPrice = item.price;
+  let discount = 0;
+  if (isVip && vipBonuses) {
+    discount = Math.floor(item.price * vipBonuses.shopDiscount);
+    finalPrice = item.price - discount;
+  }
 
-  if (profile.coins < item.price) {
+  if (profile.coins < finalPrice) {
     return { success: false, error: 'Not enough coins' };
   }
 
-  await addCoins(userId, -item.price);
+  await addCoins(userId, -finalPrice);
 
   const existingItem = await db.select().from(userLetheInventory)
     .where(eq(userLetheInventory.visitorId, userId))
@@ -632,7 +766,7 @@ async function buyItem(userId, itemType, itemId) {
     });
   }
 
-  return { success: true, item, price: item.price };
+  return { success: true, item, price: finalPrice, originalPrice: item.price, discount, isVip };
 }
 
 async function equipItem(userId, itemType, itemId) {
@@ -1145,9 +1279,11 @@ const dailyRewards = [
   { day: 7, money: 1000, bonus: { type: 'crate', id: 'silver_crate', quantity: 1 } }
 ];
 
-async function claimDailyReward(userId) {
+async function claimDailyReward(userId, guildId = null) {
   await getOrCreateProfile(userId);
   const daily = await getOrCreateDaily(userId);
+  const isVip = isVipServer(guildId);
+  const vipBonuses = getVipBonuses(guildId);
   
   const now = new Date();
   const lastClaim = daily.lastClaim ? new Date(daily.lastClaim) : null;
@@ -1175,6 +1311,14 @@ async function claimDailyReward(userId) {
   
   const reward = dailyRewards[newStreak - 1];
   
+  // Apply VIP daily bonus
+  let finalMoney = reward.money;
+  let vipBonus = 0;
+  if (isVip && vipBonuses) {
+    vipBonus = Math.floor(reward.money * (vipBonuses.dailyMultiplier - 1));
+    finalMoney = Math.floor(reward.money * vipBonuses.dailyMultiplier);
+  }
+  
   // Update daily record
   await db.update(letheDaily)
     .set({ 
@@ -1186,7 +1330,7 @@ async function claimDailyReward(userId) {
     .where(eq(letheDaily.visitorId, userId));
   
   // Give rewards
-  await addCoins(userId, reward.money);
+  await addCoins(userId, finalMoney);
   
   if (reward.bonus) {
     await addInventoryItem(userId, reward.bonus.type, reward.bonus.id, reward.bonus.quantity);
@@ -1195,7 +1339,10 @@ async function claimDailyReward(userId) {
   return { 
     success: true, 
     day: newStreak, 
-    money: reward.money, 
+    money: finalMoney, 
+    baseMoney: reward.money,
+    vipBonus,
+    isVip,
     bonus: reward.bonus,
     nextReward: dailyRewards[newStreak % 7]
   };
@@ -1712,5 +1859,12 @@ module.exports = {
   checkBattleCooldown,
   setBattleCooldown,
   checkBossCooldown,
-  setBossCooldown
+  setBossCooldown,
+  // VIP System
+  isVipServer,
+  getVipBonuses,
+  canSendDailyDm,
+  markDmSent,
+  getVipPromoMessage,
+  VIP_CONFIG
 };

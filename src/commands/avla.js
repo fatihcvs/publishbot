@@ -39,7 +39,7 @@ module.exports = {
       return message.reply(`❌ Lethe Game komutları sadece belirlenen kanallarda çalışır! \`!oyunkanal liste\` ile kontrol et.`);
     }
     
-    const result = await letheStorage.huntAnimal(message.author.id);
+    const result = await letheStorage.huntAnimal(message.author.id, message.guild.id);
 
     if (!result.success) {
       if (result.cooldown) {
@@ -93,19 +93,30 @@ module.exports = {
       await letheStorage.addGems(message.author.id, animal.rarity, 1);
     }
 
+    // Check if this is a VIP exclusive animal
+    const isVipExclusive = ['vip_phoenix', 'vip_guardian', 'vip_spirit'].includes(animal.animalId);
+    
+    let description = `**${rarityName}** bir hayvan yakaladın!`;
+    if (isVipExclusive) {
+      description = `🌟 **VIP ÖZEL** 🌟\n**${rarityName}** bir VIP hayvan yakaladın!`;
+    }
+    if (result.isVip && result.xpBonus > 0) {
+      description += `\n\n🌟 *VIP Bonus: +${result.xpBonus} XP*`;
+    }
+
     const embed = new EmbedBuilder()
-      .setColor(rarityColor)
+      .setColor(isVipExclusive ? '#FFD700' : rarityColor)
       .setTitle(`${animal.emoji} ${animal.name} Yakaladın!`)
-      .setDescription(`**${rarityName}** bir hayvan yakaladın!`)
+      .setDescription(description)
       .addFields(
         { name: '❤️ HP', value: `${animal.baseHp}`, inline: true },
         { name: '⚔️ STR', value: `${animal.baseStr}`, inline: true },
         { name: '🛡️ DEF', value: `${animal.baseDef}`, inline: true },
         { name: '⚡ SPD', value: `${animal.baseSpd}`, inline: true },
         { name: '💰 Değer', value: `${animal.sellPrice}`, inline: true },
-        { name: '✨ XP', value: `+${animal.xpReward}`, inline: true }
+        { name: '✨ XP', value: `+${animal.xpReward}${result.xpBonus > 0 ? ` (+${result.xpBonus})` : ''}`, inline: true }
       )
-      .setFooter({ text: 'Koleksiyonunu görmek için: !koleksiyon' })
+      .setFooter({ text: result.isVip ? '🌟 VIP Sunucu Bonusları Aktif!' : 'Koleksiyonunu görmek için: !k' })
       .setTimestamp();
 
     // Show gem drop
@@ -144,6 +155,38 @@ module.exports = {
           .setTimestamp();
         
         await message.channel.send({ embeds: [questEmbed] });
+      }
+    }
+    
+    // VIP Promotion DM System - Send once per day if not in VIP server
+    if (!result.isVip && letheStorage.canSendDailyDm(message.author.id)) {
+      try {
+        // Check if user is already in VIP server
+        const vipGuild = client.guilds.cache.get('291436861082042378');
+        const isInVipServer = vipGuild?.members.cache.has(message.author.id);
+        
+        if (!isInVipServer) {
+          const promo = letheStorage.getVipPromoMessage();
+          
+          const promoEmbed = new EmbedBuilder()
+            .setColor('#FFD700')
+            .setTitle(promo.title)
+            .setDescription(promo.description)
+            .addFields(
+              { name: '🎁 VIP Bonusları', value: promo.bonuses.join('\n'), inline: false },
+              { name: '🔗 Hemen Katıl!', value: `[ThePublisher Sunucusu](${promo.inviteLink})`, inline: false }
+            )
+            .setFooter({ text: 'Bu mesaj günde 1 kere gönderilir.' })
+            .setTimestamp();
+          
+          await message.author.send({ embeds: [promoEmbed] }).catch(() => {
+            // User has DMs disabled, ignore silently
+          });
+          
+          letheStorage.markDmSent(message.author.id);
+        }
+      } catch (e) {
+        // Silently fail if DM cannot be sent
       }
     }
   }

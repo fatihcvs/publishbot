@@ -45,25 +45,30 @@ module.exports = {
       return message.reply('❌ Geçersiz kategori! Kullanılabilir: weapon, armor, accessory, consumable, bait');
     }
 
-    const result = await letheStorage.buyItem(message.author.id, mappedType, itemId);
+    const result = await letheStorage.buyItem(message.author.id, mappedType, itemId, message.guild.id);
 
     if (!result.success) {
       const errorMessages = {
         'Invalid item type': '❌ Geçersiz eşya türü!',
         'Item not found': '❌ Bu eşya bulunamadı!',
-        'Not enough money': '❌ Yeterli paran yok!'
+        'Not enough coins': '❌ Yeterli paran yok!'
       };
       return message.reply(errorMessages[result.error] || '❌ Bir hata oluştu.');
     }
 
+    let priceText = `${result.price} 💰`;
+    if (result.isVip && result.discount > 0) {
+      priceText = `~~${result.originalPrice}~~ ${result.price} 💰 (-%15 VIP)`;
+    }
+
     const embed = new EmbedBuilder()
-      .setColor('#10b981')
+      .setColor(result.isVip ? '#FFD700' : '#10b981')
       .setTitle('✅ Satın Alma Başarılı!')
-      .setDescription(`${result.item.emoji} **${result.item.name}** satın alındı!`)
+      .setDescription(`${result.item.emoji} **${result.item.name}** satın alındı!${result.isVip ? '\n\n🌟 *VIP İndirimi Uygulandı!*' : ''}`)
       .addFields(
-        { name: '💰 Ödenen', value: `${result.price}`, inline: true }
+        { name: '💰 Ödenen', value: priceText, inline: true }
       )
-      .setFooter({ text: 'Envanterini görmek için: !e veya !envanter' })
+      .setFooter({ text: result.isVip ? '🌟 VIP Sunucu Bonusları Aktif!' : 'Envanterini görmek için: !e' })
       .setTimestamp();
 
     await message.reply({ embeds: [embed] });

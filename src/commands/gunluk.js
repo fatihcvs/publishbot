@@ -56,7 +56,7 @@ module.exports = {
         return message.reply({ embeds: [embed] });
       }
       
-      const result = await letheStorage.claimDailyReward(userId);
+      const result = await letheStorage.claimDailyReward(userId, message.guild.id);
       
       if (!result.success) {
         const status = await letheStorage.getDailyStatus(userId);
@@ -73,15 +73,28 @@ module.exports = {
         return message.reply({ embeds: [embed] });
       }
       
+      let moneyText = `+${result.money} 💰`;
+      if (result.isVip && result.vipBonus > 0) {
+        moneyText = `+${result.baseMoney} (+${result.vipBonus} VIP) 💰`;
+      }
+      
       const embed = new EmbedBuilder()
-        .setColor('#10B981')
-        .setTitle('🎁 Günlük Ödül Alındı!')
+        .setColor(result.isVip ? '#FFD700' : '#10B981')
+        .setTitle(result.isVip ? '🌟 VIP Günlük Ödül Alındı!' : '🎁 Günlük Ödül Alındı!')
         .setThumbnail(message.author.displayAvatarURL())
         .addFields(
           { name: '📅 Gün', value: `${result.day}/7`, inline: true },
-          { name: '💰 Para', value: `+${result.money}`, inline: true },
+          { name: '💰 Para', value: moneyText, inline: true },
           { name: '🔥 Seri', value: `${result.day} gün`, inline: true }
         );
+      
+      if (result.isVip) {
+        embed.addFields({
+          name: '🌟 VIP Bonus',
+          value: `+%50 ekstra günlük ödül!`,
+          inline: false
+        });
+      }
       
       if (result.bonus) {
         embed.addFields({
@@ -100,7 +113,7 @@ module.exports = {
         });
       }
       
-      embed.setFooter({ text: '7 gün üst üste gel ve bonus sandık kazan!' });
+      embed.setFooter({ text: result.isVip ? '🌟 VIP Sunucu Bonusları Aktif!' : '7 gün üst üste gel ve bonus sandık kazan!' });
       
       return message.reply({ embeds: [embed] });
       

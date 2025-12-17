@@ -216,11 +216,14 @@ module.exports = {
     const xpReward = won ? boss.rewardMoney / 10 : 20;
     const moneyReward = won ? boss.rewardMoney : 0;
 
-    await letheStorage.addBattleReward(message.author.id, xpReward, moneyReward, won, true);
+    const vipResult = await letheStorage.addBattleReward(message.author.id, xpReward, moneyReward, won, true, message.guild.id);
 
     const completedQuests = [];
     const battleQuests = await letheStorage.updateQuestProgress(message.author.id, 'battle', 1);
     completedQuests.push(...battleQuests);
+    
+    const finalMoney = vipResult.isVip ? moneyReward + vipResult.moneyBonus : moneyReward;
+    const finalXp = vipResult.isVip ? xpReward + vipResult.xpBonus : xpReward;
     
     if (won) {
       const bossQuests = await letheStorage.updateQuestProgress(message.author.id, 'boss_kill', 1);
@@ -228,16 +231,21 @@ module.exports = {
       const winQuests = await letheStorage.updateQuestProgress(message.author.id, 'battle_win', 1);
       completedQuests.push(...winQuests);
       
-      if (moneyReward > 0) {
-        await letheStorage.updateQuestProgress(message.author.id, 'earn_money', moneyReward);
+      if (finalMoney > 0) {
+        await letheStorage.updateQuestProgress(message.author.id, 'earn_money', finalMoney);
       }
     }
 
+    let rewardText = `💰 +${moneyReward}\n✨ +${Math.floor(xpReward)} XP`;
+    if (vipResult.isVip) {
+      rewardText = `💰 +${moneyReward} (+${vipResult.moneyBonus} VIP)\n✨ +${Math.floor(xpReward)} (+${vipResult.xpBonus} VIP) XP`;
+    }
+
     const resultEmbed = new EmbedBuilder()
-      .setColor(won ? '#10b981' : '#ef4444')
+      .setColor(won ? (vipResult.isVip ? '#FFD700' : '#10b981') : '#ef4444')
       .setTitle(won ? `🏆 ${boss.emoji} ${boss.name} YENİLDİ! 🏆` : `💀 YENİLGİ! 💀`)
       .setDescription(won 
-        ? `\`\`\`diff\n+ ${boss.name} mağlup edildi!\n\`\`\`` 
+        ? `\`\`\`diff\n+ ${boss.name} mağlup edildi!\n\`\`\`${vipResult.isVip ? '\n🌟 *VIP Bonusları Uygulandı!*' : ''}` 
         : `\`\`\`diff\n- ${boss.name} çok güçlüydü...\n\`\`\``);
 
     resultEmbed.addFields(
@@ -249,7 +257,7 @@ module.exports = {
     resultEmbed.addFields(
       { name: '🎒 Ekipmanlarınız', value: userEquip || '*Ekipman yok*', inline: true },
       { name: '📊', value: '\u200b', inline: true },
-      { name: '🎁 Ödüller', value: `💰 +${moneyReward}\n✨ +${Math.floor(xpReward)} XP`, inline: true }
+      { name: '🎁 Ödüller', value: rewardText, inline: true }
     );
 
     resultEmbed.addFields(

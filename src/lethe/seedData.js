@@ -109,7 +109,12 @@ const animals = [
   { animalId: 'dark_god', name: 'Karanlık Tanrı', emoji: '🐉', rarity: 'hidden', baseHp: 900, baseStr: 90, baseDef: 80, baseSpd: 55, sellPrice: 100000, xpReward: 10000 },
   { animalId: 'chaos_entity', name: 'Kaos Varlığı', emoji: '🦑', rarity: 'hidden', baseHp: 850, baseStr: 88, baseDef: 72, baseSpd: 75, sellPrice: 100000, xpReward: 10000 },
 
-  { animalId: 'king_in_the_north', name: 'King in the North', emoji: '👑', rarity: 'eternal', baseHp: 1500, baseStr: 150, baseDef: 120, baseSpd: 100, sellPrice: 1000000, xpReward: 100000 }
+  { animalId: 'king_in_the_north', name: 'King in the North', emoji: '👑', rarity: 'eternal', baseHp: 1500, baseStr: 150, baseDef: 120, baseSpd: 100, sellPrice: 1000000, xpReward: 100000 },
+
+  // VIP Exclusive Animals (ThePublisher Server Only)
+  { animalId: 'vip_phoenix', name: 'VIP Anka', emoji: '🔥', rarity: 'legendary', baseHp: 400, baseStr: 50, baseDef: 40, baseSpd: 35, sellPrice: 5000, xpReward: 1000, isVipExclusive: true },
+  { animalId: 'vip_guardian', name: 'VIP Koruyucu', emoji: '🛡️', rarity: 'legendary', baseHp: 500, baseStr: 40, baseDef: 60, baseSpd: 25, sellPrice: 5000, xpReward: 1000, isVipExclusive: true },
+  { animalId: 'vip_spirit', name: 'VIP Ruh', emoji: '👻', rarity: 'legendary', baseHp: 350, baseStr: 45, baseDef: 35, baseSpd: 50, sellPrice: 5000, xpReward: 1000, isVipExclusive: true }
 ];
 
 const weapons = [

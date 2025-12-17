@@ -64,6 +64,15 @@ Güçlü ve tam donanımlı Discord moderasyon botu + Web Dashboard.
 
 **Global Sistem:** Kullanıcı verileri tüm sunucularda paylaşılır. Her sunucu oyunu açıp kapatabilir ama veriler globaldir.
 
+**VIP Sunucu Sistemi (ThePublisher - ID: 291436861082042378):**
+- 🎯 **%15 Nadir Hayvan Şansı** - Daha fazla epic/legendary hayvan yakala!
+- 💰 **%25 Ekstra Para** - Tüm kazançlarında bonus altın!
+- ✨ **%25 Ekstra XP** - Daha hızlı seviye atla!
+- 🎁 **%50 Günlük Bonus** - Günlük ödüllerde ekstra para!
+- 🛒 **%15 Mağaza İndirimi** - Tüm eşyalarda indirim!
+- 🦅 **3 Özel VIP Hayvan** - Publisher's Guardian, Replit Dragon, VIP Phoenix
+- 📨 **DM Promosyon Sistemi** - 24 saatte bir VIP sunucu daveti
+
 **Temel Komutlar (Kısa Aliases):**
 - `!a` / `!avla` / `!hunt` - Hayvan avla (15 saniye cooldown)
 - `!p` / `!bakiye` / `!para` - Para ve taşlarını görüntüle

@@ -401,7 +401,7 @@ module.exports = {
     const xpReward = won ? Math.floor(30 + Math.random() * 30) : 10;
     const moneyReward = won ? Math.floor(60 + Math.random() * 60) : 0;
 
-    await letheStorage.addBattleReward(message.author.id, xpReward, moneyReward, won);
+    const vipResult = await letheStorage.addBattleReward(message.author.id, xpReward, moneyReward, won, false, message.guild.id);
 
     const completedQuests = [];
     const battleQuests = await letheStorage.updateQuestProgress(message.author.id, 'battle', 1);
@@ -412,17 +412,31 @@ module.exports = {
       completedQuests.push(...winQuests);
     }
     
-    if (moneyReward > 0) {
-      await letheStorage.updateQuestProgress(message.author.id, 'earn_money', moneyReward);
+    const finalMoney = vipResult.isVip ? moneyReward + vipResult.moneyBonus : moneyReward;
+    const finalXp = vipResult.isVip ? xpReward + vipResult.xpBonus : xpReward;
+    
+    if (finalMoney > 0) {
+      await letheStorage.updateQuestProgress(message.author.id, 'earn_money', finalMoney);
     }
 
     const resultEmbed = createBattleEmbed('result', teamData.team, enemyTeam, userStats, enemyStats, currentHp, null, round, battleLog, teamData, won);
     
+    let xpText = `+${xpReward}`;
+    let moneyText = `+${moneyReward}`;
+    if (vipResult.isVip) {
+      xpText = `+${xpReward} (+${vipResult.xpBonus} VIP)`;
+      moneyText = `+${moneyReward} (+${vipResult.moneyBonus} VIP)`;
+    }
+    
     resultEmbed.addFields(
       { name: '🎯 Toplam Tur', value: `${round}`, inline: true },
-      { name: '✨ Kazanılan XP', value: `+${xpReward}`, inline: true },
-      { name: '💰 Kazanılan Para', value: `+${moneyReward}`, inline: true }
+      { name: '✨ Kazanılan XP', value: xpText, inline: true },
+      { name: '💰 Kazanılan Para', value: moneyText, inline: true }
     );
+    
+    if (vipResult.isVip) {
+      resultEmbed.setColor('#FFD700');
+    }
 
     if (completedQuests.length > 0) {
       for (const q of completedQuests) {
