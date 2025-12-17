@@ -89,6 +89,12 @@ Güçlü ve tam donanımlı Discord moderasyon botu + Web Dashboard.
 **Desteklenen Diller:**
 Türkçe, İngilizce, Almanca, Fransızca, İspanyolca, Felemenkçe (Hollandaca), İtalyanca, Portekizce, Rusça, Japonca, Korece, Çince, Arapça, Lehçe, İsveççe, Norveççe, Fince, Danca, Yunanca, Ukraynaca
 
+### Davet Takibi
+- `!davet` / `!invites` - Kendi davet istatistiklerinizi görün
+- `!davet @kullanıcı` - Başka birinin davet istatistiklerini görün
+- `!davet sıralama` - En çok davet eden kullanıcıları listeler
+- Hoş geldin mesajlarında `{inviter}` placeholder'ı ile davet eden kişiyi gösterebilirsiniz
+
 ### Bilgi Komutları
 - `!sunucu` - Sunucu bilgilerini gösterir
 - `!kullanıcı @kullanıcı` - Kullanıcı bilgilerini gösterir
