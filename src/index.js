@@ -33,18 +33,30 @@ client.invites = new Collection();
 
 const PREFIX = '!';
 
-const commandFiles = fs.readdirSync(path.join(__dirname, 'commands')).filter(file => file.endsWith('.js'));
-for (const file of commandFiles) {
-  try {
-    const command = require(`./commands/${file}`);
-    client.commands.set(command.name, command);
-    if (command.aliases) {
-      command.aliases.forEach(alias => client.commands.set(alias, command));
+function loadCommands(dir, prefix = '') {
+  const items = fs.readdirSync(dir);
+  for (const item of items) {
+    const fullPath = path.join(dir, item);
+    const stat = fs.statSync(fullPath);
+    if (stat.isDirectory()) {
+      loadCommands(fullPath, `${prefix}${item}/`);
+    } else if (item.endsWith('.js')) {
+      try {
+        const command = require(fullPath);
+        if (command.name) {
+          client.commands.set(command.name, command);
+          if (command.aliases) {
+            command.aliases.forEach(alias => client.commands.set(alias, command));
+          }
+        }
+      } catch (error) {
+        console.error(`Error loading command ${prefix}${item}:`, error);
+      }
     }
-  } catch (error) {
-    console.error(`Error loading command ${file}:`, error);
   }
 }
+
+loadCommands(path.join(__dirname, 'commands'));
 
 let scheduler;
 let logSystem;

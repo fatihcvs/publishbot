@@ -1,6 +1,6 @@
 const { db } = require('./db');
-const { eq, and, desc, sql, lte } = require('drizzle-orm');
-const { guilds, warnings, modCases, customCommands, reactionRoles, giveaways, reminders, afkUsers, userLevels, levelRewards, scheduledMessages, userAchievements, inviteTracking, socialNotifications, userBirthdays, birthdayConfig, userEconomy, economyConfig, shopItems, tickets, ticketConfig, polls, tempVoiceChannels } = require('../../shared/schema');
+const { eq, and, desc, sql, lte, gte } = require('drizzle-orm');
+const { guilds, warnings, modCases, customCommands, reactionRoles, giveaways, reminders, afkUsers, userLevels, levelRewards, scheduledMessages, userAchievements, inviteTracking, socialNotifications, userBirthdays, birthdayConfig, userEconomy, economyConfig, shopItems, tickets, ticketConfig, polls, tempVoiceChannels, gameHistory, userInventory, gameItems, activeDuels, dailyStreak, jackpotPool, userStats, lootBoxes } = require('../../shared/schema');
 const fs = require('fs');
 const path = require('path');
 
@@ -662,6 +662,236 @@ class DatabaseStorage {
   async deleteTempVoiceChannel(channelId) {
     if (!db) return;
     await db.delete(tempVoiceChannels).where(eq(tempVoiceChannels.channelId, channelId));
+  }
+
+  async addGameHistory(guildId, userId, gameType, betAmount, winAmount, result, details = {}) {
+    if (!db) return null;
+    const [history] = await db.insert(gameHistory).values({
+      guildId, userId, gameType, betAmount, winAmount, result, details
+    }).returning();
+    return history;
+  }
+
+  async getGameHistory(guildId, userId, limit = 20) {
+    if (!db) return [];
+    return db.select().from(gameHistory)
+      .where(and(eq(gameHistory.guildId, guildId), eq(gameHistory.userId, userId)))
+      .orderBy(desc(gameHistory.createdAt))
+      .limit(limit);
+  }
+
+  async getUserStats(guildId, userId) {
+    if (!db) return null;
+    const [stats] = await db.select().from(userStats)
+      .where(and(eq(userStats.guildId, guildId), eq(userStats.userId, userId)));
+    return stats || null;
+  }
+
+  async createUserStats(guildId, userId) {
+    if (!db) return null;
+    const existing = await this.getUserStats(guildId, userId);
+    if (existing) return existing;
+    const [stats] = await db.insert(userStats).values({ guildId, userId }).returning();
+    return stats;
+  }
+
+  async updateUserStats(guildId, userId, updates) {
+    if (!db) return null;
+    let stats = await this.getUserStats(guildId, userId);
+    if (!stats) stats = await this.createUserStats(guildId, userId);
+    await db.update(userStats).set(updates)
+      .where(and(eq(userStats.guildId, guildId), eq(userStats.userId, userId)));
+    return this.getUserStats(guildId, userId);
+  }
+
+  async incrementUserStats(guildId, userId, field, amount = 1) {
+    if (!db) return null;
+    let stats = await this.getUserStats(guildId, userId);
+    if (!stats) stats = await this.createUserStats(guildId, userId);
+    const currentValue = stats[field] || 0;
+    await db.update(userStats).set({ [field]: currentValue + amount })
+      .where(and(eq(userStats.guildId, guildId), eq(userStats.userId, userId)));
+    return this.getUserStats(guildId, userId);
+  }
+
+  async getInventory(guildId, userId) {
+    if (!db) return [];
+    return db.select().from(userInventory)
+      .where(and(eq(userInventory.guildId, guildId), eq(userInventory.userId, userId)));
+  }
+
+  async addToInventory(guildId, userId, itemId, quantity = 1) {
+    if (!db) return null;
+    const [existing] = await db.select().from(userInventory)
+      .where(and(
+        eq(userInventory.guildId, guildId),
+        eq(userInventory.userId, userId),
+        eq(userInventory.itemId, itemId)
+      ));
+    if (existing) {
+      await db.update(userInventory)
+        .set({ quantity: existing.quantity + quantity })
+        .where(eq(userInventory.id, existing.id));
+      return this.getInventoryItem(guildId, userId, itemId);
+    }
+    const [item] = await db.insert(userInventory).values({
+      guildId, userId, itemId, quantity
+    }).returning();
+    return item;
+  }
+
+  async getInventoryItem(guildId, userId, itemId) {
+    if (!db) return null;
+    const [item] = await db.select().from(userInventory)
+      .where(and(
+        eq(userInventory.guildId, guildId),
+        eq(userInventory.userId, userId),
+        eq(userInventory.itemId, itemId)
+      ));
+    return item || null;
+  }
+
+  async removeFromInventory(guildId, userId, itemId, quantity = 1) {
+    if (!db) return false;
+    const existing = await this.getInventoryItem(guildId, userId, itemId);
+    if (!existing || existing.quantity < quantity) return false;
+    if (existing.quantity === quantity) {
+      await db.delete(userInventory).where(eq(userInventory.id, existing.id));
+    } else {
+      await db.update(userInventory)
+        .set({ quantity: existing.quantity - quantity })
+        .where(eq(userInventory.id, existing.id));
+    }
+    return true;
+  }
+
+  async createDuel(guildId, channelId, challengerId, opponentId, betAmount, gameType) {
+    if (!db) return null;
+    const expiresAt = new Date(Date.now() + 60000);
+    const [duel] = await db.insert(activeDuels).values({
+      guildId, channelId, challengerId, opponentId, betAmount, gameType, expiresAt
+    }).returning();
+    return duel;
+  }
+
+  async getDuel(id) {
+    if (!db) return null;
+    const [duel] = await db.select().from(activeDuels).where(eq(activeDuels.id, id));
+    return duel || null;
+  }
+
+  async getPendingDuel(guildId, opponentId) {
+    if (!db) return null;
+    const [duel] = await db.select().from(activeDuels)
+      .where(and(
+        eq(activeDuels.guildId, guildId),
+        eq(activeDuels.opponentId, opponentId),
+        eq(activeDuels.status, 'pending')
+      ));
+    return duel || null;
+  }
+
+  async updateDuel(id, updates) {
+    if (!db) return;
+    await db.update(activeDuels).set(updates).where(eq(activeDuels.id, id));
+  }
+
+  async deleteDuel(id) {
+    if (!db) return;
+    await db.delete(activeDuels).where(eq(activeDuels.id, id));
+  }
+
+  async cleanExpiredDuels() {
+    if (!db) return;
+    await db.delete(activeDuels).where(lte(activeDuels.expiresAt, new Date()));
+  }
+
+  async getDailyStreak(guildId, userId) {
+    if (!db) return null;
+    const [streak] = await db.select().from(dailyStreak)
+      .where(and(eq(dailyStreak.guildId, guildId), eq(dailyStreak.userId, userId)));
+    return streak || null;
+  }
+
+  async updateDailyStreak(guildId, userId) {
+    if (!db) return null;
+    let streak = await this.getDailyStreak(guildId, userId);
+    const now = new Date();
+    
+    if (!streak) {
+      const [newStreak] = await db.insert(dailyStreak).values({
+        guildId, userId, currentStreak: 1, longestStreak: 1, lastClaim: now
+      }).returning();
+      return { streak: newStreak, bonus: 0, isNewStreak: true };
+    }
+    
+    const lastClaim = streak.lastClaim ? new Date(streak.lastClaim) : null;
+    const hoursSinceLast = lastClaim ? (now - lastClaim) / (1000 * 60 * 60) : 999;
+    
+    if (hoursSinceLast < 20) {
+      return { streak, bonus: 0, alreadyClaimed: true };
+    }
+    
+    let newCurrentStreak = 1;
+    if (hoursSinceLast <= 48) {
+      newCurrentStreak = streak.currentStreak + 1;
+    }
+    
+    const newLongestStreak = Math.max(streak.longestStreak, newCurrentStreak);
+    const bonus = Math.min(newCurrentStreak * 10, 100);
+    
+    await db.update(dailyStreak).set({
+      currentStreak: newCurrentStreak,
+      longestStreak: newLongestStreak,
+      lastClaim: now
+    }).where(eq(dailyStreak.id, streak.id));
+    
+    return { 
+      streak: { ...streak, currentStreak: newCurrentStreak, longestStreak: newLongestStreak },
+      bonus,
+      isNewStreak: newCurrentStreak === 1
+    };
+  }
+
+  async getJackpot(guildId) {
+    if (!db) return null;
+    const [jp] = await db.select().from(jackpotPool).where(eq(jackpotPool.guildId, guildId));
+    return jp || null;
+  }
+
+  async addToJackpot(guildId, amount) {
+    if (!db) return null;
+    let jp = await this.getJackpot(guildId);
+    if (!jp) {
+      const [newJp] = await db.insert(jackpotPool).values({ guildId, amount }).returning();
+      return newJp;
+    }
+    await db.update(jackpotPool)
+      .set({ amount: jp.amount + amount })
+      .where(eq(jackpotPool.guildId, guildId));
+    return this.getJackpot(guildId);
+  }
+
+  async claimJackpot(guildId, winnerId) {
+    if (!db) return null;
+    const jp = await this.getJackpot(guildId);
+    if (!jp || jp.amount <= 0) return null;
+    const wonAmount = jp.amount;
+    await db.update(jackpotPool).set({
+      amount: 0,
+      lastWinner: winnerId,
+      lastWinAmount: wonAmount,
+      lastWinDate: new Date()
+    }).where(eq(jackpotPool.guildId, guildId));
+    return wonAmount;
+  }
+
+  async getGamingLeaderboard(guildId, limit = 10) {
+    if (!db) return [];
+    return db.select().from(userStats)
+      .where(eq(userStats.guildId, guildId))
+      .orderBy(desc(userStats.totalWon))
+      .limit(limit);
   }
 }
 

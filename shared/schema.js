@@ -255,6 +255,104 @@ const tempVoiceChannels = pgTable('temp_voice_channels', {
   createdAt: timestamp('created_at').defaultNow()
 });
 
+const gameHistory = pgTable('game_history', {
+  id: serial('id').primaryKey(),
+  guildId: text('guild_id').notNull(),
+  userId: text('user_id').notNull(),
+  gameType: text('game_type').notNull(),
+  betAmount: integer('bet_amount').default(0),
+  winAmount: integer('win_amount').default(0),
+  result: text('result'),
+  details: jsonb('details').default({}),
+  createdAt: timestamp('created_at').defaultNow()
+});
+
+const userInventory = pgTable('user_inventory', {
+  id: serial('id').primaryKey(),
+  guildId: text('guild_id').notNull(),
+  userId: text('user_id').notNull(),
+  itemId: text('item_id').notNull(),
+  quantity: integer('quantity').default(1),
+  acquiredAt: timestamp('acquired_at').defaultNow()
+});
+
+const gameItems = pgTable('game_items', {
+  id: serial('id').primaryKey(),
+  itemId: text('item_id').notNull().unique(),
+  name: text('name').notNull(),
+  description: text('description'),
+  rarity: text('rarity').default('common'),
+  type: text('type').notNull(),
+  value: integer('value').default(0),
+  emoji: text('emoji'),
+  sellPrice: integer('sell_price').default(0),
+  usable: boolean('usable').default(false)
+});
+
+const activeDuels = pgTable('active_duels', {
+  id: serial('id').primaryKey(),
+  guildId: text('guild_id').notNull(),
+  channelId: text('channel_id').notNull(),
+  challengerId: text('challenger_id').notNull(),
+  opponentId: text('opponent_id').notNull(),
+  betAmount: integer('bet_amount').default(0),
+  gameType: text('game_type').notNull(),
+  status: text('status').default('pending'),
+  expiresAt: timestamp('expires_at').notNull(),
+  createdAt: timestamp('created_at').defaultNow()
+});
+
+const dailyStreak = pgTable('daily_streak', {
+  id: serial('id').primaryKey(),
+  guildId: text('guild_id').notNull(),
+  userId: text('user_id').notNull(),
+  currentStreak: integer('current_streak').default(0),
+  longestStreak: integer('longest_streak').default(0),
+  lastClaim: timestamp('last_claim'),
+  createdAt: timestamp('created_at').defaultNow()
+});
+
+const jackpotPool = pgTable('jackpot_pool', {
+  id: serial('id').primaryKey(),
+  guildId: text('guild_id').notNull().unique(),
+  amount: integer('amount').default(0),
+  lastWinner: text('last_winner'),
+  lastWinAmount: integer('last_win_amount'),
+  lastWinDate: timestamp('last_win_date'),
+  createdAt: timestamp('created_at').defaultNow()
+});
+
+const userStats = pgTable('user_stats', {
+  id: serial('id').primaryKey(),
+  guildId: text('guild_id').notNull(),
+  userId: text('user_id').notNull(),
+  gamesPlayed: integer('games_played').default(0),
+  gamesWon: integer('games_won').default(0),
+  gamesLost: integer('games_lost').default(0),
+  totalBet: integer('total_bet').default(0),
+  totalWon: integer('total_won').default(0),
+  totalLost: integer('total_lost').default(0),
+  biggestWin: integer('biggest_win').default(0),
+  fishCaught: integer('fish_caught').default(0),
+  oresMined: integer('ores_mined').default(0),
+  animalsHunted: integer('animals_hunted').default(0),
+  robberyAttempts: integer('robbery_attempts').default(0),
+  robberySuccess: integer('robbery_success').default(0),
+  timesRobbed: integer('times_robbed').default(0),
+  createdAt: timestamp('created_at').defaultNow()
+});
+
+const lootBoxes = pgTable('loot_boxes', {
+  id: serial('id').primaryKey(),
+  boxId: text('box_id').notNull().unique(),
+  name: text('name').notNull(),
+  description: text('description'),
+  price: integer('price').default(0),
+  rarity: text('rarity').default('common'),
+  emoji: text('emoji'),
+  possibleItems: jsonb('possible_items').default([])
+});
+
 module.exports = {
   guilds,
   warnings,
@@ -278,5 +376,13 @@ module.exports = {
   tickets,
   ticketConfig,
   polls,
-  tempVoiceChannels
+  tempVoiceChannels,
+  gameHistory,
+  userInventory,
+  gameItems,
+  activeDuels,
+  dailyStreak,
+  jackpotPool,
+  userStats,
+  lootBoxes
 };
