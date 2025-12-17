@@ -196,13 +196,13 @@
     .category-icon.moderation { background: rgba(239, 68, 68, 0.15); color: var(--accent-red); }
     .category-icon.automod { background: rgba(139, 92, 246, 0.15); color: var(--accent-purple); }
     .category-icon.settings { background: rgba(88, 166, 255, 0.15); color: var(--accent-blue); }
-    .category-icon.leveling { background: rgba(236, 72, 153, 0.15); color: var(--accent-pink); }
-    .category-icon.economy { background: rgba(234, 179, 8, 0.15); color: var(--accent-yellow); }
-    .category-icon.games { background: rgba(236, 72, 153, 0.15); color: var(--accent-pink); }
+    .category-icon.roles { background: rgba(236, 72, 153, 0.15); color: var(--accent-pink); }
     .category-icon.fun { background: rgba(16, 185, 129, 0.15); color: var(--accent-green); }
     .category-icon.utility { background: rgba(6, 182, 212, 0.15); color: var(--accent-cyan); }
     .category-icon.info { background: rgba(245, 158, 11, 0.15); color: var(--accent-orange); }
     .category-icon.ai { background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(236, 72, 153, 0.15)); color: var(--accent-purple); }
+    .category-icon.social { background: rgba(234, 179, 8, 0.15); color: var(--accent-yellow); }
+    .category-icon.schedule { background: rgba(6, 182, 212, 0.15); color: var(--accent-cyan); }
     .category-header h3 {
       font-size: 1.5rem;
       font-weight: 700;
@@ -319,6 +319,7 @@
         <ul class="navbar-nav ms-auto align-items-center">
           <li class="nav-item"><a class="nav-link" href="/">Ana Sayfa</a></li>
           <li class="nav-item"><a class="nav-link active" href="/commands.html">Komutlar</a></li>
+          <li class="nav-item"><a class="nav-link" href="/lethe-game.html">Lethe Game</a></li>
           <li class="nav-item ms-3">
             <a href="/auth/discord" class="btn btn-discord">
               <i class="fab fa-discord"></i>Dashboard
@@ -350,7 +351,7 @@
               <a href="#moderation" class="category-link active">
                 <i class="fas fa-shield-alt"></i>
                 Moderasyon
-                <span class="count">12</span>
+                <span class="count">13</span>
               </a>
               <a href="#automod" class="category-link">
                 <i class="fas fa-robot"></i>
@@ -360,42 +361,42 @@
               <a href="#settings" class="category-link">
                 <i class="fas fa-cog"></i>
                 Ayarlar
-                <span class="count">10</span>
-              </a>
-              <a href="#leveling" class="category-link">
-                <i class="fas fa-chart-line"></i>
-                Seviye
-                <span class="count">3</span>
-              </a>
-              <a href="#economy" class="category-link">
-                <i class="fas fa-coins"></i>
-                Ekonomi
                 <span class="count">6</span>
               </a>
-              <a href="#games" class="category-link">
-                <i class="fas fa-dice"></i>
-                Oyunlar
-                <span class="count">15</span>
+              <a href="#roles" class="category-link">
+                <i class="fas fa-user-tag"></i>
+                Rol Yonetimi
+                <span class="count">4</span>
               </a>
               <a href="#fun" class="category-link">
-                <i class="fas fa-party-horn"></i>
+                <i class="fas fa-gamepad"></i>
                 Eglence
                 <span class="count">6</span>
               </a>
               <a href="#utility" class="category-link">
                 <i class="fas fa-tools"></i>
                 Araclar
-                <span class="count">8</span>
+                <span class="count">5</span>
+              </a>
+              <a href="#social" class="category-link">
+                <i class="fas fa-share-alt"></i>
+                Sosyal Medya
+                <span class="count">4</span>
+              </a>
+              <a href="#schedule" class="category-link">
+                <i class="fas fa-clock"></i>
+                Zamanlama
+                <span class="count">4</span>
               </a>
               <a href="#info" class="category-link">
                 <i class="fas fa-info-circle"></i>
                 Bilgi
-                <span class="count">5</span>
+                <span class="count">7</span>
               </a>
               <a href="#ai" class="category-link">
                 <i class="fas fa-brain"></i>
                 Yapay Zeka
-                <span class="count">3</span>
+                <span class="count">4</span>
               </a>
             </div>
           </div>
@@ -409,6 +410,15 @@
                 <div>
                   <h3>Moderasyon</h3>
                   <span>Sunucu guvenligini saglayan komutlar</span>
+                </div>
+              </div>
+              <div class="command-card">
+                <div class="command-header">
+                  <span class="command-name">!kick @kullanici [sebep]</span>
+                </div>
+                <p class="command-desc">Belirtilen kullaniciyi sunucudan atar.</p>
+                <div class="command-permissions">
+                  <span class="permission-badge">Kick Members</span>
                 </div>
               </div>
               <div class="command-card">
@@ -431,19 +441,10 @@
               </div>
               <div class="command-card">
                 <div class="command-header">
-                  <span class="command-name">!kick @kullanici [sebep]</span>
+                  <span class="command-name">!mute @kullanici [sure] [birim] [sebep]</span>
                 </div>
-                <p class="command-desc">Belirtilen kullaniciyi sunucudan atar.</p>
-                <div class="command-permissions">
-                  <span class="permission-badge">Kick Members</span>
-                </div>
-              </div>
-              <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!mute @kullanici [sure] [sebep]</span>
-                </div>
-                <p class="command-desc">Kullaniciyi belirtilen sure boyunca susturur. Ornek: !mute @user 10m spam</p>
-                <div class="command-usage">!mute @kullanici 30m Spam yapti</div>
+                <p class="command-desc">Kullaniciyi belirtilen sure boyunca susturur.</p>
+                <div class="command-usage">!mute @kullanici 30 dakika Spam yapti</div>
                 <div class="command-permissions">
                   <span class="permission-badge">Moderate Members</span>
                 </div>
@@ -468,7 +469,7 @@
               </div>
               <div class="command-card">
                 <div class="command-header">
-                  <span class="command-name">!warnings @kullanici</span>
+                  <span class="command-name">!uyarilar @kullanici</span>
                 </div>
                 <p class="command-desc">Kullanicinin tum uyarilarini listeler.</p>
                 <div class="command-permissions">
@@ -477,7 +478,7 @@
               </div>
               <div class="command-card">
                 <div class="command-header">
-                  <span class="command-name">!clearwarns @kullanici</span>
+                  <span class="command-name">!uyarisil @kullanici</span>
                 </div>
                 <p class="command-desc">Kullanicinin tum uyarilarini siler.</p>
                 <div class="command-permissions">
@@ -486,10 +487,10 @@
               </div>
               <div class="command-card">
                 <div class="command-header">
-                  <span class="command-name">!clear [miktar]</span>
+                  <span class="command-name">!temizle [miktar]</span>
                 </div>
                 <p class="command-desc">Belirtilen sayida mesaji siler (1-100 arasi).</p>
-                <div class="command-usage">!clear 50</div>
+                <div class="command-usage">!temizle 50</div>
                 <div class="command-permissions">
                   <span class="permission-badge">Manage Messages</span>
                 </div>
@@ -522,6 +523,15 @@
                   <span class="permission-badge">Manage Channels</span>
                 </div>
               </div>
+              <div class="command-card">
+                <div class="command-header">
+                  <span class="command-name">!vaka [numara]</span>
+                </div>
+                <p class="command-desc">Moderasyon vakalarini goruntule.</p>
+                <div class="command-permissions">
+                  <span class="permission-badge">Manage Messages</span>
+                </div>
+              </div>
             </div>
 
             <div class="category-section" id="automod">
@@ -536,18 +546,18 @@
                 <div class="command-header">
                   <span class="command-name">!automod [ayar] [deger]</span>
                 </div>
-                <p class="command-desc">Otomatik moderasyon sistemini yapilandirir. Spam, link, kufur filtreleri.</p>
-                <div class="command-usage">!automod spam on | !automod links off | !automod badwords add kelime</div>
+                <p class="command-desc">Otomatik moderasyon sistemini yapilandirir. Spam, link, kufur, davet, emoji ve etiket filtreleri.</p>
+                <div class="command-usage">!automod spam ac | !automod link kapat | !automod kelime ekle kelime</div>
                 <div class="command-permissions">
                   <span class="permission-badge">Administrator</span>
                 </div>
               </div>
               <div class="command-card">
                 <div class="command-header">
-                  <span class="command-name">!autopunish [uyari_sayisi] [ceza]</span>
+                  <span class="command-name">!otoceza [uyari_sayisi] [ceza]</span>
                 </div>
                 <p class="command-desc">Belirli uyari sayisina ulasinca otomatik ceza uygular.</p>
-                <div class="command-usage">!autopunish 3 mute 1h | !autopunish 5 ban</div>
+                <div class="command-usage">!otoceza 3 mute 1h | !otoceza 5 ban</div>
                 <div class="command-permissions">
                   <span class="permission-badge">Administrator</span>
                 </div>
@@ -564,27 +574,26 @@
               </div>
               <div class="command-card">
                 <div class="command-header">
-                  <span class="command-name">!hosgeldin [kanal/mesaj/kapat/test]</span>
+                  <span class="command-name">!hosgeldin kanal #kanal</span>
                 </div>
-                <p class="command-desc">Hos geldin mesaji sistemini ayarlar.</p>
-                <div class="command-usage">!hosgeldin kanal #genel | !hosgeldin mesaj Hosgeldin {user}!</div>
+                <p class="command-desc">Hos geldin kanalini ayarlar.</p>
                 <div class="command-permissions">
                   <span class="permission-badge">Manage Guild</span>
                 </div>
               </div>
               <div class="command-card">
                 <div class="command-header">
-                  <span class="command-name">!gorusuruz [kanal/mesaj/kapat]</span>
+                  <span class="command-name">!hosgeldin mesaj [mesaj]</span>
                 </div>
-                <p class="command-desc">Ayrilma mesaji sistemini ayarlar.</p>
-                <div class="command-usage">!gorusuruz kanal #genel</div>
+                <p class="command-desc">Hos geldin mesajini ayarlar. {user}, {server}, {memberCount}, {inviter} degiskenleri kullanilabilir.</p>
+                <div class="command-usage">!hosgeldin mesaj Hosgeldin {user}! Davet eden: {inviter}</div>
                 <div class="command-permissions">
                   <span class="permission-badge">Manage Guild</span>
                 </div>
               </div>
               <div class="command-card">
                 <div class="command-header">
-                  <span class="command-name">!otorol [@rol/kapat]</span>
+                  <span class="command-name">!otorol @rol</span>
                 </div>
                 <p class="command-desc">Yeni uyelere otomatik rol verir.</p>
                 <div class="command-usage">!otorol @Uye</div>
@@ -594,7 +603,7 @@
               </div>
               <div class="command-card">
                 <div class="command-header">
-                  <span class="command-name">!log [#kanal/kapat]</span>
+                  <span class="command-name">!log #kanal</span>
                 </div>
                 <p class="command-desc">Moderasyon log kanalini ayarlar.</p>
                 <div class="command-usage">!log #mod-log</div>
@@ -604,243 +613,65 @@
               </div>
               <div class="command-card">
                 <div class="command-header">
-                  <span class="command-name">!ticket ayarla</span>
+                  <span class="command-name">!dogumgunu kanal #kanal</span>
                 </div>
-                <p class="command-desc">Destek talebi sistemini ayarlar.</p>
+                <p class="command-desc">Dogum gunu kutlama kanalini ayarlar.</p>
                 <div class="command-permissions">
-                  <span class="permission-badge">Administrator</span>
+                  <span class="permission-badge">Manage Guild</span>
                 </div>
               </div>
               <div class="command-card">
                 <div class="command-header">
-                  <span class="command-name">!verify ayarla</span>
+                  <span class="command-name">!dogumgunu mesaj [mesaj]</span>
                 </div>
-                <p class="command-desc">Dogrulama/kayit sistemini ayarlar.</p>
+                <p class="command-desc">Dogum gunu kutlama mesajini ozellestirir.</p>
                 <div class="command-permissions">
-                  <span class="permission-badge">Administrator</span>
+                  <span class="permission-badge">Manage Guild</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="category-section" id="roles">
+              <div class="category-header">
+                <div class="category-icon roles"><i class="fas fa-user-tag"></i></div>
+                <div>
+                  <h3>Rol Yonetimi</h3>
+                  <span>Rol ekleme ve cikarma komutlari</span>
                 </div>
               </div>
               <div class="command-card">
                 <div class="command-header">
-                  <span class="command-name">!reactionrole [ekle/kaldir]</span>
+                  <span class="command-name">!rolekle @kullanici @rol</span>
+                </div>
+                <p class="command-desc">Kullaniciya rol ekler.</p>
+                <div class="command-permissions">
+                  <span class="permission-badge">Manage Roles</span>
+                </div>
+              </div>
+              <div class="command-card">
+                <div class="command-header">
+                  <span class="command-name">!rolcikar @kullanici @rol</span>
+                </div>
+                <p class="command-desc">Kullanicidan rol cikarir.</p>
+                <div class="command-permissions">
+                  <span class="permission-badge">Manage Roles</span>
+                </div>
+              </div>
+              <div class="command-card">
+                <div class="command-header">
+                  <span class="command-name">!roller</span>
+                </div>
+                <p class="command-desc">Sunucudaki tum rolleri listeler.</p>
+              </div>
+              <div class="command-card">
+                <div class="command-header">
+                  <span class="command-name">!tepkirol</span>
                 </div>
                 <p class="command-desc">Tepki rol sistemini yonetir.</p>
-                <div class="command-usage">!reactionrole ekle #kanal mesaj_id :emoji: @rol</div>
+                <div class="command-usage">!tepkirol #kanal mesaj_id :emoji: @rol</div>
                 <div class="command-permissions">
                   <span class="permission-badge">Manage Roles</span>
                 </div>
-              </div>
-              <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!tempvoice ayarla</span>
-                </div>
-                <p class="command-desc">Gecici ses kanali sistemini ayarlar.</p>
-                <div class="command-permissions">
-                  <span class="permission-badge">Administrator</span>
-                </div>
-              </div>
-              <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!statchannel [tur] [isim]</span>
-                </div>
-                <p class="command-desc">Istatistik sayac kanallarini olusturur.</p>
-                <div class="command-usage">!statchannel members Uyeler: {count}</div>
-                <div class="command-permissions">
-                  <span class="permission-badge">Administrator</span>
-                </div>
-              </div>
-              <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!levelrol [seviye] [@rol]</span>
-                </div>
-                <p class="command-desc">Belirli seviyeye ulasildiginda verilecek rolu ayarlar.</p>
-                <div class="command-usage">!levelrol 10 @Aktif</div>
-                <div class="command-permissions">
-                  <span class="permission-badge">Manage Roles</span>
-                </div>
-              </div>
-            </div>
-
-            <div class="category-section" id="leveling">
-              <div class="category-header">
-                <div class="category-icon leveling"><i class="fas fa-chart-line"></i></div>
-                <div>
-                  <h3>Seviye Sistemi</h3>
-                  <span>XP ve seviye komutlari</span>
-                </div>
-              </div>
-              <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!seviye [@kullanici]</span>
-                </div>
-                <p class="command-desc">Kullanicinin seviye ve XP bilgisini gosterir.</p>
-              </div>
-              <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!siralama</span>
-                </div>
-                <p class="command-desc">Sunucunun seviye siralamasini gosterir.</p>
-              </div>
-              <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!basarimlar [@kullanici]</span>
-                </div>
-                <p class="command-desc">Kazanilan basarimlari gosterir.</p>
-              </div>
-            </div>
-
-            <div class="category-section" id="economy">
-              <div class="category-header">
-                <div class="category-icon economy"><i class="fas fa-coins"></i></div>
-                <div>
-                  <h3>Ekonomi</h3>
-                  <span>Para ve ticaret komutlari</span>
-                </div>
-              </div>
-              <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!bakiye [@kullanici]</span>
-                </div>
-                <p class="command-desc">Kullanicinin para bakiyesini gosterir.</p>
-              </div>
-              <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!gunluk</span>
-                </div>
-                <p class="command-desc">Gunluk para odulunuzu alin (24 saatte bir).</p>
-              </div>
-              <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!calis</span>
-                </div>
-                <p class="command-desc">Calisarak para kazanin.</p>
-              </div>
-              <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!banka [yatir/cek] [miktar]</span>
-                </div>
-                <p class="command-desc">Bankaya para yatirin veya cekin.</p>
-                <div class="command-usage">!banka yatir 1000 | !banka cek 500</div>
-              </div>
-              <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!magaza</span>
-                </div>
-                <p class="command-desc">Sunucu magazasini goruntuleyin.</p>
-              </div>
-              <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!satin [urun]</span>
-                </div>
-                <p class="command-desc">Magazadan urun satin alin.</p>
-              </div>
-            </div>
-
-            <div class="category-section" id="games">
-              <div class="category-header">
-                <div class="category-icon games"><i class="fas fa-dice"></i></div>
-                <div>
-                  <h3>Oyunlar</h3>
-                  <span>Casino, PvP ve eglence oyunlari</span>
-                </div>
-              </div>
-              <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!coinflip <yazi/tura> <miktar></span>
-                </div>
-                <p class="command-desc">Yazi tura oyna ve para kazan! 2x carpan.</p>
-                <div class="command-usage">!coinflip yazi 100</div>
-              </div>
-              <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!slots [miktar]</span>
-                </div>
-                <p class="command-desc">Slot makinesi oyna! 3 eslesme ile buyuk kazanc.</p>
-                <div class="command-usage">!slots 100</div>
-              </div>
-              <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!blackjack <miktar></span>
-                </div>
-                <p class="command-desc">Klasik 21 oyunu. Krupiyeyi yen!</p>
-                <div class="command-usage">!blackjack 200</div>
-              </div>
-              <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!dice <alt/ust/sayi> <miktar></span>
-                </div>
-                <p class="command-desc">Zar at ve tahmin et! Alt/Ust 2x, Sayi 6x.</p>
-                <div class="command-usage">!dice ust 100 | !dice 6 50</div>
-              </div>
-              <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!crash <miktar></span>
-                </div>
-                <p class="command-desc">Carpan yukselirken dogru zamanda cik!</p>
-                <div class="command-usage">!crash 100</div>
-              </div>
-              <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!roulette <bahis> <miktar></span>
-                </div>
-                <p class="command-desc">Rulet oyna! Kirmizi, siyah, yesil veya sayi sec.</p>
-                <div class="command-usage">!rulet kirmizi 100 | !rulet 17 50</div>
-              </div>
-              <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!duel @kullanici <miktar></span>
-                </div>
-                <p class="command-desc">Baska bir oyuncuya coinflip duellosu yolla!</p>
-                <div class="command-usage">!duel @user 500</div>
-              </div>
-              <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!rps [miktar] veya !rps @kullanici [miktar]</span>
-                </div>
-                <p class="command-desc">Tas Kagit Makas oyna! Bot veya oyuncuya karsi.</p>
-                <div class="command-usage">!rps 100 | !rps @user 200</div>
-              </div>
-              <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!fish</span>
-                </div>
-                <p class="command-desc">Balik tut ve sat! Nadir baliklar daha degerli.</p>
-              </div>
-              <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!mine</span>
-                </div>
-                <p class="command-desc">Maden kaz ve degerli taslar bul!</p>
-              </div>
-              <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!hunt</span>
-                </div>
-                <p class="command-desc">Hayvan avla ve satarak para kazan!</p>
-              </div>
-              <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!rob @kullanici</span>
-                </div>
-                <p class="command-desc">Baska bir kullaniciyi soymaya calis! Riskli.</p>
-              </div>
-              <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!gamestats [@kullanici]</span>
-                </div>
-                <p class="command-desc">Oyun istatistiklerini goster.</p>
-              </div>
-              <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!gleaderboard</span>
-                </div>
-                <p class="command-desc">Oyun kazanc siralamasini goster.</p>
-              </div>
-              <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!jackpotinfo</span>
-                </div>
-                <p class="command-desc">Jackpot havuzu bilgisini goster.</p>
               </div>
             </div>
 
@@ -864,10 +695,10 @@
               </div>
               <div class="command-card">
                 <div class="command-header">
-                  <span class="command-name">!anket [soru] | [secenek1] | [secenek2]...</span>
+                  <span class="command-name">!anket "Soru" "Secenek1" "Secenek2"...</span>
                 </div>
                 <p class="command-desc">Anket olusturur (en fazla 10 secenek).</p>
-                <div class="command-usage">!anket En iyi renk? | Mavi | Kirmizi | Yesil</div>
+                <div class="command-usage">!anket "En iyi renk?" "Mavi" "Kirmizi" "Yesil"</div>
               </div>
               <div class="command-card">
                 <div class="command-header">
@@ -877,26 +708,23 @@
               </div>
               <div class="command-card">
                 <div class="command-header">
-                  <span class="command-name">!dogumgunu [gun] [ay]</span>
+                  <span class="command-name">!dogumgunu ayarla [gun] [ay]</span>
                 </div>
                 <p class="command-desc">Dogum gununuzu kaydedin.</p>
-                <div class="command-usage">!dogumgunu 15 6</div>
+                <div class="command-usage">!dogumgunu ayarla 15 6</div>
               </div>
               <div class="command-card">
                 <div class="command-header">
-                  <span class="command-name">!hatirlatici [sure] [mesaj]</span>
+                  <span class="command-name">!dogumgunu liste</span>
+                </div>
+                <p class="command-desc">Yaklasan dogum gunlerini listeler.</p>
+              </div>
+              <div class="command-card">
+                <div class="command-header">
+                  <span class="command-name">!hatırlat [sure] [mesaj]</span>
                 </div>
                 <p class="command-desc">Belirtilen sure sonra hatirlatma alirsiniz.</p>
-                <div class="command-usage">!hatirlatici 30m Toplantiya katil</div>
-              </div>
-              <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!embed [baslik] | [aciklama]</span>
-                </div>
-                <p class="command-desc">Ozellestirilmis embed mesaj olusturur.</p>
-                <div class="command-permissions">
-                  <span class="permission-badge">Manage Messages</span>
-                </div>
+                <div class="command-usage">!hatırlat 30m Toplantiya katil</div>
               </div>
             </div>
 
@@ -910,25 +738,7 @@
               </div>
               <div class="command-card">
                 <div class="command-header">
-                  <span class="command-name">!rolekle @kullanici @rol</span>
-                </div>
-                <p class="command-desc">Kullaniciya rol ekler.</p>
-                <div class="command-permissions">
-                  <span class="permission-badge">Manage Roles</span>
-                </div>
-              </div>
-              <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!rolcikar @kullanici @rol</span>
-                </div>
-                <p class="command-desc">Kullanicidan rol cikarir.</p>
-                <div class="command-permissions">
-                  <span class="permission-badge">Manage Roles</span>
-                </div>
-              </div>
-              <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!duyuru #kanal [mesaj]</span>
+                  <span class="command-name">!duyuru [#kanal] [mesaj]</span>
                 </div>
                 <p class="command-desc">Belirtilen kanala duyuru gonderir.</p>
                 <div class="command-permissions">
@@ -937,17 +747,26 @@
               </div>
               <div class="command-card">
                 <div class="command-header">
-                  <span class="command-name">!customcmd [isim] [cevap]</span>
+                  <span class="command-name">!embed basit/gelismis/alan</span>
+                </div>
+                <p class="command-desc">Ozellestirilmis embed mesaj olusturur.</p>
+                <div class="command-permissions">
+                  <span class="permission-badge">Manage Messages</span>
+                </div>
+              </div>
+              <div class="command-card">
+                <div class="command-header">
+                  <span class="command-name">!komutekle [komut] [yanit]</span>
                 </div>
                 <p class="command-desc">Ozel komut olusturur.</p>
-                <div class="command-usage">!customcmd merhaba Herkese merhaba!</div>
+                <div class="command-usage">!komutekle merhaba Herkese merhaba!</div>
                 <div class="command-permissions">
                   <span class="permission-badge">Manage Guild</span>
                 </div>
               </div>
               <div class="command-card">
                 <div class="command-header">
-                  <span class="command-name">!deletecmd [isim]</span>
+                  <span class="command-name">!komutsil [komut]</span>
                 </div>
                 <p class="command-desc">Ozel komutu siler.</p>
                 <div class="command-permissions">
@@ -956,24 +775,97 @@
               </div>
               <div class="command-card">
                 <div class="command-header">
-                  <span class="command-name">!listcmds</span>
+                  <span class="command-name">!komutlar</span>
                 </div>
                 <p class="command-desc">Tum ozel komutlari listeler.</p>
               </div>
+            </div>
+
+            <div class="category-section" id="social">
+              <div class="category-header">
+                <div class="category-icon social"><i class="fas fa-share-alt"></i></div>
+                <div>
+                  <h3>Sosyal Medya Bildirimleri</h3>
+                  <span>Twitch, YouTube, TikTok ve diger platformlar</span>
+                </div>
+              </div>
               <div class="command-card">
                 <div class="command-header">
-                  <span class="command-name">!social [platform] [kullanici]</span>
+                  <span class="command-name">!sosyal ekle [platform] [kullanici] #kanal [mesaj]</span>
                 </div>
-                <p class="command-desc">Sosyal medya bildirimlerini ayarlar.</p>
+                <p class="command-desc">Sosyal medya bildirimi ekler. Desteklenen platformlar: twitch, youtube, tiktok, twitter, instagram, rss</p>
+                <div class="command-usage">!sosyal ekle twitch ninja #bildirimler Yayin basladi!</div>
                 <div class="command-permissions">
                   <span class="permission-badge">Manage Guild</span>
                 </div>
               </div>
               <div class="command-card">
                 <div class="command-header">
-                  <span class="command-name">!ticket</span>
+                  <span class="command-name">!sosyal sil [id]</span>
                 </div>
-                <p class="command-desc">Yeni destek talebi olusturur.</p>
+                <p class="command-desc">Sosyal medya bildirimini siler.</p>
+                <div class="command-permissions">
+                  <span class="permission-badge">Manage Guild</span>
+                </div>
+              </div>
+              <div class="command-card">
+                <div class="command-header">
+                  <span class="command-name">!sosyal liste [platform]</span>
+                </div>
+                <p class="command-desc">Tum sosyal medya bildirimlerini listeler.</p>
+              </div>
+              <div class="command-card">
+                <div class="command-header">
+                  <span class="command-name">!sosyal toggle [id]</span>
+                </div>
+                <p class="command-desc">Bildirimi acar/kapatir.</p>
+                <div class="command-permissions">
+                  <span class="permission-badge">Manage Guild</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="category-section" id="schedule">
+              <div class="category-header">
+                <div class="category-icon schedule"><i class="fas fa-clock"></i></div>
+                <div>
+                  <h3>Zamanlanmis Mesajlar</h3>
+                  <span>Otomatik mesaj gonderme sistemi</span>
+                </div>
+              </div>
+              <div class="command-card">
+                <div class="command-header">
+                  <span class="command-name">!zamanli ekle #kanal [dakika] [mesaj]</span>
+                </div>
+                <p class="command-desc">Zamanlanmis mesaj ekler.</p>
+                <div class="command-usage">!zamanli ekle #genel 60 Her saat gonderilen mesaj</div>
+                <div class="command-permissions">
+                  <span class="permission-badge">Manage Guild</span>
+                </div>
+              </div>
+              <div class="command-card">
+                <div class="command-header">
+                  <span class="command-name">!zamanli sil [id]</span>
+                </div>
+                <p class="command-desc">Zamanlanmis mesaji siler.</p>
+                <div class="command-permissions">
+                  <span class="permission-badge">Manage Guild</span>
+                </div>
+              </div>
+              <div class="command-card">
+                <div class="command-header">
+                  <span class="command-name">!zamanli liste</span>
+                </div>
+                <p class="command-desc">Tum zamanlanmis mesajlari listeler.</p>
+              </div>
+              <div class="command-card">
+                <div class="command-header">
+                  <span class="command-name">!zamanli toggle [id]</span>
+                </div>
+                <p class="command-desc">Mesaji acar/kapatir.</p>
+                <div class="command-permissions">
+                  <span class="permission-badge">Manage Guild</span>
+                </div>
               </div>
             </div>
 
@@ -987,9 +879,9 @@
               </div>
               <div class="command-card">
                 <div class="command-header">
-                  <span class="command-name">!yardim [komut]</span>
+                  <span class="command-name">!yardim [kategori]</span>
                 </div>
-                <p class="command-desc">Komut listesini veya belirli komut hakkinda bilgi gosterir.</p>
+                <p class="command-desc">Komut listesini veya belirli kategori hakkinda bilgi gosterir.</p>
               </div>
               <div class="command-card">
                 <div class="command-header">
@@ -1017,15 +909,15 @@
               </div>
               <div class="command-card">
                 <div class="command-header">
-                  <span class="command-name">!davetler [@kullanici]</span>
+                  <span class="command-name">!davet [@kullanici]</span>
                 </div>
                 <p class="command-desc">Kullanicinin davet istatistiklerini gosterir.</p>
               </div>
               <div class="command-card">
                 <div class="command-header">
-                  <span class="command-name">!davet-siralama</span>
+                  <span class="command-name">!davet siralama</span>
                 </div>
-                <p class="command-desc">Davet siralamasini gosterir.</p>
+                <p class="command-desc">En cok davet eden kullanicilari listeler.</p>
               </div>
             </div>
 
@@ -1034,34 +926,35 @@
                 <div class="category-icon ai"><i class="fas fa-brain"></i></div>
                 <div>
                   <h3>Yapay Zeka</h3>
-                  <span>AI destekli komutlar</span>
+                  <span>GPT-4o ve DALL-E 3 destekli komutlar</span>
                 </div>
               </div>
               <div class="command-card">
                 <div class="command-header">
-                  <span class="command-name">!imagine [prompt]</span>
+                  <span class="command-name">@Publisher [mesaj]</span>
                 </div>
-                <p class="command-desc">Yapay zeka ile gorsel olusturur.</p>
-                <div class="command-usage">!imagine Uzayda bir astronot kedi</div>
+                <p class="command-desc">Botu etiketleyerek sohbet edin. Coklu dil destegi!</p>
+                <div class="command-usage">@Publisher Merhaba, nasilsin?</div>
               </div>
               <div class="command-card">
                 <div class="command-header">
-                  <span class="command-name">!analiz [metin]</span>
+                  <span class="command-name">!gorsel [aciklama]</span>
                 </div>
-                <p class="command-desc">Metni yapay zeka ile analiz eder.</p>
+                <p class="command-desc">DALL-E 3 ile gorsel olusturur.</p>
+                <div class="command-usage">!gorsel Uzayda bir astronot kedi</div>
               </div>
               <div class="command-card">
                 <div class="command-header">
-                  <span class="command-name">!ceviri [dil] [metin]</span>
+                  <span class="command-name">!analiz [soru]</span>
                 </div>
-                <p class="command-desc">Metni belirtilen dile cevirir.</p>
-                <div class="command-usage">!ceviri en Merhaba dunya</div>
+                <p class="command-desc">Gorselleri yapay zeka ile analiz eder. Bir gorsel ekleyerek veya yanit vererek kullanin.</p>
               </div>
               <div class="command-card">
                 <div class="command-header">
-                  <span class="command-name">!ara [sorgu]</span>
+                  <span class="command-name">!cevir [dil] [metin]</span>
                 </div>
-                <p class="command-desc">Web'de arama yapar.</p>
+                <p class="command-desc">Metni 20+ dile cevirir.</p>
+                <div class="command-usage">!cevir ingilizce Merhaba dunya</div>
               </div>
             </div>
 
@@ -1118,24 +1011,24 @@
     });
 
     categoryLinks.forEach(link => {
-      link.addEventListener('click', function(e) {
+      link.addEventListener('click', function() {
         categoryLinks.forEach(l => l.classList.remove('active'));
         this.classList.add('active');
       });
     });
 
     window.addEventListener('scroll', function() {
-      let current = '';
+      let currentSection = '';
       categorySections.forEach(section => {
-        const sectionTop = section.offsetTop - 150;
-        if (scrollY >= sectionTop) {
-          current = section.getAttribute('id');
+        const sectionTop = section.offsetTop;
+        if (window.pageYOffset >= sectionTop - 150) {
+          currentSection = section.getAttribute('id');
         }
       });
 
       categoryLinks.forEach(link => {
         link.classList.remove('active');
-        if (link.getAttribute('href') === '#' + current) {
+        if (link.getAttribute('href') === '#' + currentSection) {
           link.classList.add('active');
         }
       });
