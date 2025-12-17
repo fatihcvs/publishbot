@@ -61,7 +61,9 @@ client.once(Events.ClientReady, async () => {
   for (const guild of client.guilds.cache.values()) {
     try {
       const invites = await guild.invites.fetch();
-      client.invites.set(guild.id, new Collection(invites.map(inv => [inv.code, inv.uses])));
+      const inviteCache = new Collection();
+      invites.forEach(invite => inviteCache.set(invite.code, invite.uses || 0));
+      client.invites.set(guild.id, inviteCache);
     } catch (error) {
       console.log(`Davetler alınamadı: ${guild.name}`);
     }
@@ -96,7 +98,9 @@ client.on(Events.GuildMemberAdd, async (member) => {
       }
     }
     
-    client.invites.set(member.guild.id, new Collection(newInvites.map(inv => [inv.code, inv.uses])));
+    const updatedCache = new Collection();
+    newInvites.forEach(inv => updatedCache.set(inv.code, inv.uses || 0));
+    client.invites.set(member.guild.id, updatedCache);
     
     if (inviterId && inviterId !== member.id) {
       await storage.trackInvite(member.guild.id, member.id, inviterId, usedInviteCode);
