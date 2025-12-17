@@ -7,8 +7,13 @@ module.exports = {
   description: 'Lethe Game envanterini görüntüle',
   category: 'lethe',
   async execute(message, args, client, storage) {
-    const inventory = await letheStorage.getInventory(message.guild.id, message.author.id);
-    const profile = await letheStorage.getProfile(message.guild.id, message.author.id);
+    const guildData = await storage.getGuild(message.guild.id);
+    if (guildData?.modules && guildData.modules.economy === false) {
+      return message.reply('❌ Lethe Game bu sunucuda devre dışı.');
+    }
+    
+    const inventory = await letheStorage.getInventory(message.author.id);
+    const profile = await letheStorage.getProfile(message.author.id);
 
     const allWeapons = await letheStorage.getAllWeapons();
     const allArmors = await letheStorage.getAllArmors();

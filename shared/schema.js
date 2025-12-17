@@ -369,7 +369,6 @@ const letheAnimals = pgTable('lethe_animals', {
 
 const userAnimals = pgTable('user_animals', {
   id: serial('id').primaryKey(),
-  guildId: text('guild_id').notNull(),
   userId: text('user_id').notNull(),
   animalId: text('animal_id').notNull(),
   nickname: text('nickname'),
@@ -469,7 +468,6 @@ const letheBosses = pgTable('lethe_bosses', {
 
 const userLetheInventory = pgTable('user_lethe_inventory', {
   id: serial('id').primaryKey(),
-  guildId: text('guild_id').notNull(),
   visitorId: text('user_id').notNull(),
   itemType: text('item_type').notNull(),
   itemId: text('item_id').notNull(),
@@ -480,10 +478,10 @@ const userLetheInventory = pgTable('user_lethe_inventory', {
 
 const userLetheProfile = pgTable('user_lethe_profile', {
   id: serial('id').primaryKey(),
-  guildId: text('guild_id').notNull(),
-  visitorId: text('user_id').notNull(),
+  visitorId: text('user_id').notNull().unique(),
   level: integer('level').default(1),
   xp: integer('xp').default(0),
+  coins: integer('coins').default(0),
   totalHunts: integer('total_hunts').default(0),
   totalBattles: integer('total_battles').default(0),
   battlesWon: integer('battles_won').default(0),
@@ -510,7 +508,6 @@ const letheAchievements = pgTable('lethe_achievements', {
 
 const userLetheAchievements = pgTable('user_lethe_achievements', {
   id: serial('id').primaryKey(),
-  guildId: text('guild_id').notNull(),
   visitorId: text('user_id').notNull(),
   achievementId: text('achievement_id').notNull(),
   unlockedAt: timestamp('unlocked_at').defaultNow()
@@ -518,7 +515,6 @@ const userLetheAchievements = pgTable('user_lethe_achievements', {
 
 const letheBattles = pgTable('lethe_battles', {
   id: serial('id').primaryKey(),
-  guildId: text('guild_id').notNull(),
   visitorId: text('user_id').notNull(),
   opponentType: text('opponent_type').notNull(),
   opponentId: text('opponent_id'),

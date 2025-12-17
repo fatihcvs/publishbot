@@ -60,38 +60,36 @@ Güçlü ve tam donanımlı Discord moderasyon botu + Web Dashboard.
 - `!zamanlı liste` - Tüm zamanlanmış mesajları listeler
 - `!zamanlı toggle <id>` - Mesajı açar/kapatır
 
-### Ekonomi Sistemi
-- `!para` / `!bal` - Bakiye görüntüleme
-- `!günlük` - Günlük ödül alma
-- `!çalış` - Çalışarak para kazanma
-- `!banka yatır/çek <miktar>` - Banka işlemleri
-- `!mağaza ekle/sil/liste` - Mağaza yönetimi (admin)
-- `!satınal <ürün>` - Mağazadan ürün satın alma
+### Lethe Game (Global Hayvan Koleksiyon Oyunu)
 
-### Oyun Sistemi (Casino & PvP)
+**OwO bot benzeri global sistem:** Kullanıcı verileri tüm sunucularda paylaşılır. Her sunucu oyunu açıp kapatabilir ama veriler globaldir.
 
-**Casino Oyunları:**
-- `!coinflip <yazı/tura> <miktar>` - Yazı tura oyna (2x çarpan)
-- `!slots [miktar]` - Slot makinesi (2x-100x çarpan, jackpot!)
-- `!blackjack <miktar>` - Klasik 21 oyunu
-- `!dice <alt/üst/sayı> <miktar>` - Zar oyunu (2x veya 6x)
-- `!crash <miktar>` - Çarpan yükselirken doğru zamanda çık
-- `!roulette <bahis> <miktar>` - Rulet (kırmızı/siyah/yeşil/sayı)
+**Temel Komutlar:**
+- `!avla` / `!hunt` - Hayvan avla (15 saniye cooldown)
+- `!koleksiyon` - Yakaladığın hayvanları görüntüle
+- `!takım` - Savaş takımını görüntüle
+- `!takımekle <id>` - Takıma hayvan ekle (max 3)
+- `!takımçıkar <slot>` - Takımdan hayvan çıkar
+- `!profil [@kullanıcı]` - Oyun profilini görüntüle
 
-**PvP Oyunlar:**
-- `!duel @kullanıcı <miktar>` - Coinflip düellosu
-- `!rps [miktar]` - Taş Kağıt Makas (bot veya oyuncuya karşı)
+**Savaş Sistemi:**
+- `!savaş` - PvE savaşa gir
+- `!boss` - Boss savaşına katıl (3/3 takım gerekli)
+- `!düello @kullanıcı` - PvP düello yap
 
-**Kaynak Toplama:**
-- `!fish` / `!balık` - Balık tutma (nadir balıklar daha değerli)
-- `!mine` / `!maden` - Maden kazma (elmas, yakut vb.)
-- `!hunt` / `!av` - Hayvan avcılığı
+**Ekipman ve Mağaza:**
+- `!lethemağaza [kategori]` - Mağazayı görüntüle
+- `!letheal <kategori> <id>` - Eşya satın al
+- `!letheenv` - Envanteri görüntüle
+- `!kuşan <kategori> <id>` - Eşya kuşan
+- `!sandık [aç <id>]` - Sandık aç
 
 **Diğer:**
-- `!rob @kullanıcı` - Soygun (riskli!)
-- `!gamestats [@kullanıcı]` - Oyun istatistikleri
-- `!gleaderboard` - Oyun sıralaması
-- `!jackpotinfo` - Jackpot havuzu bilgisi
+- `!hayvansatver <id>` - Hayvan sat
+
+**Nadirlik Seviyeleri:** Common (58%), Uncommon (25%), Rare (10%), Epic (5%), Legendary (1.5%), Mythic (0.4%), Hidden (0.1%)
+
+**103 Hayvan, 5 Boss, Ekipman ve Başarım Sistemi**
 
 ### Doğum Günü Sistemi
 - `!doğumgünü ayarla <gün> <ay>` - Doğum gününü kaydetme
@@ -144,7 +142,7 @@ Dashboard özellikleri:
 - Otomatik ceza kuralları
 - Özel komut yönetimi
 - Sosyal medya bildirimleri
-- Ekonomi ayarları
+- Lethe Game açma/kapama
 - Moderasyon log görüntüleyici
 
 Dashboard için gereken environment variables:
@@ -159,11 +157,14 @@ Dashboard için gereken environment variables:
 │   ├── index.js          # Discord bot
 │   ├── commands/         # Bot komutları
 │   │   ├── moderation/   # Moderasyon komutları
-│   │   ├── economy.js    # Ekonomi sistemi
+│   │   ├── avla.js       # Lethe Game - Hayvan avlama
 │   │   ├── birthday.js   # Doğum günü sistemi
 │   │   ├── social.js     # Sosyal medya bildirimleri
 │   │   ├── poll.js       # Anket sistemi
 │   │   └── embed.js      # Embed oluşturucu
+│   ├── lethe/            # Lethe Game modülü
+│   │   ├── letheStorage.js  # Global oyun veritabanı işlemleri
+│   │   └── seedData.js   # Hayvan ve eşya verileri
 │   ├── modules/          # AutoMod, AutoPunish, Scheduler
 │   ├── database/         # Storage layer (PostgreSQL/JSON fallback)
 │   └── web/              # Express web server

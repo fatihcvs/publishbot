@@ -7,13 +7,18 @@ module.exports = {
   description: 'Takımına hayvan ekle',
   category: 'lethe',
   async execute(message, args, client, storage) {
+    const guildData = await storage.getGuild(message.guild.id);
+    if (guildData?.modules && guildData.modules.economy === false) {
+      return message.reply('❌ Lethe Game bu sunucuda devre dışı.');
+    }
+    
     const animalId = parseInt(args[0]);
 
     if (!animalId) {
       return message.reply('❌ Kullanım: `!takımekle <hayvan_id>`\nHayvan ID\'lerini görmek için: `!koleksiyon`');
     }
 
-    const result = await letheStorage.addToTeam(message.guild.id, message.author.id, animalId);
+    const result = await letheStorage.addToTeam(message.author.id, animalId);
 
     if (!result.success) {
       const errorMessages = {

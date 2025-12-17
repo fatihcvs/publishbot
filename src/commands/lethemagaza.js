@@ -25,6 +25,11 @@ module.exports = {
   description: 'Lethe Game mağazasını aç',
   category: 'lethe',
   async execute(message, args, client, storage) {
+    const guildData = await storage.getGuild(message.guild.id);
+    if (guildData?.modules && guildData.modules.economy === false) {
+      return message.reply('❌ Lethe Game bu sunucuda devre dışı.');
+    }
+    
     const category = args[0]?.toLowerCase() || 'silahlar';
 
     let items = [];

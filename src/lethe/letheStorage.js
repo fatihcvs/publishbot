@@ -2,9 +2,9 @@ const { db } = require('../database/db');
 const { 
   letheAnimals, userAnimals, letheWeapons, letheArmors, letheAccessories,
   letheConsumables, letheBaits, letheCrates, letheBosses, userLetheInventory,
-  userLetheProfile, letheAchievements, userLetheAchievements, letheBattles, userEconomy
+  userLetheProfile, letheAchievements, userLetheAchievements, letheBattles
 } = require('../../shared/schema');
-const { eq, and, sql } = require('drizzle-orm');
+const { eq, sql } = require('drizzle-orm');
 const seedData = require('./seedData');
 
 const rarityChances = {
@@ -59,45 +59,30 @@ async function seedDatabase() {
   }
 }
 
-async function getOrCreateProfile(guildId, visitorId) {
+async function getOrCreateProfile(userId) {
   let profile = await db.select().from(userLetheProfile)
-    .where(and(eq(userLetheProfile.guildId, guildId), eq(userLetheProfile.visitorId, visitorId)))
+    .where(eq(userLetheProfile.visitorId, userId))
     .limit(1);
 
   if (profile.length === 0) {
-    await db.insert(userLetheProfile).values({ guildId, visitorId });
+    await db.insert(userLetheProfile).values({ visitorId: userId });
     profile = await db.select().from(userLetheProfile)
-      .where(and(eq(userLetheProfile.guildId, guildId), eq(userLetheProfile.visitorId, visitorId)))
+      .where(eq(userLetheProfile.visitorId, userId))
       .limit(1);
   }
 
   return profile[0];
 }
 
-async function ensureEconomy(guildId, userId) {
-  let economy = await db.select().from(userEconomy)
-    .where(and(eq(userEconomy.guildId, guildId), eq(userEconomy.userId, userId)))
-    .limit(1);
-
-  if (economy.length === 0) {
-    await db.insert(userEconomy).values({ guildId, userId, balance: 0, bank: 0 });
-    economy = await db.select().from(userEconomy)
-      .where(and(eq(userEconomy.guildId, guildId), eq(userEconomy.userId, userId)))
-      .limit(1);
-  }
-
-  return economy[0];
+async function addCoins(userId, amount) {
+  await getOrCreateProfile(userId);
+  await db.update(userLetheProfile)
+    .set({ coins: sql`${userLetheProfile.coins} + ${amount}` })
+    .where(eq(userLetheProfile.visitorId, userId));
 }
 
-async function addMoney(guildId, userId, amount) {
-  await ensureEconomy(guildId, userId);
-  await db.update(userEconomy)
-    .set({ balance: sql`${userEconomy.balance} + ${amount}` })
-    .where(and(eq(userEconomy.guildId, guildId), eq(userEconomy.userId, userId)));
-}
-
-async function addBattleReward(guildId, userId, xpAmount, moneyAmount, won, isBoss = false) {
-  await getOrCreateProfile(guildId, userId);
+async function addBattleReward(userId, xpAmount, moneyAmount, won, isBoss = false) {
+  await getOrCreateProfile(userId);
   
   const updateData = {
     totalBattles: sql`${userLetheProfile.totalBattles} + 1`,
@@ -114,17 +99,17 @@ async function addBattleReward(guildId, userId, xpAmount, moneyAmount, won, isBo
   
   await db.update(userLetheProfile)
     .set(updateData)
-    .where(and(eq(userLetheProfile.guildId, guildId), eq(userLetheProfile.visitorId, userId)));
+    .where(eq(userLetheProfile.visitorId, userId));
 
   if (moneyAmount > 0) {
-    await addMoney(guildId, userId, moneyAmount);
+    await addCoins(userId, moneyAmount);
   }
 
-  await checkLevelUp(guildId, userId);
+  await checkLevelUp(userId);
 }
 
-async function checkLevelUp(guildId, userId) {
-  const profile = await getOrCreateProfile(guildId, userId);
+async function checkLevelUp(userId) {
+  const profile = await getOrCreateProfile(userId);
   const xpNeeded = profile.level * 100;
   
   if (profile.xp >= xpNeeded) {
@@ -133,15 +118,15 @@ async function checkLevelUp(guildId, userId) {
         level: sql`${userLetheProfile.level} + 1`,
         xp: sql`${userLetheProfile.xp} - ${xpNeeded}`
       })
-      .where(and(eq(userLetheProfile.guildId, guildId), eq(userLetheProfile.visitorId, userId)));
+      .where(eq(userLetheProfile.visitorId, userId));
     return true;
   }
   return false;
 }
 
-async function getTeamWithEquipment(guildId, userId) {
-  const team = await getTeam(guildId, userId);
-  const profile = await getOrCreateProfile(guildId, userId);
+async function getTeamWithEquipment(userId) {
+  const team = await getTeam(userId);
+  const profile = await getOrCreateProfile(userId);
   
   let weaponBonus = { damage: 0 };
   let armorBonus = { defense: 0 };
@@ -187,8 +172,8 @@ async function getTeamWithEquipment(guildId, userId) {
   return { team, stats: baseStats, weapon: weaponBonus, armor: armorBonus, accessory: accessoryBonus };
 }
 
-async function huntAnimal(guildId, visitorId) {
-  const profile = await getOrCreateProfile(guildId, visitorId);
+async function huntAnimal(userId) {
+  const profile = await getOrCreateProfile(userId);
   
   const huntCooldown = 15000;
   if (profile.lastHunt) {
@@ -220,8 +205,7 @@ async function huntAnimal(guildId, visitorId) {
   const caughtAnimal = animalsOfRarity[Math.floor(Math.random() * animalsOfRarity.length)];
 
   await db.insert(userAnimals).values({
-    guildId,
-    userId: visitorId,
+    userId,
     animalId: caughtAnimal.animalId,
     hp: caughtAnimal.baseHp,
     str: caughtAnimal.baseStr,
@@ -235,37 +219,33 @@ async function huntAnimal(guildId, visitorId) {
       xp: sql`${userLetheProfile.xp} + ${caughtAnimal.xpReward}`,
       lastHunt: new Date()
     })
-    .where(and(eq(userLetheProfile.guildId, guildId), eq(userLetheProfile.visitorId, visitorId)));
+    .where(eq(userLetheProfile.visitorId, userId));
 
   return { success: true, animal: caughtAnimal };
 }
 
-async function getUserAnimals(guildId, visitorId) {
+async function getUserAnimals(userId) {
   return await db.select({
     userAnimal: userAnimals,
     animalInfo: letheAnimals
   })
   .from(userAnimals)
   .leftJoin(letheAnimals, eq(userAnimals.animalId, letheAnimals.animalId))
-  .where(and(eq(userAnimals.guildId, guildId), eq(userAnimals.userId, visitorId)))
+  .where(eq(userAnimals.userId, userId))
   .orderBy(userAnimals.caughtAt);
 }
 
-async function sellAnimal(guildId, visitorId, userAnimalId) {
+async function sellAnimal(userId, userAnimalId) {
   const animal = await db.select({
     userAnimal: userAnimals,
     animalInfo: letheAnimals
   })
   .from(userAnimals)
   .leftJoin(letheAnimals, eq(userAnimals.animalId, letheAnimals.animalId))
-  .where(and(
-    eq(userAnimals.id, userAnimalId),
-    eq(userAnimals.guildId, guildId),
-    eq(userAnimals.userId, visitorId)
-  ))
+  .where(eq(userAnimals.id, userAnimalId))
   .limit(1);
 
-  if (animal.length === 0) {
+  if (animal.length === 0 || animal[0].userAnimal.userId !== userId) {
     return { success: false, error: 'Animal not found' };
   }
 
@@ -277,55 +257,48 @@ async function sellAnimal(guildId, visitorId, userAnimalId) {
 
   await db.delete(userAnimals).where(eq(userAnimals.id, userAnimalId));
   
-  await addMoney(guildId, visitorId, sellPrice);
+  await addCoins(userId, sellPrice);
 
   return { success: true, animal: animal[0].animalInfo, price: sellPrice };
 }
 
-async function getTeam(guildId, visitorId) {
+async function getTeam(userId) {
   return await db.select({
     userAnimal: userAnimals,
     animalInfo: letheAnimals
   })
   .from(userAnimals)
   .leftJoin(letheAnimals, eq(userAnimals.animalId, letheAnimals.animalId))
-  .where(and(
-    eq(userAnimals.guildId, guildId),
-    eq(userAnimals.userId, visitorId),
-    eq(userAnimals.isInTeam, true)
-  ))
+  .where(eq(userAnimals.userId, userId))
   .orderBy(userAnimals.teamSlot);
 }
 
-async function addToTeam(guildId, visitorId, userAnimalId) {
-  const team = await getTeam(guildId, visitorId);
+async function addToTeam(userId, userAnimalId) {
+  const team = await db.select().from(userAnimals)
+    .where(eq(userAnimals.userId, userId));
   
-  if (team.length >= 3) {
+  const inTeam = team.filter(a => a.isInTeam);
+  
+  if (inTeam.length >= 3) {
     return { success: false, error: 'Team is full (max 3)' };
   }
 
-  const animal = await db.select().from(userAnimals)
-    .where(and(
-      eq(userAnimals.id, userAnimalId),
-      eq(userAnimals.guildId, guildId),
-      eq(userAnimals.userId, visitorId)
-    ))
-    .limit(1);
+  const animal = team.find(a => a.id === userAnimalId);
 
-  if (animal.length === 0) {
+  if (!animal) {
     return { success: false, error: 'Animal not found' };
   }
 
-  if (animal[0].isInTeam) {
+  if (animal.isInTeam) {
     return { success: false, error: 'Animal already in team' };
   }
 
-  const existingAnimalType = team.find(t => t.userAnimal.animalId === animal[0].animalId);
+  const existingAnimalType = inTeam.find(t => t.animalId === animal.animalId);
   if (existingAnimalType) {
     return { success: false, error: 'Cannot have duplicate animal types in team' };
   }
 
-  const usedSlots = team.map(t => t.userAnimal.teamSlot);
+  const usedSlots = inTeam.map(t => t.teamSlot);
   let nextSlot = 1;
   for (let i = 1; i <= 3; i++) {
     if (!usedSlots.includes(i)) {
@@ -341,37 +314,29 @@ async function addToTeam(guildId, visitorId, userAnimalId) {
   return { success: true, slot: nextSlot };
 }
 
-async function removeFromTeam(guildId, visitorId, slot) {
-  const animal = await db.select().from(userAnimals)
-    .where(and(
-      eq(userAnimals.guildId, guildId),
-      eq(userAnimals.userId, visitorId),
-      eq(userAnimals.teamSlot, slot),
-      eq(userAnimals.isInTeam, true)
-    ))
-    .limit(1);
+async function removeFromTeam(userId, slot) {
+  const animals = await db.select().from(userAnimals)
+    .where(eq(userAnimals.userId, userId));
+  
+  const animal = animals.find(a => a.teamSlot === slot && a.isInTeam);
 
-  if (animal.length === 0) {
+  if (!animal) {
     return { success: false, error: 'No animal in that slot' };
   }
 
   await db.update(userAnimals)
     .set({ isInTeam: false, teamSlot: null })
-    .where(eq(userAnimals.id, animal[0].id));
+    .where(eq(userAnimals.id, animal.id));
 
   return { success: true };
 }
 
-async function renameAnimal(guildId, visitorId, userAnimalId, nickname) {
-  const animal = await db.select().from(userAnimals)
-    .where(and(
-      eq(userAnimals.id, userAnimalId),
-      eq(userAnimals.guildId, guildId),
-      eq(userAnimals.userId, visitorId)
-    ))
+async function renameAnimal(userId, userAnimalId, nickname) {
+  const animals = await db.select().from(userAnimals)
+    .where(eq(userAnimals.id, userAnimalId))
     .limit(1);
 
-  if (animal.length === 0) {
+  if (animals.length === 0 || animals[0].userId !== userId) {
     return { success: false, error: 'Animal not found' };
   }
 
@@ -382,8 +347,8 @@ async function renameAnimal(guildId, visitorId, userAnimalId, nickname) {
   return { success: true };
 }
 
-async function getProfile(guildId, visitorId) {
-  return await getOrCreateProfile(guildId, visitorId);
+async function getProfile(userId) {
+  return await getOrCreateProfile(userId);
 }
 
 async function getAllAnimals() {
@@ -406,12 +371,12 @@ async function getAllConsumables() {
   return await db.select().from(letheConsumables);
 }
 
-async function getInventory(guildId, visitorId) {
+async function getInventory(userId) {
   return await db.select().from(userLetheInventory)
-    .where(and(eq(userLetheInventory.guildId, guildId), eq(userLetheInventory.visitorId, visitorId)));
+    .where(eq(userLetheInventory.visitorId, userId));
 }
 
-async function buyItem(guildId, visitorId, itemType, itemId) {
+async function buyItem(userId, itemType, itemId) {
   let item;
   switch (itemType) {
     case 'weapon':
@@ -442,31 +407,27 @@ async function buyItem(guildId, visitorId, itemType, itemId) {
     return { success: false, error: 'Item not found' };
   }
 
-  const economy = await ensureEconomy(guildId, visitorId);
+  const profile = await getOrCreateProfile(userId);
 
-  if (economy.balance < item.price) {
-    return { success: false, error: 'Not enough money' };
+  if (profile.coins < item.price) {
+    return { success: false, error: 'Not enough coins' };
   }
 
-  await addMoney(guildId, visitorId, -item.price);
+  await addCoins(userId, -item.price);
 
   const existingItem = await db.select().from(userLetheInventory)
-    .where(and(
-      eq(userLetheInventory.guildId, guildId),
-      eq(userLetheInventory.visitorId, visitorId),
-      eq(userLetheInventory.itemType, itemType),
-      eq(userLetheInventory.itemId, itemId)
-    ))
+    .where(eq(userLetheInventory.visitorId, userId))
     .limit(1);
 
-  if (existingItem.length > 0) {
+  const matchingItem = existingItem.find(i => i.itemType === itemType && i.itemId === itemId);
+
+  if (matchingItem) {
     await db.update(userLetheInventory)
       .set({ quantity: sql`${userLetheInventory.quantity} + 1` })
-      .where(eq(userLetheInventory.id, existingItem[0].id));
+      .where(eq(userLetheInventory.id, matchingItem.id));
   } else {
     await db.insert(userLetheInventory).values({
-      guildId,
-      visitorId,
+      visitorId: userId,
       itemType,
       itemId,
       quantity: 1
@@ -476,19 +437,15 @@ async function buyItem(guildId, visitorId, itemType, itemId) {
   return { success: true, item, price: item.price };
 }
 
-async function equipItem(guildId, visitorId, itemType, itemId) {
-  const profile = await getOrCreateProfile(guildId, visitorId);
+async function equipItem(userId, itemType, itemId) {
+  const profile = await getOrCreateProfile(userId);
   
-  const inventoryItem = await db.select().from(userLetheInventory)
-    .where(and(
-      eq(userLetheInventory.guildId, guildId),
-      eq(userLetheInventory.visitorId, visitorId),
-      eq(userLetheInventory.itemType, itemType),
-      eq(userLetheInventory.itemId, itemId)
-    ))
-    .limit(1);
+  const inventoryItems = await db.select().from(userLetheInventory)
+    .where(eq(userLetheInventory.visitorId, userId));
 
-  if (inventoryItem.length === 0) {
+  const inventoryItem = inventoryItems.find(i => i.itemType === itemType && i.itemId === itemId);
+
+  if (!inventoryItem) {
     return { success: false, error: 'Item not in inventory' };
   }
 
@@ -509,35 +466,30 @@ async function equipItem(guildId, visitorId, itemType, itemId) {
 
   await db.update(userLetheProfile)
     .set(updateData)
-    .where(and(eq(userLetheProfile.guildId, guildId), eq(userLetheProfile.visitorId, visitorId)));
+    .where(eq(userLetheProfile.visitorId, userId));
 
   return { success: true };
 }
 
-async function getUserAchievements(guildId, visitorId) {
+async function getUserAchievements(userId) {
   return await db.select({
     userAchievement: userLetheAchievements,
     achievementInfo: letheAchievements
   })
   .from(userLetheAchievements)
   .leftJoin(letheAchievements, eq(userLetheAchievements.achievementId, letheAchievements.achievementId))
-  .where(and(eq(userLetheAchievements.guildId, guildId), eq(userLetheAchievements.visitorId, visitorId)));
+  .where(eq(userLetheAchievements.visitorId, userId));
 }
 
 async function getAllAchievements() {
   return await db.select().from(letheAchievements);
 }
 
-async function grantAchievement(guildId, visitorId, achievementId) {
+async function grantAchievement(userId, achievementId) {
   const existing = await db.select().from(userLetheAchievements)
-    .where(and(
-      eq(userLetheAchievements.guildId, guildId),
-      eq(userLetheAchievements.visitorId, visitorId),
-      eq(userLetheAchievements.achievementId, achievementId)
-    ))
-    .limit(1);
+    .where(eq(userLetheAchievements.visitorId, userId));
 
-  if (existing.length > 0) {
+  if (existing.find(a => a.achievementId === achievementId)) {
     return { success: false, alreadyHas: true };
   }
 
@@ -550,24 +502,22 @@ async function grantAchievement(guildId, visitorId, achievementId) {
   }
 
   await db.insert(userLetheAchievements).values({
-    guildId,
-    visitorId,
+    visitorId: userId,
     achievementId
   });
 
   if (achievement[0].rewardMoney > 0) {
-    await addMoney(guildId, visitorId, achievement[0].rewardMoney);
+    await addCoins(userId, achievement[0].rewardMoney);
   }
 
   return { success: true, achievement: achievement[0] };
 }
 
-async function checkAndGrantAchievements(guildId, visitorId) {
-  const profile = await getOrCreateProfile(guildId, visitorId);
-  const economy = await ensureEconomy(guildId, visitorId);
-  const userAnimalsData = await getUserAnimals(guildId, visitorId);
+async function checkAndGrantAchievements(userId) {
+  const profile = await getOrCreateProfile(userId);
+  const userAnimalsData = await getUserAnimals(userId);
   const achievements = await getAllAchievements();
-  const userAchievementsData = await getUserAchievements(guildId, visitorId);
+  const userAchievementsData = await getUserAchievements(userId);
   
   const earnedIds = new Set(userAchievementsData.map(a => a.userAchievement.achievementId));
   const newAchievements = [];
@@ -588,7 +538,7 @@ async function checkAndGrantAchievements(guildId, visitorId) {
         earned = profile.bossesKilled >= achievement.requirementValue;
         break;
       case 'balance':
-        earned = economy.balance >= achievement.requirementValue;
+        earned = profile.coins >= achievement.requirementValue;
         break;
       case 'collection':
         const rarities = new Set(userAnimalsData.map(a => a.animalInfo?.rarity).filter(Boolean));
@@ -597,7 +547,7 @@ async function checkAndGrantAchievements(guildId, visitorId) {
     }
 
     if (earned) {
-      const result = await grantAchievement(guildId, visitorId, achievement.achievementId);
+      const result = await grantAchievement(userId, achievement.achievementId);
       if (result.success) {
         newAchievements.push(achievement);
       }
@@ -626,8 +576,7 @@ module.exports = {
   buyItem,
   equipItem,
   getOrCreateProfile,
-  ensureEconomy,
-  addMoney,
+  addCoins,
   addBattleReward,
   checkLevelUp,
   getTeamWithEquipment,

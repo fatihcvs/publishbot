@@ -7,10 +7,15 @@ module.exports = {
   description: 'Boss savaşına katıl',
   category: 'lethe',
   async execute(message, args, client, storage) {
+    const guildData = await storage.getGuild(message.guild.id);
+    if (guildData?.modules && guildData.modules.economy === false) {
+      return message.reply('❌ Lethe Game bu sunucuda devre dışı.');
+    }
+    
     const { db } = require('../database/db');
     const { letheBosses } = require('../../shared/schema');
 
-    const teamData = await letheStorage.getTeamWithEquipment(message.guild.id, message.author.id);
+    const teamData = await letheStorage.getTeamWithEquipment(message.author.id);
 
     if (teamData.team.length < 3) {
       return message.reply('❌ Boss savaşı için tam takım gerekli! (3/3 hayvan)');
@@ -22,7 +27,7 @@ module.exports = {
       return message.reply('❌ Henüz boss tanımlanmamış!');
     }
 
-    const profile = await letheStorage.getProfile(message.guild.id, message.author.id);
+    const profile = await letheStorage.getProfile(message.author.id);
     
     const availableBosses = bosses.filter(b => {
       if (b.bossId === 'young_dragon') return true;
@@ -60,7 +65,7 @@ module.exports = {
     const xpReward = won ? boss.rewardMoney / 10 : 20;
     const moneyReward = won ? boss.rewardMoney : 0;
 
-    await letheStorage.addBattleReward(message.guild.id, message.author.id, xpReward, moneyReward, won, true);
+    await letheStorage.addBattleReward(message.author.id, xpReward, moneyReward, won, true);
 
     const lastLogs = battleLog.slice(-8).join('\n');
 

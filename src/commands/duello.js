@@ -7,6 +7,11 @@ module.exports = {
   description: 'Başka bir kullanıcıyla düello yap',
   category: 'lethe',
   async execute(message, args, client, storage) {
+    const guildData = await storage.getGuild(message.guild.id);
+    if (guildData?.modules && guildData.modules.economy === false) {
+      return message.reply('❌ Lethe Game bu sunucuda devre dışı.');
+    }
+    
     const opponent = message.mentions.users.first();
 
     if (!opponent) {
@@ -21,8 +26,8 @@ module.exports = {
       return message.reply('❌ Botlarla düello yapamazsın! PvE için `!savaş` kullan.');
     }
 
-    const challengerData = await letheStorage.getTeamWithEquipment(message.guild.id, message.author.id);
-    const opponentData = await letheStorage.getTeamWithEquipment(message.guild.id, opponent.id);
+    const challengerData = await letheStorage.getTeamWithEquipment(message.author.id);
+    const opponentData = await letheStorage.getTeamWithEquipment(opponent.id);
 
     if (challengerData.team.length === 0) {
       return message.reply('❌ Takımın boş! Önce `!takımekle` ile hayvan ekle.');

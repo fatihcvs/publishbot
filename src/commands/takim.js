@@ -27,7 +27,12 @@ module.exports = {
   description: 'Savaş takımını görüntüle',
   category: 'lethe',
   async execute(message, args, client, storage) {
-    const team = await letheStorage.getTeam(message.guild.id, message.author.id);
+    const guildData = await storage.getGuild(message.guild.id);
+    if (guildData?.modules && guildData.modules.economy === false) {
+      return message.reply('❌ Lethe Game bu sunucuda devre dışı.');
+    }
+    
+    const team = await letheStorage.getTeam(message.author.id);
 
     const embed = new EmbedBuilder()
       .setColor('#8b5cf6')

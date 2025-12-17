@@ -7,13 +7,18 @@ module.exports = {
   description: 'Takımından hayvan çıkar',
   category: 'lethe',
   async execute(message, args, client, storage) {
+    const guildData = await storage.getGuild(message.guild.id);
+    if (guildData?.modules && guildData.modules.economy === false) {
+      return message.reply('❌ Lethe Game bu sunucuda devre dışı.');
+    }
+    
     const slot = parseInt(args[0]);
 
     if (!slot || slot < 1 || slot > 3) {
       return message.reply('❌ Kullanım: `!takımçıkar <slot>` (1-3 arası)');
     }
 
-    const result = await letheStorage.removeFromTeam(message.guild.id, message.author.id, slot);
+    const result = await letheStorage.removeFromTeam(message.author.id, slot);
 
     if (!result.success) {
       return message.reply('❌ Bu slotta hayvan yok!');

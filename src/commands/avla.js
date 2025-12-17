@@ -32,7 +32,7 @@ module.exports = {
       return message.reply('❌ Lethe Game bu sunucuda devre dışı.');
     }
     
-    const result = await letheStorage.huntAnimal(message.guild.id, message.author.id);
+    const result = await letheStorage.huntAnimal(message.author.id);
 
     if (!result.success) {
       if (result.cooldown) {

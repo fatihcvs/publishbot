@@ -7,11 +7,16 @@ module.exports = {
   description: 'Lethe Game profilini görüntüle',
   category: 'lethe',
   async execute(message, args, client, storage) {
+    const guildData = await storage.getGuild(message.guild.id);
+    if (guildData?.modules && guildData.modules.economy === false) {
+      return message.reply('❌ Lethe Game bu sunucuda devre dışı.');
+    }
+    
     const user = message.mentions.users.first() || message.author;
     
-    const profile = await letheStorage.getProfile(message.guild.id, user.id);
-    const team = await letheStorage.getTeam(message.guild.id, user.id);
-    const animals = await letheStorage.getUserAnimals(message.guild.id, user.id);
+    const profile = await letheStorage.getProfile(user.id);
+    const team = await letheStorage.getTeam(user.id);
+    const animals = await letheStorage.getUserAnimals(user.id);
 
     const levelXp = profile.level * 100;
     const progress = Math.min(100, Math.round((profile.xp / levelXp) * 100));

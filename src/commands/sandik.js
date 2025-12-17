@@ -7,9 +7,14 @@ module.exports = {
   description: 'Sandıkları görüntüle veya aç',
   category: 'lethe',
   async execute(message, args, client, storage) {
+    const guildData = await storage.getGuild(message.guild.id);
+    if (guildData?.modules && guildData.modules.economy === false) {
+      return message.reply('❌ Lethe Game bu sunucuda devre dışı.');
+    }
+    
     const { db } = require('../database/db');
     const { letheCrates, userLetheInventory, letheWeapons, letheArmors, letheAccessories } = require('../../shared/schema');
-    const { eq, and, sql } = require('drizzle-orm');
+    const { eq, sql } = require('drizzle-orm');
 
     const crates = await db.select().from(letheCrates);
     const subCommand = args[0]?.toLowerCase();
@@ -43,13 +48,13 @@ module.exports = {
         return message.reply('❌ Bu sandık bulunamadı!');
       }
 
-      const economy = await letheStorage.ensureEconomy(message.guild.id, message.author.id);
+      const profile = await letheStorage.getProfile(message.author.id);
 
-      if (economy.balance < crate.price) {
+      if (profile.coins < crate.price) {
         return message.reply(`❌ Yeterli paran yok! Gereken: 💰 ${crate.price}`);
       }
 
-      await letheStorage.addMoney(message.guild.id, message.author.id, -crate.price);
+      await letheStorage.addCoins(message.author.id, -crate.price);
 
       const rarityOrder = ['common', 'uncommon', 'rare', 'epic', 'legendary', 'mythic', 'hidden'];
       const minIndex = rarityOrder.indexOf(crate.minRarity);
@@ -97,22 +102,17 @@ module.exports = {
 
       const wonItem = items[Math.floor(Math.random() * items.length)];
 
-      const existingItem = await db.select().from(userLetheInventory)
-        .where(and(
-          eq(userLetheInventory.guildId, message.guild.id),
-          eq(userLetheInventory.visitorId, message.author.id),
-          eq(userLetheInventory.itemType, selectedType),
-          eq(userLetheInventory.itemId, wonItem[itemIdField])
-        ))
-        .limit(1);
+      const existingItems = await db.select().from(userLetheInventory)
+        .where(eq(userLetheInventory.visitorId, message.author.id));
+      
+      const existingItem = existingItems.find(i => i.itemType === selectedType && i.itemId === wonItem[itemIdField]);
 
-      if (existingItem.length > 0) {
+      if (existingItem) {
         await db.update(userLetheInventory)
           .set({ quantity: sql`${userLetheInventory.quantity} + 1` })
-          .where(eq(userLetheInventory.id, existingItem[0].id));
+          .where(eq(userLetheInventory.id, existingItem.id));
       } else {
         await db.insert(userLetheInventory).values({
-          guildId: message.guild.id,
           visitorId: message.author.id,
           itemType: selectedType,
           itemId: wonItem[itemIdField],

@@ -7,7 +7,12 @@ module.exports = {
   description: 'Takımınla savaşa gir',
   category: 'lethe',
   async execute(message, args, client, storage) {
-    const teamData = await letheStorage.getTeamWithEquipment(message.guild.id, message.author.id);
+    const guildData = await storage.getGuild(message.guild.id);
+    if (guildData?.modules && guildData.modules.economy === false) {
+      return message.reply('❌ Lethe Game bu sunucuda devre dışı.');
+    }
+    
+    const teamData = await letheStorage.getTeamWithEquipment(message.author.id);
 
     if (teamData.team.length === 0) {
       return message.reply('❌ Takımın boş! Önce `!takımekle` ile hayvan ekle.');
@@ -15,7 +20,7 @@ module.exports = {
 
     const userStats = teamData.stats;
 
-    const profile = await letheStorage.getProfile(message.guild.id, message.author.id);
+    const profile = await letheStorage.getProfile(message.author.id);
     const difficultyMultiplier = 1 + (profile.level * 0.1);
 
     const enemy = {
@@ -49,7 +54,7 @@ module.exports = {
     const xpReward = won ? Math.floor(30 + Math.random() * 20) : 10;
     const moneyReward = won ? Math.floor(50 + Math.random() * 50) : 0;
 
-    await letheStorage.addBattleReward(message.guild.id, message.author.id, xpReward, moneyReward, won);
+    await letheStorage.addBattleReward(message.author.id, xpReward, moneyReward, won);
 
     const lastLogs = battleLog.slice(-6).join('\n');
 

@@ -7,6 +7,11 @@ module.exports = {
   description: 'Eşya kuşan',
   category: 'lethe',
   async execute(message, args, client, storage) {
+    const guildData = await storage.getGuild(message.guild.id);
+    if (guildData?.modules && guildData.modules.economy === false) {
+      return message.reply('❌ Lethe Game bu sunucuda devre dışı.');
+    }
+    
     const itemType = args[0]?.toLowerCase();
     const itemId = args[1];
 
@@ -31,7 +36,7 @@ module.exports = {
       return message.reply('❌ Geçersiz kategori! Kullanılabilir: weapon, armor, accessory');
     }
 
-    const result = await letheStorage.equipItem(message.guild.id, message.author.id, mappedType, itemId);
+    const result = await letheStorage.equipItem(message.author.id, mappedType, itemId);
 
     if (!result.success) {
       const errorMessages = {
