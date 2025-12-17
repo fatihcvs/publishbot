@@ -11,6 +11,10 @@ class Scheduler {
     this.intervals.push(setInterval(() => this.checkReminders(), 30000));
     this.intervals.push(setInterval(() => this.checkGiveaways(), 30000));
     this.intervals.push(setInterval(() => this.checkScheduledMessages(), 60000));
+    this.intervals.push(setInterval(() => this.checkBirthdays(), 3600000));
+    this.announcedBirthdays = new Set();
+    this.lastBirthdayCheck = null;
+    setTimeout(() => this.checkBirthdays(), 10000);
     console.log('Scheduler started');
   }
 
@@ -153,6 +157,84 @@ class Scheduler {
     } catch (error) {
       console.error('End giveaway error:', error);
       await this.storage.updateGiveaway(giveaway.id, { ended: true });
+    }
+  }
+
+  async checkBirthdays() {
+    try {
+      const today = new Date();
+      const todayKey = `${today.getDate()}-${today.getMonth() + 1}-${today.getFullYear()}`;
+      
+      if (this.lastBirthdayCheck === todayKey) {
+        return;
+      }
+      
+      this.lastBirthdayCheck = todayKey;
+      this.announcedBirthdays.clear();
+      
+      const birthdays = await this.storage.getAllTodaysBirthdays();
+      const configs = await this.storage.getAllBirthdayConfigs();
+      const configMap = new Map(configs.map(c => [c.guildId, c]));
+      
+      const guildBirthdays = {};
+      for (const birthday of birthdays) {
+        if (!guildBirthdays[birthday.guildId]) {
+          guildBirthdays[birthday.guildId] = [];
+        }
+        guildBirthdays[birthday.guildId].push(birthday);
+      }
+      
+      for (const [guildId, userBirthdays] of Object.entries(guildBirthdays)) {
+        const config = configMap.get(guildId);
+        if (!config?.channelId) continue;
+        
+        await this.announceBirthdays(guildId, userBirthdays, config);
+      }
+    } catch (error) {
+      console.error('Birthday check error:', error);
+    }
+  }
+
+  async announceBirthdays(guildId, birthdays, config) {
+    try {
+      const guild = await this.client.guilds.fetch(guildId).catch(() => null);
+      if (!guild) return;
+      
+      const channel = await guild.channels.fetch(config.channelId).catch(() => null);
+      if (!channel) return;
+      
+      for (const birthday of birthdays) {
+        const key = `${guildId}-${birthday.userId}`;
+        if (this.announcedBirthdays.has(key)) continue;
+        this.announcedBirthdays.add(key);
+        
+        const member = await guild.members.fetch(birthday.userId).catch(() => null);
+        if (!member) continue;
+        
+        if (config.roleId) {
+          const role = guild.roles.cache.get(config.roleId);
+          if (role && !member.roles.cache.has(config.roleId)) {
+            await member.roles.add(role).catch(() => {});
+            setTimeout(async () => {
+              await member.roles.remove(role).catch(() => {});
+            }, 24 * 60 * 60 * 1000);
+          }
+        }
+        
+        const customMessage = config.message || '🎂 Bugün {user} kullanıcısının doğum günü! Mutlu yıllar!';
+        const message = customMessage.replace('{user}', member.toString());
+        
+        const embed = new EmbedBuilder()
+          .setColor('#e91e63')
+          .setTitle('🎂 Doğum Günü Kutlaması!')
+          .setDescription(message)
+          .setThumbnail(member.user.displayAvatarURL({ dynamic: true }))
+          .setTimestamp();
+        
+        await channel.send({ embeds: [embed] });
+      }
+    } catch (error) {
+      console.error('Announce birthdays error:', error);
     }
   }
 }

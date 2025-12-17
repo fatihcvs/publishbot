@@ -179,8 +179,8 @@ app.get('/api/guild/:guildId', isAuthenticated, requireManagerAccess, async (req
     icon: guild.iconURL(),
     memberCount: guild.memberCount,
     channels: guild.channels.cache
-      .filter(c => c.type === 0)
-      .map(c => ({ id: c.id, name: c.name })),
+      .filter(c => c.type === 0 || c.type === 4)
+      .map(c => ({ id: c.id, name: c.name, type: c.type })),
     roles: guild.roles.cache
       .filter(r => r.id !== guild.id)
       .map(r => ({ id: r.id, name: r.name, color: r.hexColor }))

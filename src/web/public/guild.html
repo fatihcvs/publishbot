@@ -734,6 +734,158 @@
             <button class="btn btn-primary" onclick="closeModal()">Tamam</button>
           `;
           break;
+        
+        case 'tickets':
+          bodyContent = `
+            <div class="form-group">
+              <label class="form-label">Talep Kategorisi</label>
+              <select class="form-select" id="ticketCategory">
+                <option value="">Kategori Seçin</option>
+                ${guildData.channels.filter(c => c.type === 4).map(c => `<option value="${c.id}" ${settings.ticketCategory === c.id ? 'selected' : ''}>${c.name}</option>`).join('')}
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Destek Rolü</label>
+              <select class="form-select" id="ticketSupportRole">
+                <option value="">Rol Seçin</option>
+                ${guildData.roles.map(r => `<option value="${r.id}" ${settings.ticketSupportRole === r.id ? 'selected' : ''}>${r.name}</option>`).join('')}
+              </select>
+            </div>
+            <p style="color: var(--text-muted); font-size: 13px; margin-top: 12px;">Bot komutu: <strong>!talep kur #kategori @rol</strong></p>
+          `;
+          footerContent = `
+            <button class="btn btn-outline" onclick="disableFeature('tickets')">Devre Dışı Bırak</button>
+            <button class="btn btn-primary" onclick="saveTicketSettings()">Kaydet</button>
+          `;
+          break;
+        
+        case 'reactionroles':
+          loadReactionRoles();
+          bodyContent = `
+            <div id="reactionRolesList"></div>
+            <p style="color: var(--text-muted); font-size: 13px; margin-top: 12px;">
+              <strong>Bot komutları:</strong><br>
+              !tepkirol ekle &lt;mesaj_id&gt; &lt;emoji&gt; @rol<br>
+              !tepkirol sil &lt;mesaj_id&gt; &lt;emoji&gt;
+            </p>
+          `;
+          footerContent = `
+            <button class="btn btn-outline" onclick="disableFeature('reactionroles')">Devre Dışı Bırak</button>
+            <button class="btn btn-primary" onclick="closeModal()">Tamam</button>
+          `;
+          break;
+        
+        case 'birthday':
+          bodyContent = `
+            <div class="form-group">
+              <label class="form-label">Doğum Günü Duyuru Kanalı</label>
+              <select class="form-select" id="birthdayChannel">
+                <option value="">Kanal Seçin</option>
+                ${guildData.channels.map(c => `<option value="${c.id}" ${settings.birthdayConfig?.channelId === c.id ? 'selected' : ''}>${c.name}</option>`).join('')}
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Doğum Günü Rolü (Opsiyonel)</label>
+              <select class="form-select" id="birthdayRole">
+                <option value="">Rol Seçin</option>
+                ${guildData.roles.map(r => `<option value="${r.id}" ${settings.birthdayConfig?.roleId === r.id ? 'selected' : ''}>${r.name}</option>`).join('')}
+              </select>
+              <small style="color: var(--text-muted);">Bu rol doğum gününde verilir ve gece yarısı kaldırılır</small>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Kutlama Mesajı</label>
+              <textarea class="form-textarea" id="birthdayMessage" placeholder="🎂 Bugün {user} kullanıcısının doğum günü! Mutlu yıllar!">${settings.birthdayConfig?.message || ''}</textarea>
+            </div>
+          `;
+          footerContent = `
+            <button class="btn btn-outline" onclick="disableFeature('birthday')">Devre Dışı Bırak</button>
+            <button class="btn btn-primary" onclick="saveBirthdaySettings()">Kaydet</button>
+          `;
+          break;
+        
+        case 'economy':
+          bodyContent = `
+            <div class="form-group">
+              <label class="form-label">Para Birimi Sembolü</label>
+              <input type="text" class="form-input" id="currencySymbol" value="${settings.economyConfig?.currencySymbol || '💰'}" maxlength="10">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Günlük Ödül</label>
+              <input type="number" class="form-input" id="dailyAmount" value="${settings.economyConfig?.dailyAmount || 100}" min="1">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Çalışma Ödülü (Min)</label>
+              <input type="number" class="form-input" id="workMin" value="${settings.economyConfig?.workMin || 50}" min="1">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Çalışma Ödülü (Max)</label>
+              <input type="number" class="form-input" id="workMax" value="${settings.economyConfig?.workMax || 200}" min="1">
+            </div>
+          `;
+          footerContent = `
+            <button class="btn btn-outline" onclick="disableFeature('economy')">Devre Dışı Bırak</button>
+            <button class="btn btn-primary" onclick="saveEconomySettings()">Kaydet</button>
+          `;
+          break;
+        
+        case 'twitch':
+        case 'youtube':
+        case 'tiktok':
+        case 'twitter':
+        case 'instagram':
+        case 'rss':
+          loadSocialNotifications(featureId);
+          const platformNames = {
+            twitch: 'Twitch', youtube: 'YouTube', tiktok: 'TikTok',
+            twitter: 'X (Twitter)', instagram: 'Instagram', rss: 'RSS'
+          };
+          bodyContent = `
+            <div id="socialNotificationsList"></div>
+            <h4 style="margin: 20px 0 12px; font-size: 14px;">Yeni Bildirim Ekle</h4>
+            <div class="form-group">
+              <label class="form-label">${platformNames[featureId]} Kullanıcı Adı</label>
+              <input type="text" class="form-input" id="socialUsername" placeholder="kullanici_adi">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Bildirim Kanalı</label>
+              <select class="form-select" id="socialChannel">
+                <option value="">Kanal Seçin</option>
+                ${guildData.channels.map(c => `<option value="${c.id}">${c.name}</option>`).join('')}
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Özel Mesaj (Opsiyonel)</label>
+              <textarea class="form-textarea" id="socialMessage" placeholder="Yeni içerik yayınlandı!"></textarea>
+            </div>
+            <button class="btn btn-primary" onclick="addSocialNotification('${featureId}')"><i class="fas fa-plus"></i> Ekle</button>
+          `;
+          footerContent = `
+            <button class="btn btn-outline" onclick="disableFeature('${featureId}')">Devre Dışı Bırak</button>
+            <button class="btn btn-primary" onclick="closeModal()">Tamam</button>
+          `;
+          break;
+        
+        case 'invitetracker':
+          bodyContent = `
+            <div class="form-group">
+              <label class="form-label">Davet Takibi Kanalı</label>
+              <select class="form-select" id="inviteChannel">
+                <option value="">Kanal Seçin</option>
+                ${guildData.channels.map(c => `<option value="${c.id}" ${settings.inviteChannel === c.id ? 'selected' : ''}>${c.name}</option>`).join('')}
+              </select>
+              <small style="color: var(--text-muted);">Yeni üye katıldığında davet eden kişi bu kanalda gösterilir</small>
+            </div>
+            <p style="color: var(--text-muted); font-size: 13px; margin-top: 12px;">
+              <strong>Bot komutları:</strong><br>
+              !davetlerim - Kendi davetlerinizi görün<br>
+              !davettop - En çok davet edenleri görün
+            </p>
+          `;
+          footerContent = `
+            <button class="btn btn-outline" onclick="disableFeature('invitetracker')">Devre Dışı Bırak</button>
+            <button class="btn btn-primary" onclick="saveInviteSettings()">Kaydet</button>
+          `;
+          break;
           
         default:
           bodyContent = `
@@ -873,6 +1025,157 @@
       };
       
       await saveSettings(newSettings);
+    }
+    
+    async function saveTicketSettings() {
+      const newSettings = {
+        ticketCategory: document.getElementById('ticketCategory').value,
+        ticketSupportRole: document.getElementById('ticketSupportRole').value,
+        modules: { ...modules, tickets: true }
+      };
+      
+      await saveSettings(newSettings);
+    }
+    
+    async function saveBirthdaySettings() {
+      const birthdayConfig = {
+        channelId: document.getElementById('birthdayChannel').value,
+        roleId: document.getElementById('birthdayRole').value,
+        message: document.getElementById('birthdayMessage').value
+      };
+      
+      await saveSettings({ birthdayConfig, modules: { ...modules, birthday: true } });
+    }
+    
+    async function saveEconomySettings() {
+      const economyConfig = {
+        currencySymbol: document.getElementById('currencySymbol').value || '💰',
+        dailyAmount: parseInt(document.getElementById('dailyAmount').value) || 100,
+        workMin: parseInt(document.getElementById('workMin').value) || 50,
+        workMax: parseInt(document.getElementById('workMax').value) || 200
+      };
+      
+      await saveSettings({ economyConfig, modules: { ...modules, economy: true } });
+    }
+    
+    async function saveInviteSettings() {
+      const newSettings = {
+        inviteChannel: document.getElementById('inviteChannel').value,
+        modules: { ...modules, invitetracker: true }
+      };
+      
+      await saveSettings(newSettings);
+    }
+    
+    async function loadReactionRoles() {
+      try {
+        const res = await fetch(`/api/guild/${guildId}/reactionroles`);
+        const roles = await res.json();
+        
+        const container = document.getElementById('reactionRolesList');
+        if (!container) return;
+        
+        if (roles.length === 0) {
+          container.innerHTML = '<p style="color: var(--text-muted);">Henüz tepki rol yok. Bot komutlarıyla ekleyebilirsiniz.</p>';
+          return;
+        }
+        
+        container.innerHTML = roles.map(rr => `
+          <div class="feature-card" style="background: var(--bg-tertiary); margin-bottom: 8px; padding: 12px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <span style="font-size: 20px;">${rr.emoji}</span>
+                <span style="margin-left: 8px;">→</span>
+                <span style="margin-left: 8px; color: var(--accent-blue);">${guildData.roles.find(r => r.id === rr.roleId)?.name || 'Bilinmeyen Rol'}</span>
+              </div>
+              <button class="btn btn-outline" style="padding: 6px 12px;" onclick="deleteReactionRole(${rr.id})">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+            <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;">Mesaj ID: ${rr.messageId}</p>
+          </div>
+        `).join('');
+      } catch (error) {
+        console.error('Reaction roles error:', error);
+      }
+    }
+    
+    async function deleteReactionRole(id) {
+      try {
+        await fetch(`/api/guild/${guildId}/reactionroles/${id}`, { method: 'DELETE' });
+        showToast('Tepki rol silindi', 'success');
+        loadReactionRoles();
+      } catch (error) {
+        showToast('Hata oluştu', 'error');
+      }
+    }
+    
+    async function loadSocialNotifications(platform) {
+      try {
+        const res = await fetch(`/api/guild/${guildId}/social?platform=${platform}`);
+        const notifications = await res.json();
+        
+        const container = document.getElementById('socialNotificationsList');
+        if (!container) return;
+        
+        if (notifications.length === 0) {
+          container.innerHTML = '<p style="color: var(--text-muted);">Henüz bildirim ayarlanmamış.</p>';
+          return;
+        }
+        
+        container.innerHTML = notifications.map(n => `
+          <div class="feature-card" style="background: var(--bg-tertiary); margin-bottom: 8px; padding: 12px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <strong>@${n.username}</strong>
+                <span style="margin-left: 8px;">→</span>
+                <span style="margin-left: 8px; color: var(--accent-blue);">#${guildData.channels.find(c => c.id === n.channelId)?.name || 'Bilinmeyen Kanal'}</span>
+              </div>
+              <button class="btn btn-outline" style="padding: 6px 12px;" onclick="deleteSocialNotification(${n.id})">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+            ${n.customMessage ? `<p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;">${n.customMessage}</p>` : ''}
+          </div>
+        `).join('');
+      } catch (error) {
+        console.error('Social notifications error:', error);
+      }
+    }
+    
+    async function addSocialNotification(platform) {
+      const username = document.getElementById('socialUsername').value.trim();
+      const channelId = document.getElementById('socialChannel').value;
+      const customMessage = document.getElementById('socialMessage').value.trim();
+      
+      if (!username || !channelId) {
+        showToast('Lütfen kullanıcı adı ve kanal seçin', 'error');
+        return;
+      }
+      
+      try {
+        await fetch(`/api/guild/${guildId}/social`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ platform, username, channelId, customMessage })
+        });
+        
+        showToast('Bildirim eklendi!', 'success');
+        document.getElementById('socialUsername').value = '';
+        document.getElementById('socialMessage').value = '';
+        loadSocialNotifications(platform);
+      } catch (error) {
+        showToast('Hata oluştu', 'error');
+      }
+    }
+    
+    async function deleteSocialNotification(id) {
+      try {
+        await fetch(`/api/guild/${guildId}/social/${id}`, { method: 'DELETE' });
+        showToast('Bildirim silindi', 'success');
+      } catch (error) {
+        showToast('Hata oluştu', 'error');
+      }
     }
     
     async function saveSettings(newSettings) {

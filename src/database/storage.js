@@ -485,6 +485,22 @@ class DatabaseStorage {
     return this.getBirthdayConfig(guildId);
   }
 
+  async getAllTodaysBirthdays() {
+    if (!db) return [];
+    const today = new Date();
+    return db.select().from(userBirthdays).where(
+      and(
+        eq(userBirthdays.day, today.getDate()),
+        eq(userBirthdays.month, today.getMonth() + 1)
+      )
+    );
+  }
+
+  async getAllBirthdayConfigs() {
+    if (!db) return [];
+    return db.select().from(birthdayConfig);
+  }
+
   async getUserEconomy(guildId, userId) {
     if (!db) return null;
     const [user] = await db.select().from(userEconomy).where(
