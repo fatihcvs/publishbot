@@ -284,6 +284,12 @@
         <div class="stat-box" style="background: rgba(34, 197, 94, 0.3); padding: 8px 16px;">
           <i class="fas fa-coins text-success"></i> Ekonomi Sistemi
         </div>
+        <div class="stat-box" style="background: rgba(249, 115, 22, 0.3); padding: 8px 16px;">
+          <i class="fas fa-dna text-orange"></i> Evrim Sistemi
+        </div>
+        <div class="stat-box" style="background: rgba(239, 68, 68, 0.3); padding: 8px 16px;">
+          <i class="fas fa-fire"></i> Animasyonlu Savaş
+        </div>
       </div>
     </div>
   </section>
@@ -763,23 +769,23 @@
         </div>
       </div>
       
+      <div class="feature-card mb-4" style="background: rgba(16, 185, 129, 0.1); border: 1px solid var(--accent-green); padding: 16px; border-radius: 12px;">
+        <p style="margin: 0; color: var(--accent-green);"><i class="fas fa-magic me-2"></i><strong>Otomatik Ödül:</strong> Görevler tamamlandığında ödüller otomatik olarak verilir! Manuel olarak almanıza gerek yok.</p>
+      </div>
+      
       <h4 class="mb-3">Görev Komutları</h4>
       <div class="row g-3">
-        <div class="col-md-6 col-lg-3">
+        <div class="col-md-6 col-lg-4">
           <div class="command-box">!görev</div>
-          <p class="command-desc">Tüm görevlerini gör</p>
+          <p class="command-desc">Tüm aktif görevlerini gör</p>
         </div>
-        <div class="col-md-6 col-lg-3">
+        <div class="col-md-6 col-lg-4">
           <div class="command-box">!görev günlük</div>
           <p class="command-desc">Günlük görevleri gör</p>
         </div>
-        <div class="col-md-6 col-lg-3">
+        <div class="col-md-6 col-lg-4">
           <div class="command-box">!görev haftalık</div>
           <p class="command-desc">Haftalık görevleri gör</p>
-        </div>
-        <div class="col-md-6 col-lg-3">
-          <div class="command-box">!görev ödül &lt;id&gt;</div>
-          <p class="command-desc">Görev ödülünü al</p>
         </div>
       </div>
     </section>
@@ -846,26 +852,76 @@
     <section class="section" id="battle">
       <h2 class="section-title"><i class="fas fa-swords"></i> Savaş Sistemi</h2>
       
+      <div class="feature-card mb-4" style="background: rgba(239, 68, 68, 0.1); border: 1px solid var(--accent-red); padding: 16px; border-radius: 12px;">
+        <p style="margin: 0; color: var(--accent-red);"><i class="fas fa-fire me-2"></i><strong>Animasyonlu Savaş:</strong> Gerçek zamanlı savaş animasyonları! HP barları, kritik vuruşlar, kaçınmalar ve 6 farklı düşman takımı ile heyecanlı savaşlar!</p>
+      </div>
+      
       <div class="row g-4 mb-4">
         <div class="col-md-4">
           <div class="card-custom">
             <h4><i class="fas fa-robot text-info me-2"></i>PvE Savaş</h4>
-            <p>Bot kontrollü rakiplerle savaş. XP ve para kazan, günlük görevleri tamamla.</p>
+            <p>6 farklı düşman takımına karşı savaş! Vahşi Kurtlar, Orman Canavarları, Karanlık Ordu ve daha fazlası...</p>
+            <ul class="small text-secondary mb-2">
+              <li>Kritik vuruş şansı (%15)</li>
+              <li>Hıza göre kaçınma sistemi</li>
+              <li>Görsel HP barları</li>
+              <li>Tur tur animasyon</li>
+            </ul>
             <div class="command-box">!savaş</div>
           </div>
         </div>
         <div class="col-md-4">
           <div class="card-custom">
             <h4><i class="fas fa-users text-warning me-2"></i>PvP Düello</h4>
-            <p>Diğer oyuncularla düello yap. Bahis koy ve kazanan her şeyi alsın!</p>
+            <p>Diğer oyuncularla düello yap. Takımlarınız karşı karşıya gelsin!</p>
             <div class="command-box">!düello @kullanıcı</div>
           </div>
         </div>
         <div class="col-md-4">
           <div class="card-custom">
             <h4><i class="fas fa-dragon text-danger me-2"></i>Boss Savaşı</h4>
-            <p>Haftalık boss savaşlarına katıl. Büyük ödüller ve nadir eşyalar kazan!</p>
+            <p>Güçlü boss'lara meydan oku. Büyük ödüller ve nadir eşyalar kazan!</p>
             <div class="command-box">!boss</div>
+          </div>
+        </div>
+      </div>
+      
+      <h4 class="mb-3">Düşman Takımları</h4>
+      <div class="row g-3 mb-4">
+        <div class="col-md-4 col-lg-2">
+          <div class="card-custom text-center py-3">
+            <div style="font-size: 2rem;">🐺</div>
+            <small>Vahşi Kurt Sürüsü</small>
+          </div>
+        </div>
+        <div class="col-md-4 col-lg-2">
+          <div class="card-custom text-center py-3">
+            <div style="font-size: 2rem;">👹</div>
+            <small>Orman Canavarları</small>
+          </div>
+        </div>
+        <div class="col-md-4 col-lg-2">
+          <div class="card-custom text-center py-3">
+            <div style="font-size: 2rem;">🌑</div>
+            <small>Karanlık Ordu</small>
+          </div>
+        </div>
+        <div class="col-md-4 col-lg-2">
+          <div class="card-custom text-center py-3">
+            <div style="font-size: 2rem;">🐍</div>
+            <small>Zehir Lejyonu</small>
+          </div>
+        </div>
+        <div class="col-md-4 col-lg-2">
+          <div class="card-custom text-center py-3">
+            <div style="font-size: 2rem;">❄️</div>
+            <small>Buz Kabilesi</small>
+          </div>
+        </div>
+        <div class="col-md-4 col-lg-2">
+          <div class="card-custom text-center py-3">
+            <div style="font-size: 2rem;">🔥</div>
+            <small>Ateş Birliği</small>
           </div>
         </div>
       </div>
@@ -939,6 +995,64 @@
       </div>
     </section>
 
+    <section class="section" id="evolution">
+      <h2 class="section-title"><i class="fas fa-dna"></i> Evrim Sistemi</h2>
+      <p class="text-secondary mb-4">Hayvanlarını evrimleştirerek güçlendir! Aynı türden 3 hayvanı birleştirerek daha güçlü bir versiyon elde et.</p>
+      
+      <div class="row g-4 mb-4">
+        <div class="col-md-6">
+          <div class="card-custom">
+            <h4><i class="fas fa-flask text-purple me-2"></i>Evrim Nasıl Çalışır?</h4>
+            <ul class="mb-0">
+              <li class="mb-2">Aynı türden <strong>3 hayvan</strong> gerekir</li>
+              <li class="mb-2">Her evrim <strong>+20% stat</strong> artışı sağlar</li>
+              <li class="mb-2">Maksimum <strong>5 evrim seviyesi</strong></li>
+              <li class="mb-2">Yüksek seviye evrimler <strong>özel yetenekler</strong> açar</li>
+              <li class="mb-2">Evrim taşları ile şansı artırabilirsin</li>
+            </ul>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="card-custom">
+            <h4><i class="fas fa-gem text-info me-2"></i>Evrim Taşları</h4>
+            <div class="table-responsive">
+              <table class="item-table mb-0">
+                <thead>
+                  <tr><th>Taş</th><th>Etki</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>🔵 Mavi Taş</td><td>Evrim başarı +10%</td></tr>
+                  <tr><td>🟣 Mor Taş</td><td>Evrim başarı +25%</td></tr>
+                  <tr><td>🟠 Turuncu Taş</td><td>Evrim başarı +50%</td></tr>
+                  <tr><td>💎 Elmas Taş</td><td>Garantili evrim</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <h4 class="mb-3">Evrim Komutları</h4>
+      <div class="row g-3">
+        <div class="col-md-6 col-lg-3">
+          <div class="command-box">!evrim &lt;id1&gt; &lt;id2&gt; &lt;id3&gt;</div>
+          <p class="command-desc">3 hayvanı evrimleştir</p>
+        </div>
+        <div class="col-md-6 col-lg-3">
+          <div class="command-box">!evrim taşlar</div>
+          <p class="command-desc">Evrim taşlarını gör</p>
+        </div>
+        <div class="col-md-6 col-lg-3">
+          <div class="command-box">!evrim bilgi</div>
+          <p class="command-desc">Evrim sistemi hakkında bilgi</p>
+        </div>
+        <div class="col-md-6 col-lg-3">
+          <div class="command-box">!eğit &lt;id&gt;</div>
+          <p class="command-desc">Hayvanı eğit ve güçlendir</p>
+        </div>
+      </div>
+    </section>
+
     <section class="section" id="commands">
       <h2 class="section-title"><i class="fas fa-terminal"></i> Tüm Komutlar</h2>
       
@@ -954,6 +1068,8 @@
             <p class="command-desc">Yakaladığın hayvanları gör</p>
             <div class="command-box">!hayvansatver &lt;hayvan_id&gt;</div>
             <p class="command-desc">Hayvan sat ve para kazan</p>
+            <div class="command-box">!bakiye</div>
+            <p class="command-desc">Para, XP, seviye ve evrim taşlarını gör</p>
           </div>
         </div>
 
@@ -1011,13 +1127,23 @@
           <div class="card-custom">
             <h4><i class="fas fa-tasks text-pink me-2"></i>Görevler</h4>
             <div class="command-box">!görev</div>
-            <p class="command-desc">Günlük ve haftalık görevlerini gör</p>
+            <p class="command-desc">Aktif görevlerini gör (ödüller otomatik verilir!)</p>
             <div class="command-box">!görev günlük</div>
             <p class="command-desc">Sadece günlük görevleri göster</p>
             <div class="command-box">!görev haftalık</div>
             <p class="command-desc">Sadece haftalık görevleri göster</p>
-            <div class="command-box">!görev ödül &lt;görev_id&gt;</div>
-            <p class="command-desc">Tamamlanan görevin ödülünü al</p>
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <div class="card-custom">
+            <h4><i class="fas fa-dna text-orange me-2"></i>Evrim</h4>
+            <div class="command-box">!evrim &lt;id1&gt; &lt;id2&gt; &lt;id3&gt;</div>
+            <p class="command-desc">3 aynı hayvanı evrimleştir</p>
+            <div class="command-box">!evrim taşlar</div>
+            <p class="command-desc">Evrim taşlarını görüntüle</p>
+            <div class="command-box">!eğit &lt;id&gt;</div>
+            <p class="command-desc">Hayvanı eğit ve güçlendir</p>
           </div>
         </div>
 
