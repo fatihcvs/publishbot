@@ -137,11 +137,11 @@ client.on(Events.GuildMemberAdd, async (member) => {
     }
   }
   
-  if (guildData?.welcomeChannel && guildData?.welcomeMessage) {
+  if (guildData?.welcomeChannel) {
     try {
       const channel = member.guild.channels.cache.get(guildData.welcomeChannel);
       if (channel) {
-        let welcomeMsg = guildData.welcomeMessage
+        let welcomeMsg = (guildData.welcomeMessage || 'Hoş geldin {user}! {server} sunucusuna hoş geldin!')
           .replace(/{user}/g, member.toString())
           .replace(/{username}/g, member.user.username)
           .replace(/{server}/g, member.guild.name)
