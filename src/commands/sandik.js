@@ -3,29 +3,29 @@ const letheStorage = require('../lethe/letheStorage');
 
 const crateContents = {
   bronze_crate: {
-    weapons: ['wooden_sword', 'rusty_dagger', 'training_bow'],
-    armors: ['cloth_armor', 'leather_vest', 'wooden_shield'],
-    accessories: ['simple_ring', 'copper_bracelet']
+    weapons: ['wooden_sword', 'iron_sword'],
+    armors: ['cloth_armor', 'leather_armor'],
+    accessories: ['luck_ring']
   },
   silver_crate: {
-    weapons: ['iron_sword', 'steel_dagger', 'hunters_bow', 'battle_axe'],
-    armors: ['chainmail', 'iron_armor', 'steel_shield'],
-    accessories: ['silver_ring', 'power_necklace', 'speed_boots']
+    weapons: ['iron_sword', 'steel_dagger', 'longbow'],
+    armors: ['leather_armor', 'chain_armor'],
+    accessories: ['luck_ring', 'power_necklace', 'protection_talisman', 'speed_bracelet']
   },
   gold_crate: {
-    weapons: ['golden_blade', 'knight_sword', 'war_hammer', 'crossbow'],
-    armors: ['gold_armor', 'royal_plate', 'knights_shield'],
-    accessories: ['gold_amulet', 'warriors_ring', 'defenders_charm']
+    weapons: ['magic_wand', 'lightning_whip', 'steel_dagger', 'longbow'],
+    armors: ['chain_armor', 'steel_armor'],
+    accessories: ['power_necklace', 'protection_talisman', 'speed_bracelet', 'magic_earring']
   },
   diamond_crate: {
-    weapons: ['diamond_sword', 'legendary_axe', 'shadow_dagger', 'phoenix_bow'],
-    armors: ['diamond_armor', 'dragon_plate', 'void_shield'],
-    accessories: ['diamond_pendant', 'mythic_ring', 'cosmic_bracelet']
+    weapons: ['fire_sword', 'ice_axe', 'dark_scythe'],
+    armors: ['fire_armor', 'ice_armor', 'diamond_armor'],
+    accessories: ['magic_earring', 'kings_crown']
   },
   cosmic_crate: {
-    weapons: ['cosmic_blade', 'celestial_staff', 'void_scythe', 'infinity_bow'],
-    armors: ['cosmic_armor', 'celestial_plate', 'infinity_shield'],
-    accessories: ['cosmic_crown', 'celestial_pendant', 'void_ring']
+    weapons: ['dark_scythe', 'dragon_sword'],
+    armors: ['diamond_armor', 'dragon_armor'],
+    accessories: ['kings_crown']
   }
 };
 
