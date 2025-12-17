@@ -48,67 +48,81 @@ module.exports = {
         return message.reply('Henüz görev bulunmuyor. Birazdan tekrar dene!');
       }
       
-      const dailyQuests = quests.filter(q => q.questInfo.type === 'daily' && !q.claimed);
-      const weeklyQuests = quests.filter(q => q.questInfo.type === 'weekly' && !q.claimed);
+      const dailyQuests = quests.filter(q => q.questInfo.type === 'daily' && !q.completed && !q.claimed);
+      const weeklyQuests = quests.filter(q => q.questInfo.type === 'weekly' && !q.completed && !q.claimed);
       
       const showDaily = !subCommand || subCommand === 'günlük' || subCommand === 'gunluk' || subCommand === 'daily';
       const showWeekly = !subCommand || subCommand === 'haftalık' || subCommand === 'haftalik' || subCommand === 'weekly';
       
+      const allDaily = quests.filter(q => q.questInfo.type === 'daily');
+      const allWeekly = quests.filter(q => q.questInfo.type === 'weekly');
+      const completedDaily = allDaily.filter(q => q.completed || q.claimed).length;
+      const completedWeekly = allWeekly.filter(q => q.completed || q.claimed).length;
+      
       const embed = new EmbedBuilder()
         .setColor('#5865F2')
         .setTitle('📋 Lethe Game - Görevler')
+        .setDescription(`✅ **Tamamlanan:** Günlük ${completedDaily}/${allDaily.length} | Haftalık ${completedWeekly}/${allWeekly.length}`)
         .setThumbnail(message.author.displayAvatarURL())
         .setFooter({ text: 'Görevler tamamlandığında ödüller otomatik verilir!' });
       
       if (showDaily) {
-        const dailyList = dailyQuests.map(q => {
-          const qi = q.questInfo;
-          const progress = `${q.progress}/${qi.targetValue}`;
-          const status = q.claimed ? '✅' : q.completed ? '🎁' : '⏳';
-          const progressBar = createProgressBar(q.progress, qi.targetValue);
-          return `${status} ${qi.emoji} **${qi.name}**\n${qi.description}\n${progressBar} ${progress}\n💰 ${qi.rewardMoney} | ✨ ${qi.rewardXp} XP\n\`${qi.questId}\``;
-        }).join('\n\n');
-        
-        const dailyCompleted = dailyQuests.filter(q => q.completed).length;
-        const dailyTotal = dailyQuests.length;
-        
-        embed.addFields({
-          name: `📅 Günlük Görevler (${dailyCompleted}/${dailyTotal})`,
-          value: dailyList || 'Görev yok',
-          inline: false
-        });
-        
-        if (dailyCompleted === dailyTotal && dailyQuests.every(q => q.claimed)) {
+        if (dailyQuests.length === 0) {
           embed.addFields({
-            name: '🎊 Günlük Bonus',
-            value: '**1,000 💰 + 50 XP + 1 Gümüş Sandık** (Tüm görevler tamamlandı!)',
+            name: `📅 Günlük Görevler`,
+            value: completedDaily === allDaily.length ? '🎉 Tüm günlük görevler tamamlandı!' : 'Aktif görev yok',
+            inline: false
+          });
+          
+          if (completedDaily === allDaily.length) {
+            embed.addFields({
+              name: '🎊 Günlük Bonus',
+              value: '**1,000 💰 + 50 XP + 1 Gümüş Sandık** kazandın!',
+              inline: false
+            });
+          }
+        } else {
+          const dailyList = dailyQuests.map(q => {
+            const qi = q.questInfo;
+            const progress = `${q.progress}/${qi.targetValue}`;
+            const progressBar = createProgressBar(q.progress, qi.targetValue);
+            return `⏳ ${qi.emoji} **${qi.name}**\n${qi.description}\n${progressBar} ${progress}\n💰 ${qi.rewardMoney.toLocaleString()} | ✨ ${qi.rewardXp} XP`;
+          }).join('\n\n');
+          
+          embed.addFields({
+            name: `📅 Günlük Görevler (${dailyQuests.length} kalan)`,
+            value: dailyList,
             inline: false
           });
         }
       }
       
       if (showWeekly) {
-        const weeklyList = weeklyQuests.map(q => {
-          const qi = q.questInfo;
-          const progress = `${q.progress}/${qi.targetValue}`;
-          const status = q.claimed ? '✅' : q.completed ? '🎁' : '⏳';
-          const progressBar = createProgressBar(q.progress, qi.targetValue);
-          return `${status} ${qi.emoji} **${qi.name}**\n${qi.description}\n${progressBar} ${progress}\n💰 ${qi.rewardMoney.toLocaleString()} | ✨ ${qi.rewardXp} XP\n\`${qi.questId}\``;
-        }).join('\n\n');
-        
-        const weeklyCompleted = weeklyQuests.filter(q => q.completed).length;
-        const weeklyTotal = weeklyQuests.length;
-        
-        embed.addFields({
-          name: `📆 Haftalık Görevler (${weeklyCompleted}/${weeklyTotal})`,
-          value: weeklyList || 'Görev yok',
-          inline: false
-        });
-        
-        if (weeklyCompleted === weeklyTotal && weeklyQuests.every(q => q.claimed)) {
+        if (weeklyQuests.length === 0) {
           embed.addFields({
-            name: '🎊 Haftalık Bonus',
-            value: '**15,000 💰 + 500 XP + 1 Elmas Sandık** (Tüm görevler tamamlandı!)',
+            name: `📆 Haftalık Görevler`,
+            value: completedWeekly === allWeekly.length ? '🎉 Tüm haftalık görevler tamamlandı!' : 'Aktif görev yok',
+            inline: false
+          });
+          
+          if (completedWeekly === allWeekly.length) {
+            embed.addFields({
+              name: '🎊 Haftalık Bonus',
+              value: '**15,000 💰 + 500 XP + 1 Elmas Sandık** kazandın!',
+              inline: false
+            });
+          }
+        } else {
+          const weeklyList = weeklyQuests.map(q => {
+            const qi = q.questInfo;
+            const progress = `${q.progress}/${qi.targetValue}`;
+            const progressBar = createProgressBar(q.progress, qi.targetValue);
+            return `⏳ ${qi.emoji} **${qi.name}**\n${qi.description}\n${progressBar} ${progress}\n💰 ${qi.rewardMoney.toLocaleString()} | ✨ ${qi.rewardXp} XP`;
+          }).join('\n\n');
+          
+          embed.addFields({
+            name: `📆 Haftalık Görevler (${weeklyQuests.length} kalan)`,
+            value: weeklyList,
             inline: false
           });
         }

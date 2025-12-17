@@ -114,22 +114,34 @@ module.exports = {
       });
     }
 
-    // Show completed quests with rewards
+    await message.reply({ embeds: [embed] });
+    
+    // Send separate detailed quest completion messages
     if (completedQuests.length > 0) {
       for (const q of completedQuests) {
-        let rewardText = [];
-        if (q.rewards?.coins > 0) rewardText.push(`+${q.rewards.coins}💰`);
-        if (q.rewards?.xp > 0) rewardText.push(`+${q.rewards.xp}✨`);
-        if (q.rewards?.item) rewardText.push(`+1 ${q.rewards.item.type}`);
+        const qi = q.questInfo;
+        let rewardLines = [];
+        if (q.rewards?.coins > 0) rewardLines.push(`💰 **${q.rewards.coins.toLocaleString()}** Para`);
+        if (q.rewards?.xp > 0) rewardLines.push(`✨ **${q.rewards.xp}** XP`);
+        if (q.rewards?.item) {
+          const itemName = q.rewards.item.id.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+          rewardLines.push(`🎁 **${q.rewards.item.quantity}x** ${itemName}`);
+        }
         
-        embed.addFields({ 
-          name: `🎯 ${q.questInfo.emoji} ${q.questInfo.name} Tamamlandı!`, 
-          value: rewardText.length > 0 ? `Ödül: ${rewardText.join(' ')}` : 'Tamamlandı!', 
-          inline: false 
-        });
+        const questEmbed = new EmbedBuilder()
+          .setColor('#10B981')
+          .setTitle(`🎯 Görev Tamamlandı!`)
+          .setDescription(`<@${message.author.id}> **${qi.emoji} ${qi.name}** görevini tamamladı!`)
+          .addFields(
+            { name: '📋 Görev', value: qi.description, inline: false },
+            { name: '🎁 Kazanılan Ödüller', value: rewardLines.join('\n') || 'Ödül yok', inline: false }
+          )
+          .setThumbnail(message.author.displayAvatarURL())
+          .setFooter({ text: `Görevlerini görmek için: !görev` })
+          .setTimestamp();
+        
+        await message.channel.send({ embeds: [questEmbed] });
       }
     }
-
-    await message.reply({ embeds: [embed] });
   }
 };
