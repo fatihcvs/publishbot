@@ -484,7 +484,7 @@ client.on(Events.MessageCreate, async (message) => {
   }
   
   try {
-    await command.execute(message, args, client);
+    await command.execute(message, args, client, storage);
   } catch (error) {
     console.error('Komut hatası:', error);
     message.reply('Komut çalıştırılırken bir hata oluştu!');
