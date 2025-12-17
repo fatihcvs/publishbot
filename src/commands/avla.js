@@ -27,6 +27,11 @@ module.exports = {
   description: 'Hayvan avla ve koleksiyonuna ekle',
   category: 'lethe',
   async execute(message, args, client, storage) {
+    const guildData = await storage.getGuild(message.guild.id);
+    if (guildData?.modules && guildData.modules.economy === false) {
+      return message.reply('❌ Lethe Game bu sunucuda devre dışı.');
+    }
+    
     const result = await letheStorage.huntAnimal(message.guild.id, message.author.id);
 
     if (!result.success) {

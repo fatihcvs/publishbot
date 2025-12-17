@@ -1100,26 +1100,47 @@
         
         case 'economy':
           bodyContent = `
-            <div class="form-group">
-              <label class="form-label">Para Birimi Sembolü</label>
-              <input type="text" class="form-input" id="currencySymbol" value="${settings.economyConfig?.currencySymbol || '💰'}" maxlength="10">
+            <div class="feature-card" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border: 1px solid #5865F2; margin-bottom: 16px;">
+              <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                <span style="font-size: 32px;">🎮</span>
+                <div>
+                  <h3 style="margin: 0; color: #fff;">Lethe Game</h3>
+                  <p style="margin: 4px 0 0; color: var(--text-muted); font-size: 13px;">Hayvan avlama ve koleksiyon oyunu</p>
+                </div>
+              </div>
             </div>
-            <div class="form-group">
-              <label class="form-label">Günlük Ödül</label>
-              <input type="number" class="form-input" id="dailyAmount" value="${settings.economyConfig?.dailyAmount || 100}" min="1">
+            
+            <div class="feature-card" style="background: var(--bg-tertiary);">
+              <p style="margin-bottom: 12px;"><strong>Oyun Komutları:</strong></p>
+              <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; font-size: 13px;">
+                <div><code>!avla</code> - Hayvan avla</div>
+                <div><code>!koleksiyon</code> - Koleksiyonu gör</div>
+                <div><code>!takım</code> - Takımını gör</div>
+                <div><code>!takımekle</code> - Takıma ekle</div>
+                <div><code>!savaş</code> - PvE savaş</div>
+                <div><code>!boss</code> - Boss savaşı</div>
+                <div><code>!düello @kişi</code> - PvP düello</div>
+                <div><code>!sandık</code> - Sandık aç</div>
+                <div><code>!lethemağaza</code> - Mağaza</div>
+                <div><code>!profil</code> - Profil</div>
+              </div>
             </div>
-            <div class="form-group">
-              <label class="form-label">Çalışma Ödülü (Min)</label>
-              <input type="number" class="form-input" id="workMin" value="${settings.economyConfig?.workMin || 50}" min="1">
-            </div>
-            <div class="form-group">
-              <label class="form-label">Çalışma Ödülü (Max)</label>
-              <input type="number" class="form-input" id="workMax" value="${settings.economyConfig?.workMax || 200}" min="1">
+            
+            <div class="feature-card" style="background: var(--bg-tertiary); margin-top: 12px;">
+              <p style="margin-bottom: 8px;"><strong>Özellikler:</strong></p>
+              <ul style="color: var(--text-muted); font-size: 13px; margin: 0; padding-left: 20px;">
+                <li>103 farklı hayvan (7 nadirlik seviyesi)</li>
+                <li>Ekipman ve güçlendirme sistemi</li>
+                <li>PvE savaşlar ve boss mücadeleleri</li>
+                <li>PvP düello sistemi</li>
+                <li>Loot crate ve ödüller</li>
+                <li>Başarım sistemi</li>
+              </ul>
             </div>
           `;
           footerContent = `
             <button class="btn btn-outline" onclick="disableFeature('economy')">Devre Dışı Bırak</button>
-            <button class="btn btn-primary" onclick="saveEconomySettings()">Kaydet</button>
+            <button class="btn btn-primary" onclick="closeModal()">Tamam</button>
           `;
           break;
         
