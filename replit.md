@@ -62,7 +62,7 @@ Güçlü ve tam donanımlı Discord moderasyon botu + Web Dashboard.
 
 ### Lethe Game (Global Hayvan Koleksiyon Oyunu)
 
-**OwO bot benzeri global sistem:** Kullanıcı verileri tüm sunucularda paylaşılır. Her sunucu oyunu açıp kapatabilir ama veriler globaldir.
+**Global Sistem:** Kullanıcı verileri tüm sunucularda paylaşılır. Her sunucu oyunu açıp kapatabilir ama veriler globaldir.
 
 **Temel Komutlar:**
 - `!avla` / `!hunt` - Hayvan avla (15 saniye cooldown)
@@ -71,6 +71,24 @@ Güçlü ve tam donanımlı Discord moderasyon botu + Web Dashboard.
 - `!takımekle <id>` - Takıma hayvan ekle (max 3)
 - `!takımçıkar <slot>` - Takımdan hayvan çıkar
 - `!profil [@kullanıcı]` - Oyun profilini görüntüle
+
+**Görev Sistemi (YENİ!):**
+- `!görev` / `!quest` - Günlük ve haftalık görevleri görüntüle
+- `!görev günlük` - Sadece günlük görevleri göster
+- `!görev haftalık` - Sadece haftalık görevleri göster
+- `!görev ödül <görev_id>` - Tamamlanan görevin ödülünü al
+
+**Günlük görevler:** İlk Av, Avcı (10 av), Koleksiyoncu (25 av), Savaşçı, Düellocu, Nadir Buluş, Satıcı, Takım Oyuncusu
+**Haftalık görevler:** Haftalık Avcı (100 av), Boss Avcısı, PvP Ustası, Epik Buluş, Zengin Ol, Koleksiyon Tamamla, Savaş Lordu
+
+**Ekonomi Sistemi (YENİ!):**
+- `!günlük` / `!daily` - Günlük ödülünü al (streak bonusları!)
+- `!günlük durum` - Günlük ödül durumunu gör
+- `!çalış` / `!work` - Çalışarak para kazan (30dk cooldown)
+- `!çalış meslek <meslek>` - Meslek değiştir (hunter/trader/warrior/collector)
+- `!çalış durum` - İş durumunu gör
+
+**Streak Ödülleri:** Gün 1: 100💰 → Gün 7: 1000💰 + Gümüş Sandık
 
 **Savaş Sistemi:**
 - `!savaş` - PvE savaşa gir
@@ -95,7 +113,7 @@ Güçlü ve tam donanımlı Discord moderasyon botu + Web Dashboard.
 
 **Nadirlik Seviyeleri:** Common (58%), Uncommon (25%), Rare (10%), Epic (5%), Legendary (1.5%), Mythic (0.4%), Hidden (0.1%)
 
-**103 Hayvan, 5 Boss, Ekipman ve Başarım Sistemi**
+**103 Hayvan, 5 Boss, 15 Görev, Ekipman ve Başarım Sistemi**
 
 ### Doğum Günü Sistemi
 - `!doğumgünü ayarla <gün> <ay>` - Doğum gününü kaydetme

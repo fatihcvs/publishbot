@@ -11,6 +11,7 @@ const { TempVoiceSystem } = require('./modules/tempVoice');
 const { StatChannelSystem } = require('./modules/statChannels');
 const { SocialNotificationSystem } = require('./modules/socialNotifications');
 const { chat: chatGPT } = require('./modules/chatgpt');
+const letheStorage = require('./lethe/letheStorage');
 
 const client = new Client({
   intents: [
@@ -89,6 +90,10 @@ client.once(Events.ClientReady, async () => {
   tempVoiceSystem = new TempVoiceSystem(client, storage);
   statChannelSystem = new StatChannelSystem(client, storage);
   socialNotificationSystem = new SocialNotificationSystem(client, storage);
+  
+  // Seed Lethe Game quests
+  await letheStorage.seedQuests();
+  
   console.log('All systems started');
 });
 

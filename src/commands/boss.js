@@ -72,6 +72,23 @@ module.exports = {
 
     await letheStorage.addBattleReward(message.author.id, xpReward, moneyReward, won, true);
 
+    // Update quest progress
+    const completedQuests = [];
+    const battleQuests = await letheStorage.updateQuestProgress(message.author.id, 'battle', 1);
+    completedQuests.push(...battleQuests);
+    
+    if (won) {
+      const bossQuests = await letheStorage.updateQuestProgress(message.author.id, 'boss_kill', 1);
+      completedQuests.push(...bossQuests);
+      const winQuests = await letheStorage.updateQuestProgress(message.author.id, 'battle_win', 1);
+      completedQuests.push(...winQuests);
+      
+      // Update earn money quest
+      if (moneyReward > 0) {
+        await letheStorage.updateQuestProgress(message.author.id, 'earn_money', moneyReward);
+      }
+    }
+
     const lastLogs = battleLog.slice(-8).join('\n');
 
     let equipmentStr = '';
@@ -97,6 +114,12 @@ module.exports = {
 
     if (won) {
       embed.addFields({ name: '🎁 Ödül', value: `${boss.rewardRarity} nadirliğinde eşya şansı!`, inline: false });
+    }
+
+    // Show completed quests
+    if (completedQuests.length > 0) {
+      const questNames = completedQuests.map(q => `${q.questInfo.emoji} ${q.questInfo.name}`).join(', ');
+      embed.addFields({ name: '🎯 Görev Tamamlandı!', value: questNames, inline: false });
     }
 
     await message.reply({ embeds: [embed] });

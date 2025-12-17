@@ -33,6 +33,10 @@ module.exports = {
       return message.reply(errorMessages[result.error] || '❌ Bir hata oluştu.');
     }
 
+    // Update quest progress
+    const completedQuests = await letheStorage.updateQuestProgress(message.author.id, 'sell', 1);
+    await letheStorage.updateQuestProgress(message.author.id, 'earn_money', result.price);
+
     const embed = new EmbedBuilder()
       .setColor('#f59e0b')
       .setTitle('💰 Hayvan Satıldı!')
@@ -41,6 +45,12 @@ module.exports = {
         { name: 'Kazanılan', value: `💰 ${result.price}`, inline: true }
       )
       .setTimestamp();
+
+    // Show completed quests
+    if (completedQuests.length > 0) {
+      const questNames = completedQuests.map(q => `${q.questInfo.emoji} ${q.questInfo.name}`).join(', ');
+      embed.addFields({ name: '🎯 Görev Tamamlandı!', value: questNames, inline: false });
+    }
 
     await message.reply({ embeds: [embed] });
   }

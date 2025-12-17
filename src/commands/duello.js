@@ -121,6 +121,18 @@ module.exports = {
         const challengerWon = opponentHp <= 0;
         const winner = challengerWon ? message.author : opponent;
 
+        // Update quest progress for both players
+        await letheStorage.updateQuestProgress(message.author.id, 'pvp', 1);
+        await letheStorage.updateQuestProgress(opponent.id, 'pvp', 1);
+        
+        const completedQuests = [];
+        if (challengerWon) {
+          const winQuests = await letheStorage.updateQuestProgress(message.author.id, 'pvp_win', 1);
+          completedQuests.push(...winQuests);
+        } else {
+          await letheStorage.updateQuestProgress(opponent.id, 'pvp_win', 1);
+        }
+
         const lastLogs = battleLog.slice(-6).join('\n');
 
         const resultEmbed = new EmbedBuilder()
@@ -132,6 +144,12 @@ module.exports = {
             { name: '🎯 Sonuç', value: `${round} turda ${winner.username} galip geldi!`, inline: false }
           )
           .setTimestamp();
+
+        // Show completed quests
+        if (completedQuests.length > 0) {
+          const questNames = completedQuests.map(q => `${q.questInfo.emoji} ${q.questInfo.name}`).join(', ');
+          resultEmbed.addFields({ name: '🎯 Görev Tamamlandı!', value: questNames, inline: false });
+        }
 
         await interaction.update({ embeds: [resultEmbed], components: [] });
       }

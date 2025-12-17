@@ -2,9 +2,10 @@ const { db } = require('../database/db');
 const { 
   letheAnimals, userAnimals, letheWeapons, letheArmors, letheAccessories,
   letheConsumables, letheBaits, letheCrates, letheBosses, userLetheInventory,
-  userLetheProfile, letheAchievements, userLetheAchievements, letheBattles
+  userLetheProfile, letheAchievements, userLetheAchievements, letheBattles,
+  letheQuests, userLetheQuests, letheDaily, letheWork
 } = require('../../shared/schema');
-const { eq, sql } = require('drizzle-orm');
+const { eq, sql, and, lt, gte } = require('drizzle-orm');
 const seedData = require('./seedData');
 
 const rarityChances = {
@@ -557,6 +558,406 @@ async function checkAndGrantAchievements(userId) {
   return newAchievements;
 }
 
+// ==================== QUEST SYSTEM ====================
+
+const questDefinitions = {
+  daily: [
+    { questId: 'daily_first_hunt', name: 'İlk Avı Yap', description: '1 hayvan avla', emoji: '🎯', requirement: 'hunt', targetValue: 1, rewardMoney: 50, rewardXp: 10 },
+    { questId: 'daily_hunter', name: 'Avcı', description: '10 hayvan avla', emoji: '🏹', requirement: 'hunt', targetValue: 10, rewardMoney: 200, rewardXp: 25 },
+    { questId: 'daily_collector', name: 'Koleksiyoncu', description: '25 hayvan avla', emoji: '📦', requirement: 'hunt', targetValue: 25, rewardMoney: 500, rewardXp: 50, rewardItem: 'bronze_crate', rewardItemType: 'crate', rewardQuantity: 1 },
+    { questId: 'daily_warrior', name: 'Savaşçı', description: '3 PvE savaş kazan', emoji: '⚔️', requirement: 'battle_win', targetValue: 3, rewardMoney: 300, rewardXp: 30 },
+    { questId: 'daily_duelist', name: 'Düellocu', description: '1 PvP düello yap', emoji: '🤺', requirement: 'pvp', targetValue: 1, rewardMoney: 150, rewardXp: 20 },
+    { questId: 'daily_rare_find', name: 'Nadir Buluş', description: '1 Nadir+ hayvan yakala', emoji: '💎', requirement: 'rare_catch', targetValue: 1, rewardMoney: 400, rewardXp: 40 },
+    { questId: 'daily_seller', name: 'Satıcı', description: '5 hayvan sat', emoji: '💰', requirement: 'sell', targetValue: 5, rewardMoney: 100, rewardXp: 15 },
+    { questId: 'daily_team_player', name: 'Takım Oyuncusu', description: 'Takımla 5 savaş yap', emoji: '👥', requirement: 'battle', targetValue: 5, rewardMoney: 250, rewardXp: 35 }
+  ],
+  weekly: [
+    { questId: 'weekly_hunter', name: 'Haftalık Avcı', description: '100 hayvan avla', emoji: '🎯', requirement: 'hunt', targetValue: 100, rewardMoney: 2000, rewardXp: 200 },
+    { questId: 'weekly_boss_slayer', name: 'Boss Avcısı', description: '3 boss öldür', emoji: '🐲', requirement: 'boss_kill', targetValue: 3, rewardMoney: 5000, rewardXp: 500, rewardItem: 'epic_crate', rewardItemType: 'crate', rewardQuantity: 1 },
+    { questId: 'weekly_pvp_master', name: 'PvP Ustası', description: '10 düello kazan', emoji: '🏆', requirement: 'pvp_win', targetValue: 10, rewardMoney: 3000, rewardXp: 300 },
+    { questId: 'weekly_epic_find', name: 'Epik Buluş', description: '3 Epik+ hayvan yakala', emoji: '🌟', requirement: 'epic_catch', targetValue: 3, rewardMoney: 2500, rewardXp: 250 },
+    { questId: 'weekly_rich', name: 'Zengin Ol', description: '10,000 💰 kazan', emoji: '🤑', requirement: 'earn_money', targetValue: 10000, rewardMoney: 1500, rewardXp: 150 },
+    { questId: 'weekly_collection', name: 'Koleksiyon Tamamla', description: '20 farklı hayvan yakala', emoji: '📚', requirement: 'unique_catch', targetValue: 20, rewardMoney: 4000, rewardXp: 400 },
+    { questId: 'weekly_battle_lord', name: 'Savaş Lordu', description: '30 savaş kazan', emoji: '👑', requirement: 'battle_win', targetValue: 30, rewardMoney: 3500, rewardXp: 350, rewardItem: 'gold_crate', rewardItemType: 'crate', rewardQuantity: 1 }
+  ]
+};
+
+async function seedQuests() {
+  try {
+    const existing = await db.select().from(letheQuests).limit(1);
+    if (existing.length > 0) return;
+
+    for (const quest of [...questDefinitions.daily, ...questDefinitions.weekly]) {
+      const type = quest.questId.startsWith('daily_') ? 'daily' : 'weekly';
+      await db.insert(letheQuests).values({ ...quest, type }).onConflictDoNothing();
+    }
+    console.log('Lethe Quests seeded!');
+  } catch (error) {
+    console.error('Error seeding quests:', error);
+  }
+}
+
+function getNextReset(type) {
+  const now = new Date();
+  if (type === 'daily') {
+    const tomorrow = new Date(now);
+    tomorrow.setUTCHours(0, 0, 0, 0);
+    tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
+    return tomorrow;
+  } else {
+    const nextMonday = new Date(now);
+    nextMonday.setUTCHours(0, 0, 0, 0);
+    const daysUntilMonday = (8 - nextMonday.getUTCDay()) % 7 || 7;
+    nextMonday.setUTCDate(nextMonday.getUTCDate() + daysUntilMonday);
+    return nextMonday;
+  }
+}
+
+async function getUserQuests(userId) {
+  await getOrCreateProfile(userId);
+  
+  const now = new Date();
+  
+  // Clean expired quests
+  await db.delete(userLetheQuests)
+    .where(and(eq(userLetheQuests.visitorId, userId), lt(userLetheQuests.expiresAt, now)));
+  
+  // Get active quests
+  let userQuests = await db.select().from(userLetheQuests)
+    .where(and(eq(userLetheQuests.visitorId, userId), gte(userLetheQuests.expiresAt, now)));
+  
+  // Assign new quests if needed
+  const allQuests = await db.select().from(letheQuests);
+  const assignedQuestIds = new Set(userQuests.map(q => q.questId));
+  
+  for (const quest of allQuests) {
+    if (!assignedQuestIds.has(quest.questId)) {
+      const expiresAt = getNextReset(quest.type);
+      await db.insert(userLetheQuests).values({
+        visitorId: userId,
+        questId: quest.questId,
+        progress: 0,
+        completed: false,
+        claimed: false,
+        expiresAt
+      });
+    }
+  }
+  
+  // Fetch all quests again with quest details
+  userQuests = await db.select().from(userLetheQuests)
+    .where(and(eq(userLetheQuests.visitorId, userId), gte(userLetheQuests.expiresAt, now)));
+  
+  const questsWithDetails = [];
+  for (const uq of userQuests) {
+    const questInfo = allQuests.find(q => q.questId === uq.questId);
+    if (questInfo) {
+      questsWithDetails.push({ ...uq, questInfo });
+    }
+  }
+  
+  return questsWithDetails;
+}
+
+async function updateQuestProgress(userId, requirement, amount = 1) {
+  const userQuests = await getUserQuests(userId);
+  const updated = [];
+  
+  for (const uq of userQuests) {
+    if (uq.completed || uq.claimed) continue;
+    if (uq.questInfo.requirement !== requirement) continue;
+    
+    const newProgress = Math.min(uq.progress + amount, uq.questInfo.targetValue);
+    const completed = newProgress >= uq.questInfo.targetValue;
+    
+    await db.update(userLetheQuests)
+      .set({ 
+        progress: newProgress, 
+        completed,
+        completedAt: completed ? new Date() : null
+      })
+      .where(eq(userLetheQuests.id, uq.id));
+    
+    if (completed && !uq.completed) {
+      updated.push({ ...uq, progress: newProgress, completed: true });
+    }
+  }
+  
+  return updated;
+}
+
+async function claimQuestReward(userId, questId) {
+  const userQuests = await getUserQuests(userId);
+  const quest = userQuests.find(q => q.questId === questId);
+  
+  if (!quest) return { success: false, error: 'Görev bulunamadı!' };
+  if (!quest.completed) return { success: false, error: 'Görev henüz tamamlanmadı!' };
+  if (quest.claimed) return { success: false, error: 'Ödül zaten alındı!' };
+  
+  // Mark as claimed
+  await db.update(userLetheQuests)
+    .set({ claimed: true })
+    .where(eq(userLetheQuests.id, quest.id));
+  
+  // Give rewards
+  const qi = quest.questInfo;
+  if (qi.rewardMoney > 0) {
+    await addCoins(userId, qi.rewardMoney);
+  }
+  if (qi.rewardXp > 0) {
+    await db.update(userLetheProfile)
+      .set({ xp: sql`${userLetheProfile.xp} + ${qi.rewardXp}` })
+      .where(eq(userLetheProfile.visitorId, userId));
+    await checkLevelUp(userId);
+  }
+  if (qi.rewardItem && qi.rewardItemType) {
+    await addInventoryItem(userId, qi.rewardItemType, qi.rewardItem, qi.rewardQuantity || 1);
+  }
+  
+  return { success: true, quest: qi };
+}
+
+async function addInventoryItem(userId, itemType, itemId, quantity = 1) {
+  const existing = await db.select().from(userLetheInventory)
+    .where(and(
+      eq(userLetheInventory.visitorId, userId),
+      eq(userLetheInventory.itemType, itemType),
+      eq(userLetheInventory.itemId, itemId)
+    ))
+    .limit(1);
+  
+  if (existing.length > 0) {
+    await db.update(userLetheInventory)
+      .set({ quantity: sql`${userLetheInventory.quantity} + ${quantity}` })
+      .where(eq(userLetheInventory.id, existing[0].id));
+  } else {
+    await db.insert(userLetheInventory).values({
+      visitorId: userId,
+      itemType,
+      itemId,
+      quantity
+    });
+  }
+}
+
+// ==================== DAILY REWARD SYSTEM ====================
+
+async function getOrCreateDaily(userId) {
+  let daily = await db.select().from(letheDaily)
+    .where(eq(letheDaily.visitorId, userId))
+    .limit(1);
+  
+  if (daily.length === 0) {
+    await db.insert(letheDaily).values({ visitorId: userId });
+    daily = await db.select().from(letheDaily)
+      .where(eq(letheDaily.visitorId, userId))
+      .limit(1);
+  }
+  
+  return daily[0];
+}
+
+const dailyRewards = [
+  { day: 1, money: 100, bonus: null },
+  { day: 2, money: 150, bonus: null },
+  { day: 3, money: 200, bonus: null },
+  { day: 4, money: 300, bonus: null },
+  { day: 5, money: 400, bonus: null },
+  { day: 6, money: 500, bonus: null },
+  { day: 7, money: 1000, bonus: { type: 'crate', id: 'silver_crate', quantity: 1 } }
+];
+
+async function claimDailyReward(userId) {
+  await getOrCreateProfile(userId);
+  const daily = await getOrCreateDaily(userId);
+  
+  const now = new Date();
+  const lastClaim = daily.lastClaim ? new Date(daily.lastClaim) : null;
+  
+  if (lastClaim) {
+    const hoursSince = (now - lastClaim) / (1000 * 60 * 60);
+    if (hoursSince < 24) {
+      const hoursLeft = Math.ceil(24 - hoursSince);
+      return { success: false, error: `Günlük ödülünü zaten aldın! ${hoursLeft} saat sonra tekrar gel.` };
+    }
+    
+    // Check streak (48 hour window)
+    const daysSince = hoursSince / 24;
+    if (daysSince > 2) {
+      // Reset streak
+      await db.update(letheDaily)
+        .set({ currentStreak: 0 })
+        .where(eq(letheDaily.visitorId, userId));
+    }
+  }
+  
+  // Calculate new streak
+  let newStreak = (daily.currentStreak % 7) + 1;
+  const longestStreak = Math.max(daily.longestStreak, newStreak);
+  
+  const reward = dailyRewards[newStreak - 1];
+  
+  // Update daily record
+  await db.update(letheDaily)
+    .set({ 
+      currentStreak: newStreak,
+      longestStreak,
+      lastClaim: now,
+      totalClaims: sql`${letheDaily.totalClaims} + 1`
+    })
+    .where(eq(letheDaily.visitorId, userId));
+  
+  // Give rewards
+  await addCoins(userId, reward.money);
+  
+  if (reward.bonus) {
+    await addInventoryItem(userId, reward.bonus.type, reward.bonus.id, reward.bonus.quantity);
+  }
+  
+  return { 
+    success: true, 
+    day: newStreak, 
+    money: reward.money, 
+    bonus: reward.bonus,
+    nextReward: dailyRewards[newStreak % 7]
+  };
+}
+
+async function getDailyStatus(userId) {
+  const daily = await getOrCreateDaily(userId);
+  const now = new Date();
+  const lastClaim = daily.lastClaim ? new Date(daily.lastClaim) : null;
+  
+  let canClaim = true;
+  let hoursLeft = 0;
+  
+  if (lastClaim) {
+    const hoursSince = (now - lastClaim) / (1000 * 60 * 60);
+    if (hoursSince < 24) {
+      canClaim = false;
+      hoursLeft = Math.ceil(24 - hoursSince);
+    }
+  }
+  
+  const currentDay = daily.currentStreak % 7;
+  const nextReward = dailyRewards[currentDay];
+  
+  return {
+    currentStreak: daily.currentStreak,
+    longestStreak: daily.longestStreak,
+    totalClaims: daily.totalClaims,
+    canClaim,
+    hoursLeft,
+    nextReward,
+    allRewards: dailyRewards
+  };
+}
+
+// ==================== WORK SYSTEM ====================
+
+const jobs = {
+  hunter: { name: 'Avcı', emoji: '🏹', minPay: 50, maxPay: 150, bonus: 'hunt_xp' },
+  trader: { name: 'Tüccar', emoji: '💼', minPay: 80, maxPay: 200, bonus: 'sell_bonus' },
+  warrior: { name: 'Savaşçı', emoji: '⚔️', minPay: 60, maxPay: 180, bonus: 'battle_xp' },
+  collector: { name: 'Koleksiyoncu', emoji: '📦', minPay: 40, maxPay: 250, bonus: 'rare_chance' }
+};
+
+async function getOrCreateWork(userId) {
+  let work = await db.select().from(letheWork)
+    .where(eq(letheWork.visitorId, userId))
+    .limit(1);
+  
+  if (work.length === 0) {
+    await db.insert(letheWork).values({ visitorId: userId });
+    work = await db.select().from(letheWork)
+      .where(eq(letheWork.visitorId, userId))
+      .limit(1);
+  }
+  
+  return work[0];
+}
+
+async function doWork(userId) {
+  await getOrCreateProfile(userId);
+  const work = await getOrCreateWork(userId);
+  
+  const now = new Date();
+  const lastWork = work.lastWork ? new Date(work.lastWork) : null;
+  
+  if (lastWork) {
+    const minutesSince = (now - lastWork) / (1000 * 60);
+    if (minutesSince < 30) {
+      const minutesLeft = Math.ceil(30 - minutesSince);
+      return { success: false, error: `Dinlenmen gerekiyor! ${minutesLeft} dakika sonra tekrar çalışabilirsin.` };
+    }
+  }
+  
+  const job = jobs[work.job] || jobs.hunter;
+  const earned = Math.floor(Math.random() * (job.maxPay - job.minPay + 1)) + job.minPay;
+  
+  // Update work record
+  await db.update(letheWork)
+    .set({ 
+      lastWork: now,
+      totalWorked: sql`${letheWork.totalWorked} + 1`,
+      totalEarned: sql`${letheWork.totalEarned} + ${earned}`
+    })
+    .where(eq(letheWork.visitorId, userId));
+  
+  // Give money
+  await addCoins(userId, earned);
+  
+  // Update quest progress
+  await updateQuestProgress(userId, 'earn_money', earned);
+  
+  return { 
+    success: true, 
+    job,
+    earned,
+    totalWorked: work.totalWorked + 1
+  };
+}
+
+async function changeJob(userId, newJob) {
+  if (!jobs[newJob]) {
+    return { success: false, error: 'Geçersiz meslek!' };
+  }
+  
+  await getOrCreateWork(userId);
+  await db.update(letheWork)
+    .set({ job: newJob })
+    .where(eq(letheWork.visitorId, userId));
+  
+  return { success: true, job: jobs[newJob] };
+}
+
+async function getWorkStatus(userId) {
+  const work = await getOrCreateWork(userId);
+  const now = new Date();
+  const lastWork = work.lastWork ? new Date(work.lastWork) : null;
+  
+  let canWork = true;
+  let minutesLeft = 0;
+  
+  if (lastWork) {
+    const minutesSince = (now - lastWork) / (1000 * 60);
+    if (minutesSince < 30) {
+      canWork = false;
+      minutesLeft = Math.ceil(30 - minutesSince);
+    }
+  }
+  
+  return {
+    job: jobs[work.job] || jobs.hunter,
+    jobId: work.job,
+    totalWorked: work.totalWorked,
+    totalEarned: work.totalEarned,
+    canWork,
+    minutesLeft,
+    allJobs: jobs
+  };
+}
+
 module.exports = {
   seedDatabase,
   huntAnimal,
@@ -583,5 +984,19 @@ module.exports = {
   getUserAchievements,
   getAllAchievements,
   grantAchievement,
-  checkAndGrantAchievements
+  checkAndGrantAchievements,
+  // Quest System
+  seedQuests,
+  getUserQuests,
+  updateQuestProgress,
+  claimQuestReward,
+  addInventoryItem,
+  // Daily Reward System
+  claimDailyReward,
+  getDailyStatus,
+  // Work System
+  doWork,
+  changeJob,
+  getWorkStatus,
+  jobs
 };

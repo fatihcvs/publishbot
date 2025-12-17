@@ -526,6 +526,57 @@ const letheBattles = pgTable('lethe_battles', {
   createdAt: timestamp('created_at').defaultNow()
 });
 
+// Lethe Game - Daily/Weekly Quests
+const letheQuests = pgTable('lethe_quests', {
+  id: serial('id').primaryKey(),
+  questId: text('quest_id').notNull().unique(),
+  name: text('name').notNull(),
+  description: text('description').notNull(),
+  emoji: text('emoji').notNull(),
+  type: text('type').notNull(), // 'daily' or 'weekly'
+  requirement: text('requirement').notNull(), // 'hunt', 'battle', 'boss', 'sell', 'rare_catch', 'pvp'
+  targetValue: integer('target_value').default(1),
+  rewardMoney: integer('reward_money').default(100),
+  rewardXp: integer('reward_xp').default(0),
+  rewardItem: text('reward_item'),
+  rewardItemType: text('reward_item_type'),
+  rewardQuantity: integer('reward_quantity').default(1)
+});
+
+const userLetheQuests = pgTable('user_lethe_quests', {
+  id: serial('id').primaryKey(),
+  visitorId: text('user_id').notNull(),
+  questId: text('quest_id').notNull(),
+  progress: integer('progress').default(0),
+  completed: boolean('completed').default(false),
+  claimed: boolean('claimed').default(false),
+  assignedAt: timestamp('assigned_at').defaultNow(),
+  completedAt: timestamp('completed_at'),
+  expiresAt: timestamp('expires_at').notNull()
+});
+
+// Lethe Game - Daily Rewards & Streak
+const letheDaily = pgTable('lethe_daily', {
+  id: serial('id').primaryKey(),
+  visitorId: text('user_id').notNull().unique(),
+  currentStreak: integer('current_streak').default(0),
+  longestStreak: integer('longest_streak').default(0),
+  lastClaim: timestamp('last_claim'),
+  totalClaims: integer('total_claims').default(0),
+  createdAt: timestamp('created_at').defaultNow()
+});
+
+// Lethe Game - Work System
+const letheWork = pgTable('lethe_work', {
+  id: serial('id').primaryKey(),
+  visitorId: text('user_id').notNull().unique(),
+  job: text('job').default('hunter'), // 'hunter', 'trader', 'warrior', 'collector'
+  lastWork: timestamp('last_work'),
+  totalWorked: integer('total_worked').default(0),
+  totalEarned: integer('total_earned').default(0),
+  createdAt: timestamp('created_at').defaultNow()
+});
+
 module.exports = {
   guilds,
   warnings,
@@ -571,5 +622,9 @@ module.exports = {
   userLetheProfile,
   letheAchievements,
   userLetheAchievements,
-  letheBattles
+  letheBattles,
+  letheQuests,
+  userLetheQuests,
+  letheDaily,
+  letheWork
 };
