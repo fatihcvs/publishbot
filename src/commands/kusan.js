@@ -18,17 +18,15 @@ module.exports = {
     }
     
     const animalId = args[0];
-    const itemType = args[1]?.toLowerCase();
-    const itemId = args[2];
+    const itemId = args[1];
 
-    if (!animalId || !itemType || !itemId) {
+    if (!animalId || !itemId) {
       const embed = new EmbedBuilder()
         .setColor('#ff6b6b')
         .setTitle('⚔️ Eşya Kuşanma')
-        .setDescription('**Kullanım:** `!kuşan <hayvan_id> <kategori> <eşya_id>`')
+        .setDescription('**Kullanım:** `!kuşan <hayvan_id> <eşya_id>`')
         .addFields(
-          { name: '📋 Kategoriler', value: '`weapon` (silah), `armor` (zırh), `accessory` (aksesuar)', inline: false },
-          { name: '💡 Örnek', value: '`!kuşan 15 weapon iron_sword`\n`!kuşan 15 accessory power_ring`', inline: false },
+          { name: '💡 Örnek', value: '`!kuşan 15 iron_sword`\n`!kuşan 15 power_necklace`', inline: false },
           { name: '📝 Not', value: 'Hayvan ID\'sini `!koleksiyon` ile görebilirsin.\nEşya ID\'lerini `!letheenv` ile görebilirsin.', inline: false }
         )
         .setFooter({ text: 'Sadece takımdaki hayvanlara eşya kuşanabilir!' });
@@ -36,22 +34,36 @@ module.exports = {
       return message.reply({ embeds: [embed] });
     }
 
-    const typeMap = {
-      'silah': 'weapon',
-      'weapon': 'weapon',
-      'zirh': 'armor',
-      'zırh': 'armor',
-      'armor': 'armor',
-      'aksesuar': 'accessory',
-      'accessory': 'accessory'
-    };
+    const allWeapons = await letheStorage.getAllWeapons();
+    const allArmors = await letheStorage.getAllArmors();
+    const allAccessories = await letheStorage.getAllAccessories();
 
-    const mappedType = typeMap[itemType];
-    if (!mappedType) {
-      return message.reply('❌ Geçersiz kategori! Kullanılabilir: `weapon`, `armor`, `accessory`');
+    let itemType = null;
+    let itemInfo = null;
+
+    const weapon = allWeapons.find(w => w.weaponId === itemId);
+    if (weapon) {
+      itemType = 'weapon';
+      itemInfo = weapon;
     }
 
-    const result = await letheStorage.equipItemToAnimal(message.author.id, animalId, mappedType, itemId);
+    const armor = allArmors.find(a => a.armorId === itemId);
+    if (armor) {
+      itemType = 'armor';
+      itemInfo = armor;
+    }
+
+    const accessory = allAccessories.find(a => a.accessoryId === itemId);
+    if (accessory) {
+      itemType = 'accessory';
+      itemInfo = accessory;
+    }
+
+    if (!itemType) {
+      return message.reply('❌ Bu eşya bulunamadı! Eşya ID\'lerini `!letheenv` ile kontrol et.');
+    }
+
+    const result = await letheStorage.equipItemToAnimal(message.author.id, animalId, itemType, itemId);
 
     if (!result.success) {
       const errorMessages = {
@@ -65,10 +77,6 @@ module.exports = {
 
     const allAnimals = await letheStorage.getAllAnimals();
     const animalInfo = allAnimals.find(a => a.animalId === result.animal.animalId);
-
-    const allWeapons = await letheStorage.getAllWeapons();
-    const allArmors = await letheStorage.getAllArmors();
-    const allAccessories = await letheStorage.getAllAccessories();
 
     const effectNames = {
       'hunt_bonus': '🎯 Avlanma Bonusu',
@@ -84,24 +92,18 @@ module.exports = {
       'coin_boost': '💰 Para Kazanımı'
     };
 
-    let itemInfo = null;
     let statBonus = '';
     
-    switch (mappedType) {
+    switch (itemType) {
       case 'weapon':
-        itemInfo = allWeapons.find(w => w.weaponId === itemId);
-        if (itemInfo) statBonus = `⚔️ **+${itemInfo.damage}** Hasar`;
+        statBonus = `⚔️ **+${itemInfo.damage}** Hasar`;
         break;
       case 'armor':
-        itemInfo = allArmors.find(a => a.armorId === itemId);
-        if (itemInfo) statBonus = `🛡️ **+${itemInfo.defense}** Savunma`;
+        statBonus = `🛡️ **+${itemInfo.defense}** Savunma`;
         break;
       case 'accessory':
-        itemInfo = allAccessories.find(a => a.accessoryId === itemId);
-        if (itemInfo) {
-          const effectName = effectNames[itemInfo.effect] || itemInfo.effect;
-          statBonus = `${effectName} **+${itemInfo.effectValue}**`;
-        }
+        const effectName = effectNames[itemInfo.effect] || itemInfo.effect;
+        statBonus = `${effectName} **+${itemInfo.effectValue}**`;
         break;
     }
 
@@ -116,7 +118,7 @@ module.exports = {
       .setTitle('✅ Eşya Kuşanıldı!')
       .setDescription(`${animalInfo?.emoji || '🐾'} **${result.animal.nickname || animalInfo?.name || 'Hayvan'}** eşyasını kuşandı!`)
       .addFields(
-        { name: typeNames[mappedType], value: `${itemInfo?.emoji || '📦'} **${itemInfo?.name || itemId}**\n${statBonus}`, inline: true },
+        { name: typeNames[itemType], value: `${itemInfo?.emoji || '📦'} **${itemInfo?.name || itemId}**\n${statBonus}`, inline: true },
         { name: '🆔 Hayvan ID', value: `\`${animalId}\``, inline: true }
       )
       .setFooter({ text: 'Takımını görmek için: !takım' })
