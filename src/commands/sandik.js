@@ -17,6 +17,11 @@ const crateContents = {
     armors: ['chain_armor', 'steel_armor'],
     accessories: ['power_necklace', 'protection_talisman', 'speed_bracelet', 'magic_earring']
   },
+  epic_crate: {
+    weapons: ['magic_wand', 'lightning_whip', 'fire_sword', 'ice_axe'],
+    armors: ['steel_armor', 'fire_armor', 'ice_armor'],
+    accessories: ['magic_earring', 'speed_bracelet', 'protection_talisman']
+  },
   diamond_crate: {
     weapons: ['fire_sword', 'ice_axe', 'dark_scythe'],
     armors: ['fire_armor', 'ice_armor', 'diamond_armor'],
