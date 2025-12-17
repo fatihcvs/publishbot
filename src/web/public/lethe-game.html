@@ -306,36 +306,36 @@
         <div class="quick-start-step">
           <div>
             <h5>Hayvan avla</h5>
-            <p class="text-secondary mb-2"><code>!avla</code> komutu ile rastgele hayvanlar yakala. 15 saniye cooldown var. Nadir hayvanlar daha değerli!</p>
-            <div class="command-box">!avla</div>
+            <p class="text-secondary mb-2"><code>!a</code> komutu ile rastgele hayvanlar yakala. 15 saniye cooldown var. Nadir hayvanlar daha değerli!</p>
+            <div class="command-box">!a</div>
           </div>
         </div>
         <div class="quick-start-step">
           <div>
             <h5>Koleksiyonunu gör</h5>
-            <p class="text-secondary mb-2">Yakaladığın tüm hayvanları görmek için <code>!koleksiyon</code> komutunu kullan.</p>
-            <div class="command-box">!koleksiyon</div>
+            <p class="text-secondary mb-2">Yakaladığın tüm hayvanları görmek için <code>!k</code> komutunu kullan.</p>
+            <div class="command-box">!k</div>
           </div>
         </div>
         <div class="quick-start-step">
           <div>
             <h5>Takımını kur</h5>
             <p class="text-secondary mb-2">Yakaladığın hayvanları takımına ekle. 3 hayvanlık güçlü bir savaş takımı oluştur!</p>
-            <div class="command-box">!takımekle &lt;hayvan_id&gt;</div>
+            <div class="command-box">!te &lt;hayvan_id&gt;</div>
           </div>
         </div>
         <div class="quick-start-step">
           <div>
             <h5>Savaş ve geliş</h5>
             <p class="text-secondary mb-2">PvE savaşlarla XP ve para kazan. Boss'lara meydan oku veya diğer oyuncularla düello yap!</p>
-            <div class="command-box">!savaş</div>
+            <div class="command-box">!s</div>
           </div>
         </div>
         <div class="quick-start-step">
           <div>
             <h5>Mağazadan eşya al</h5>
             <p class="text-secondary mb-2">Kazandığın paralarla silah, zırh ve aksesuarlar satın al. Takımını güçlendir!</p>
-            <div class="command-box">!lethemağaza</div>
+            <div class="command-box">!m</div>
           </div>
         </div>
       </div>
@@ -1131,15 +1131,13 @@
         <div class="col-md-6">
           <div class="card-custom">
             <h4><i class="fas fa-crosshairs text-success me-2"></i>Avlanma & Koleksiyon</h4>
-            <div class="command-box">!avla</div>
+            <div class="command-box">!a</div>
             <p class="command-desc">Hayvan avla (15 saniye cooldown)</p>
-            <div class="command-box">!hunt</div>
-            <p class="command-desc">Hayvan avla (İngilizce alternatif)</p>
-            <div class="command-box">!koleksiyon</div>
+            <div class="command-box">!k</div>
             <p class="command-desc">Yakaladığın hayvanları gör</p>
-            <div class="command-box">!hayvansatver &lt;hayvan_id&gt;</div>
+            <div class="command-box">!sat &lt;hayvan_id&gt;</div>
             <p class="command-desc">Hayvan sat ve para kazan</p>
-            <div class="command-box">!bakiye</div>
+            <div class="command-box">!p</div>
             <p class="command-desc">Para, XP, seviye ve evrim taşlarını gör</p>
           </div>
         </div>
@@ -1147,13 +1145,13 @@
         <div class="col-md-6">
           <div class="card-custom">
             <h4><i class="fas fa-paw text-info me-2"></i>Pet & Takım</h4>
-            <div class="command-box">!takım</div>
+            <div class="command-box">!t</div>
             <p class="command-desc">Savaş takımını gör</p>
-            <div class="command-box">!takımekle &lt;hayvan_id&gt;</div>
+            <div class="command-box">!te &lt;hayvan_id&gt;</div>
             <p class="command-desc">Takımına hayvan ekle (max 3)</p>
-            <div class="command-box">!takımçıkar &lt;slot&gt;</div>
+            <div class="command-box">!tc &lt;slot&gt;</div>
             <p class="command-desc">Takımdan hayvan çıkar (1-3)</p>
-            <div class="command-box">!profil [@kullanıcı]</div>
+            <div class="command-box">!pr [@kullanıcı]</div>
             <p class="command-desc">Oyun profilini görüntüle</p>
           </div>
         </div>
@@ -1161,11 +1159,11 @@
         <div class="col-md-6">
           <div class="card-custom">
             <h4><i class="fas fa-swords text-danger me-2"></i>Savaş</h4>
-            <div class="command-box">!savaş</div>
+            <div class="command-box">!s</div>
             <p class="command-desc">PvE savaşa gir</p>
-            <div class="command-box">!düello @kullanıcı</div>
+            <div class="command-box">!d @kullanıcı</div>
             <p class="command-desc">PvP düello yap</p>
-            <div class="command-box">!boss</div>
+            <div class="command-box">!b</div>
             <p class="command-desc">Boss savaşına katıl (3/3 takım gerekli)</p>
           </div>
         </div>
@@ -1173,13 +1171,13 @@
         <div class="col-md-6">
           <div class="card-custom">
             <h4><i class="fas fa-shop text-purple me-2"></i>Mağaza & Envanter</h4>
-            <div class="command-box">!lethemağaza [kategori]</div>
+            <div class="command-box">!m [kategori]</div>
             <p class="command-desc">Mağazayı görüntüle (silah/zırh/aksesuar/tüketim/yem/sandık)</p>
-            <div class="command-box">!letheal &lt;kategori&gt; &lt;id&gt;</div>
+            <div class="command-box">!al &lt;kategori&gt; &lt;id&gt;</div>
             <p class="command-desc">Eşya satın al</p>
-            <div class="command-box">!letheenv</div>
+            <div class="command-box">!e</div>
             <p class="command-desc">Envanterini görüntüle (sandıklar dahil!)</p>
-            <div class="command-box">!kuşan &lt;hayvan_id&gt; &lt;eşya_id&gt;</div>
+            <div class="command-box">!ku &lt;hayvan_id&gt; &lt;eşya_id&gt;</div>
             <p class="command-desc">Hayvana eşya kuşan (otomatik tür algılama)</p>
           </div>
         </div>
@@ -1187,9 +1185,9 @@
         <div class="col-md-6">
           <div class="card-custom">
             <h4><i class="fas fa-box-open text-orange me-2"></i>Sandık</h4>
-            <div class="command-box">!sandık</div>
+            <div class="command-box">!sd</div>
             <p class="command-desc">Sandıklarını görüntüle</p>
-            <div class="command-box">!sandık aç &lt;sandık_id&gt;</div>
+            <div class="command-box">!sd aç &lt;sandık_id&gt;</div>
             <p class="command-desc">Sandık aç</p>
           </div>
         </div>

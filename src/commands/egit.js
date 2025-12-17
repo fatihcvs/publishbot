@@ -15,7 +15,7 @@ const evolutionEmojis = ['', '⭐', '⭐⭐', '⭐⭐⭐'];
 
 module.exports = {
   name: 'eğit',
-  aliases: ['egit', 'train', 'antrenman'],
+  aliases: ['eg', 'egit', 'train', 'antrenman'],
   description: 'Hayvanını eğiterek güçlendir',
   usage: '!eğit <hayvan_id>',
   category: 'lethe',

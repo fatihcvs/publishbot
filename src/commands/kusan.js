@@ -3,7 +3,7 @@ const letheStorage = require('../lethe/letheStorage');
 
 module.exports = {
   name: 'kusan',
-  aliases: ['kuşan', 'equip', 'giy'],
+  aliases: ['ku', 'kuşan', 'equip', 'giy'],
   description: 'Hayvanına eşya kuşan',
   category: 'lethe',
   async execute(message, args, client, storage) {
@@ -27,7 +27,7 @@ module.exports = {
         .setDescription('**Kullanım:** `!kuşan <hayvan_id> <eşya_id>`')
         .addFields(
           { name: '💡 Örnek', value: '`!kuşan 15 iron_sword`\n`!kuşan 15 power_necklace`', inline: false },
-          { name: '📝 Not', value: 'Hayvan ID\'sini `!koleksiyon` ile görebilirsin.\nEşya ID\'lerini `!letheenv` ile görebilirsin.', inline: false }
+          { name: '📝 Not', value: 'Hayvan ID\'sini `!k` ile görebilirsin.\nEşya ID\'lerini `!e` ile görebilirsin.', inline: false }
         )
         .setFooter({ text: 'Sadece takımdaki hayvanlara eşya kuşanabilir!' });
 
@@ -60,14 +60,14 @@ module.exports = {
     }
 
     if (!itemType) {
-      return message.reply('❌ Bu eşya bulunamadı! Eşya ID\'lerini `!letheenv` ile kontrol et.');
+      return message.reply('❌ Bu eşya bulunamadı! Eşya ID\'lerini `!e` ile kontrol et.');
     }
 
     const result = await letheStorage.equipItemToAnimal(message.author.id, animalId, itemType, itemId);
 
     if (!result.success) {
       const errorMessages = {
-        'Item not in inventory': '❌ Bu eşya envanterinde yok! Önce `!letheal` ile satın al.',
+        'Item not in inventory': '❌ Bu eşya envanterinde yok! Önce `!al` ile satın al.',
         'Animal not found': '❌ Bu hayvan bulunamadı veya sana ait değil!',
         'Animal not in team': '❌ Bu hayvan takımında değil! Önce `!takımekle` ile takıma ekle.',
         'Cannot equip this item type': '❌ Bu tür eşyalar kuşanılamaz!',

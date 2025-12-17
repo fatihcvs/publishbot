@@ -64,53 +64,51 @@ Güçlü ve tam donanımlı Discord moderasyon botu + Web Dashboard.
 
 **Global Sistem:** Kullanıcı verileri tüm sunucularda paylaşılır. Her sunucu oyunu açıp kapatabilir ama veriler globaldir.
 
-**Temel Komutlar:**
-- `!avla` / `!hunt` - Hayvan avla (15 saniye cooldown)
-- `!bakiye` / `!para` - Para ve taşlarını görüntüle
-- `!koleksiyon` - Yakaladığın hayvanları görüntüle
-- `!takım` - Savaş takımını görüntüle
-- `!takımekle <id>` - Takıma hayvan ekle (max 3)
-- `!takımçıkar <slot>` - Takımdan hayvan çıkar
-- `!profil [@kullanıcı]` - Oyun profilini görüntüle
+**Temel Komutlar (Kısa Aliases):**
+- `!a` / `!avla` / `!hunt` - Hayvan avla (15 saniye cooldown)
+- `!p` / `!bakiye` / `!para` - Para ve taşlarını görüntüle
+- `!k` / `!koleksiyon` - Yakaladığın hayvanları görüntüle
+- `!t` / `!takım` - Savaş takımını görüntüle
+- `!te` / `!takımekle <id>` - Takıma hayvan ekle (max 3)
+- `!tc` / `!takımçıkar <slot>` - Takımdan hayvan çıkar
+- `!pr` / `!profil [@kullanıcı]` - Oyun profilini görüntüle
 
-**Görev Sistemi (YENİ!):**
+**Görev Sistemi:**
 - `!görev` / `!quest` - Günlük ve haftalık görevleri görüntüle
 - `!görev günlük` - Sadece günlük görevleri göster
 - `!görev haftalık` - Sadece haftalık görevleri göster
-- `!görev ödül <görev_id>` - Tamamlanan görevin ödülünü al
 
 **Günlük görevler:** İlk Av, Avcı (10 av), Koleksiyoncu (25 av), Savaşçı, Düellocu, Nadir Buluş, Satıcı, Takım Oyuncusu
 **Haftalık görevler:** Haftalık Avcı (100 av), Boss Avcısı, PvP Ustası, Epik Buluş, Zengin Ol, Koleksiyon Tamamla, Savaş Lordu
 
-**Ekonomi Sistemi (YENİ!):**
+**Ekonomi Sistemi:**
 - `!günlük` / `!daily` - Günlük ödülünü al (streak bonusları!)
 - `!günlük durum` - Günlük ödül durumunu gör
 - `!çalış` / `!work` - Çalışarak para kazan (30dk cooldown)
 - `!çalış meslek <meslek>` - Meslek değiştir (hunter/trader/warrior/collector)
-- `!çalış durum` - İş durumunu gör
 
 **Streak Ödülleri:** Gün 1: 100💰 → Gün 7: 1000💰 + Gümüş Sandık
 
-**Savaş Sistemi:**
-- `!savaş` - PvE savaşa gir
-- `!boss` - Boss savaşına katıl (3/3 takım gerekli)
-- `!düello @kullanıcı` - PvP düello yap
+**Savaş Sistemi (Kısa Aliases):**
+- `!s` / `!savaş` - PvE savaşa gir
+- `!b` / `!boss` - Boss savaşına katıl (3/3 takım gerekli)
+- `!d` / `!düello @kullanıcı` - PvP düello yap
 
-**Ekipman ve Mağaza:**
-- `!lethemağaza [kategori]` - Mağazayı görüntüle
-- `!letheal <kategori> <id>` - Eşya satın al
-- `!letheenv` - Envanteri görüntüle
-- `!kuşan <kategori> <id>` - Eşya kuşan
-- `!sandık [aç <id>]` - Sandık aç
+**Ekipman ve Mağaza (Kısa Aliases):**
+- `!m` / `!mağaza [kategori]` - Mağazayı görüntüle
+- `!al <kategori> <id>` - Eşya satın al
+- `!e` / `!envanter` - Envanteri görüntüle
+- `!ku` / `!kuşan <hayvan_id> <eşya_id>` - Eşya kuşan
+- `!sd` / `!sandık [aç <id>]` - Sandık aç
 
-**Evrim Sistemi (YENİ!):**
+**Evrim Sistemi:**
 - `!evrim <id1> <id2> <id3>` - Aynı türden 3 hayvanı birleştir
 - `!evrim taşlar` - Evrim taşlarını görüntüle
 - `!evrim bilgi` - Evrim sistemi hakkında bilgi
 - `!eğit <id>` - Hayvanı eğit ve güçlendir
 
 **Diğer:**
-- `!hayvansat <id>` - Hayvan sat
+- `!sat <id>` / `!hayvansat` - Hayvan sat
 
 **Kanal Kontrolü:**
 - `!oyunkanal ekle #kanal` - Oyun kanalı ekle

@@ -3,7 +3,7 @@ const letheStorage = require('../lethe/letheStorage');
 
 module.exports = {
   name: 'çalış',
-  aliases: ['calis', 'work', 'iş', 'is'],
+  aliases: ['c', 'calis', 'work', 'iş', 'is'],
   description: 'Çalışarak para kazan',
   usage: '!çalış [meslek]',
   category: 'lethe',

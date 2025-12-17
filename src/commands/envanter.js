@@ -2,8 +2,8 @@ const { EmbedBuilder } = require('discord.js');
 const letheStorage = require('../lethe/letheStorage');
 
 module.exports = {
-  name: 'letheenv',
-  aliases: ['letheenvanter', 'letheinv', 'letheinventory', 'ekipman'],
+  name: 'envanter',
+  aliases: ['e', 'env', 'inventory', 'ekipman'],
   description: 'Lethe Game envanterini görüntüle',
   category: 'lethe',
   async execute(message, args, client, storage) {
@@ -57,7 +57,7 @@ module.exports = {
     }
 
     if (inventory.length === 0) {
-      embed.setDescription('Envanterin boş! `!lethemağaza` ile eşya satın al.');
+      embed.setDescription('Envanterin boş! `!mağaza` veya `!m` ile eşya satın al.');
     } else {
       const weapons = inventory.filter(i => i.itemType === 'weapon');
       const armors = inventory.filter(i => i.itemType === 'armor');

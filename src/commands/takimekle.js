@@ -3,7 +3,7 @@ const letheStorage = require('../lethe/letheStorage');
 
 module.exports = {
   name: 'takimekle',
-  aliases: ['takımekle', 'teamadd', 'addpet'],
+  aliases: ['te', 'takımekle', 'teamadd', 'addpet'],
   description: 'Takımına hayvan ekle',
   category: 'lethe',
   async execute(message, args, client, storage) {

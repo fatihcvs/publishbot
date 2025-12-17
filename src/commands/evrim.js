@@ -25,7 +25,7 @@ const gemEmojis = {
 
 module.exports = {
   name: 'evrim',
-  aliases: ['evolve', 'evolution', 'birleştir'],
+  aliases: ['ev', 'evolve', 'evolution', 'birleştir'],
   description: 'Aynı türden 3 hayvanı birleştirerek evrimleştir',
   usage: '!evrim <hayvan_id1> <hayvan_id2> <hayvan_id3> veya !evrim taşlar',
   category: 'lethe',

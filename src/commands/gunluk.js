@@ -3,7 +3,7 @@ const letheStorage = require('../lethe/letheStorage');
 
 module.exports = {
   name: 'günlük',
-  aliases: ['gunluk', 'daily', 'ödül'],
+  aliases: ['gn', 'gunluk', 'daily', 'ödül'],
   description: 'Günlük ödülünü al',
   usage: '!günlük',
   category: 'lethe',

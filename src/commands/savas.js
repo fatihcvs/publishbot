@@ -247,7 +247,7 @@ function createHpBar(percent) {
 
 module.exports = {
   name: 'savas',
-  aliases: ['savaş', 'battle', 'fight', 'pve'],
+  aliases: ['s', 'savaş', 'battle', 'fight', 'pve'],
   description: 'Takımınla savaşa gir',
   category: 'lethe',
   async execute(message, args, client, storage) {

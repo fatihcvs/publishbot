@@ -66,7 +66,7 @@ const battleAnimations = [
 
 module.exports = {
   name: 'boss',
-  aliases: ['bosssavas', 'bossfight'],
+  aliases: ['b', 'bosssavas', 'bossfight'],
   description: 'Boss savaşına katıl',
   category: 'lethe',
   async execute(message, args, client, storage) {

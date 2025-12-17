@@ -27,7 +27,7 @@ const rarityOrder = ['eternal', 'hidden', 'mythic', 'legendary', 'epic', 'rare',
 
 module.exports = {
   name: 'koleksiyon',
-  aliases: ['collection', 'hayvanlar', 'animals', 'zoo'],
+  aliases: ['k', 'kol', 'collection', 'hayvanlar', 'animals', 'zoo'],
   description: 'Yakaladığın hayvanları görüntüle',
   category: 'lethe',
   async execute(message, args, client, storage) {

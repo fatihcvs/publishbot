@@ -25,7 +25,7 @@ const rarityNames = {
 
 module.exports = {
   name: 'avla',
-  aliases: ['av', 'hunt', 'yakala'],
+  aliases: ['a', 'av', 'hunt', 'yakala'],
   description: 'Hayvan avla ve koleksiyonuna ekle',
   category: 'lethe',
   async execute(message, args, client, storage) {

@@ -3,7 +3,7 @@ const letheStorage = require('../lethe/letheStorage');
 
 module.exports = {
   name: 'bakiye',
-  aliases: ['para', 'coins', 'money', 'cüzdan', 'cuzdan', 'balance'],
+  aliases: ['p', 'para', 'coins', 'money', 'cüzdan', 'cuzdan', 'balance'],
   description: 'Lethe Game bakiyeni görüntüle',
   usage: '!bakiye [@kullanıcı]',
   category: 'lethe',

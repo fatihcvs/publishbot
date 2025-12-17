@@ -37,7 +37,7 @@ const effectNames = {
 
 module.exports = {
   name: 'takim',
-  aliases: ['takım', 'team', 'petler', 'pets'],
+  aliases: ['t', 'takım', 'team', 'petler', 'pets'],
   description: 'Savaş takımını görüntüle',
   category: 'lethe',
   async execute(message, args, client, storage) {

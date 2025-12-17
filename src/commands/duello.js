@@ -170,7 +170,7 @@ function createDuelEmbed(phase, challenger, opponent, challengerTeam, opponentTe
 
 module.exports = {
   name: 'duello',
-  aliases: ['düello', 'pvp', 'vs'],
+  aliases: ['d', 'düello', 'pvp', 'vs'],
   description: 'Başka bir kullanıcıyla düello yap',
   category: 'lethe',
   async execute(message, args, client, storage) {

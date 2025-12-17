@@ -3,7 +3,7 @@ const letheStorage = require('../lethe/letheStorage');
 
 module.exports = {
   name: 'görev',
-  aliases: ['gorev', 'quest', 'quests', 'görevler'],
+  aliases: ['g', 'gorev', 'quest', 'quests', 'görevler'],
   description: 'Günlük ve haftalık görevleri görüntüle',
   usage: '!görev [günlük/haftalık/ödül <görev_id>]',
   category: 'lethe',

@@ -2,8 +2,8 @@ const { EmbedBuilder } = require('discord.js');
 const letheStorage = require('../lethe/letheStorage');
 
 module.exports = {
-  name: 'letheal',
-  aliases: ['lethesatınal', 'lethebuy', 'equipbuy'],
+  name: 'al',
+  aliases: ['satınal', 'satinal', 'buy'],
   description: 'Lethe mağazasından eşya satın al',
   category: 'lethe',
   async execute(message, args, client, storage) {
@@ -21,9 +21,9 @@ module.exports = {
     const itemId = args[1];
 
     if (!itemType || !itemId) {
-      return message.reply('❌ Kullanım: `!letheal <kategori> <eşya_id>`\n' +
-        'Kategoriler: `weapon`, `armor`, `accessory`, `consumable`, `bait`\n' +
-        'Örnek: `!letheal weapon wooden_sword`');
+      return message.reply('❌ Kullanım: `!al <kategori> <eşya_id>`\n' +
+        'Kategoriler: `silah`, `zırh`, `aksesuar`, `iksir`, `yem`\n' +
+        'Örnek: `!al silah iron_sword`');
     }
 
     const typeMap = {
@@ -63,7 +63,7 @@ module.exports = {
       .addFields(
         { name: '💰 Ödenen', value: `${result.price}`, inline: true }
       )
-      .setFooter({ text: 'Envanterini görmek için: !letheenv' })
+      .setFooter({ text: 'Envanterini görmek için: !e veya !envanter' })
       .setTimestamp();
 
     await message.reply({ embeds: [embed] });

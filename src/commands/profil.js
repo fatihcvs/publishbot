@@ -3,7 +3,7 @@ const letheStorage = require('../lethe/letheStorage');
 
 module.exports = {
   name: 'profil',
-  aliases: ['profile', 'letheprofil', 'oyuncu'],
+  aliases: ['pr', 'profile', 'oyuncu'],
   description: 'Lethe Game profilini görüntüle',
   category: 'lethe',
   async execute(message, args, client, storage) {

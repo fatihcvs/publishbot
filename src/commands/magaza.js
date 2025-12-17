@@ -20,8 +20,8 @@ const rarityEmojis = {
 };
 
 module.exports = {
-  name: 'lethemagaza',
-  aliases: ['lethemağaza', 'letheshop', 'silahlar', 'zirhlar'],
+  name: 'magaza',
+  aliases: ['m', 'mağaza', 'shop', 'dükkan', 'dukkan', 'silahlar', 'zirhlar'],
   description: 'Lethe Game mağazasını aç',
   category: 'lethe',
   async execute(message, args, client, storage) {
@@ -77,12 +77,12 @@ module.exports = {
           .setTitle('🏪 Lethe Game Mağazası')
           .setDescription('Bir kategori seçin:')
           .addFields(
-            { name: '⚔️ Silahlar', value: '`!lethemağaza silahlar`', inline: true },
-            { name: '🛡️ Zırhlar', value: '`!lethemağaza zırhlar`', inline: true },
-            { name: '💍 Aksesuarlar', value: '`!lethemağaza aksesuarlar`', inline: true },
-            { name: '🧪 İksirler', value: '`!lethemağaza iksirler`', inline: true }
+            { name: '⚔️ Silahlar', value: '`!m silahlar`', inline: true },
+            { name: '🛡️ Zırhlar', value: '`!m zırhlar`', inline: true },
+            { name: '💍 Aksesuarlar', value: '`!m aksesuarlar`', inline: true },
+            { name: '🧪 İksirler', value: '`!m iksirler`', inline: true }
           )
-          .setFooter({ text: 'Satın almak için: !letheal <kategori> <eşya_id>' })
+          .setFooter({ text: 'Satın almak için: !al <kategori> <eşya_id>' })
           .setTimestamp();
         return message.reply({ embeds: [embed] });
     }
@@ -114,7 +114,7 @@ module.exports = {
       .setColor('#8b5cf6')
       .setTitle(`🏪 ${title}`)
       .setDescription(description)
-      .setFooter({ text: `Satın almak için: !letheal ${itemType} <eşya_id>` })
+      .setFooter({ text: `Satın almak için: !al ${itemType} <eşya_id>` })
       .setTimestamp();
 
     await message.reply({ embeds: [embed] });

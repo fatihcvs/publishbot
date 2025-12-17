@@ -36,7 +36,7 @@ const crateContents = {
 
 module.exports = {
   name: 'sandik',
-  aliases: ['sandık', 'crate', 'crates', 'lootbox'],
+  aliases: ['sd', 'sandık', 'crate', 'crates', 'lootbox'],
   description: 'Sandıkları görüntüle veya aç',
   category: 'lethe',
   async execute(message, args, client, storage) {
@@ -81,7 +81,7 @@ module.exports = {
         .setColor('#8b5cf6')
         .setTitle('📦 Sandıklar')
         .setDescription(description + inventorySection || 'Henüz sandık yok.')
-        .setFooter({ text: 'Satın al: !letheal sandık <id> | Aç: !sandık aç <id>' })
+        .setFooter({ text: 'Satın al: !al sandık <id> | Aç: !sd aç <id>' })
         .setTimestamp();
 
       return message.reply({ embeds: [embed] });
@@ -245,7 +245,7 @@ module.exports = {
         .addFields(
           { name: `${typeEmojis[selectedType]} Kazanılan`, value: `${wonItem.emoji} **${wonItem.name}**`, inline: false }
         )
-        .setFooter({ text: 'Envanterini görmek için: !letheenv' })
+        .setFooter({ text: 'Envanterini görmek için: !e veya !envanter' })
         .setTimestamp();
 
       await message.reply({ embeds: [embed] });
