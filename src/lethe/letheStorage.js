@@ -445,11 +445,43 @@ async function removeFromTeam(userId, slot) {
     return { success: false, error: 'No animal in that slot' };
   }
 
+  await releaseAnimalEquipment(userId, animal);
+
   await db.update(userAnimals)
-    .set({ isInTeam: false, teamSlot: null })
+    .set({ 
+      isInTeam: false, 
+      teamSlot: null,
+      equippedWeapon: null,
+      equippedArmor: null,
+      equippedAccessory: null
+    })
     .where(eq(userAnimals.id, animal.id));
 
   return { success: true };
+}
+
+async function releaseAnimalEquipment(userId, animal) {
+  const equipmentToRelease = [
+    { type: 'weapon', id: animal.equippedWeapon },
+    { type: 'armor', id: animal.equippedArmor },
+    { type: 'accessory', id: animal.equippedAccessory }
+  ].filter(e => e.id);
+
+  for (const equip of equipmentToRelease) {
+    const inventoryItem = await db.select().from(userLetheInventory)
+      .where(and(
+        eq(userLetheInventory.visitorId, userId),
+        eq(userLetheInventory.itemType, equip.type),
+        eq(userLetheInventory.itemId, equip.id)
+      ))
+      .limit(1);
+    
+    if (inventoryItem.length > 0 && inventoryItem[0].equippedCount > 0) {
+      await db.update(userLetheInventory)
+        .set({ equippedCount: sql`GREATEST(${userLetheInventory.equippedCount} - 1, 0)` })
+        .where(eq(userLetheInventory.id, inventoryItem[0].id));
+    }
+  }
 }
 
 async function renameAnimal(userId, userAnimalId, nickname) {
@@ -606,6 +638,11 @@ async function equipItemToAnimal(userId, animalId, itemType, itemId) {
     return { success: false, error: 'Item not in inventory' };
   }
 
+  const availableCount = inventoryItem.quantity - (inventoryItem.equippedCount || 0);
+  if (availableCount <= 0) {
+    return { success: false, error: 'No available items (all equipped to other animals)' };
+  }
+
   const animal = await db.select().from(userAnimals)
     .where(eq(userAnimals.id, parseInt(animalId)))
     .limit(1);
@@ -616,6 +653,34 @@ async function equipItemToAnimal(userId, animalId, itemType, itemId) {
 
   if (!animal[0].isInTeam) {
     return { success: false, error: 'Animal not in team' };
+  }
+
+  let oldItemId = null;
+  switch (itemType) {
+    case 'weapon':
+      oldItemId = animal[0].equippedWeapon;
+      break;
+    case 'armor':
+      oldItemId = animal[0].equippedArmor;
+      break;
+    case 'accessory':
+      oldItemId = animal[0].equippedAccessory;
+      break;
+  }
+
+  if (oldItemId && oldItemId !== itemId) {
+    const oldInventoryItem = inventoryItems.find(i => i.itemType === itemType && i.itemId === oldItemId);
+    if (oldInventoryItem && oldInventoryItem.equippedCount > 0) {
+      await db.update(userLetheInventory)
+        .set({ equippedCount: sql`GREATEST(${userLetheInventory.equippedCount} - 1, 0)` })
+        .where(eq(userLetheInventory.id, oldInventoryItem.id));
+    }
+  }
+
+  if (oldItemId !== itemId) {
+    await db.update(userLetheInventory)
+      .set({ equippedCount: sql`${userLetheInventory.equippedCount} + 1` })
+      .where(eq(userLetheInventory.id, inventoryItem.id));
   }
 
   const updateData = {};
@@ -647,6 +712,35 @@ async function unequipFromAnimal(userId, animalId, itemType) {
 
   if (animal.length === 0 || animal[0].userId !== userId) {
     return { success: false, error: 'Animal not found' };
+  }
+
+  let itemId = null;
+  switch (itemType) {
+    case 'weapon':
+      itemId = animal[0].equippedWeapon;
+      break;
+    case 'armor':
+      itemId = animal[0].equippedArmor;
+      break;
+    case 'accessory':
+      itemId = animal[0].equippedAccessory;
+      break;
+  }
+
+  if (itemId) {
+    const inventoryItem = await db.select().from(userLetheInventory)
+      .where(and(
+        eq(userLetheInventory.visitorId, userId),
+        eq(userLetheInventory.itemType, itemType),
+        eq(userLetheInventory.itemId, itemId)
+      ))
+      .limit(1);
+    
+    if (inventoryItem.length > 0 && inventoryItem[0].equippedCount > 0) {
+      await db.update(userLetheInventory)
+        .set({ equippedCount: sql`GREATEST(${userLetheInventory.equippedCount} - 1, 0)` })
+        .where(eq(userLetheInventory.id, inventoryItem[0].id));
+    }
   }
 
   const updateData = {};

@@ -70,7 +70,8 @@ module.exports = {
         'Item not in inventory': '❌ Bu eşya envanterinde yok! Önce `!letheal` ile satın al.',
         'Animal not found': '❌ Bu hayvan bulunamadı veya sana ait değil!',
         'Animal not in team': '❌ Bu hayvan takımında değil! Önce `!takımekle` ile takıma ekle.',
-        'Cannot equip this item type': '❌ Bu tür eşyalar kuşanılamaz!'
+        'Cannot equip this item type': '❌ Bu tür eşyalar kuşanılamaz!',
+        'No available items (all equipped to other animals)': '❌ Bu eşyanın tamamı diğer hayvanlara takılı! Birden fazla kullanmak için aynı eşyadan daha fazla satın al.'
       };
       return message.reply(errorMessages[result.error] || '❌ Bir hata oluştu.');
     }

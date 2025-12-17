@@ -479,6 +479,7 @@ const userLetheInventory = pgTable('user_lethe_inventory', {
   itemType: text('item_type').notNull(),
   itemId: text('item_id').notNull(),
   quantity: integer('quantity').default(1),
+  equippedCount: integer('equipped_count').default(0),
   isEquipped: boolean('is_equipped').default(false),
   obtainedAt: timestamp('obtained_at').defaultNow()
 });
