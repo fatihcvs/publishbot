@@ -1,6 +1,173 @@
 const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 const letheStorage = require('../lethe/letheStorage');
 
+const battleAnimations = [
+  ['⚔️', '💥', '✨', '🌟'],
+  ['🗡️', '💢', '⚡', '💫'],
+  ['🔥', '💨', '❄️', '🌀']
+];
+
+const attackMessages = [
+  '{attacker} saldırıya geçti!',
+  '{attacker} güçlü bir hamle yaptı!',
+  '{attacker} rakibine saldırdı!',
+  '{attacker} şiddetli bir atak başlattı!'
+];
+
+const hitMessages = [
+  '{target} **{damage}** hasar aldı!',
+  '{target} sarsıldı! **{damage}** hasar!',
+  '{target} ağır bir darbe yedi! **{damage}**',
+  '{target} sendeledi! **{damage}** hasar!'
+];
+
+const critMessages = [
+  '💥 KRİTİK! {attacker} müthiş bir vuruş yaptı!',
+  '⚡ SÜPER ETKİLİ! {attacker} ezici bir darbe indirdi!',
+  '🔥 YIKICI SALDIRI! {attacker} rakibini sarstı!'
+];
+
+const dodgeMessages = [
+  '💨 {target} saldırıdan kaçındı!',
+  '🌀 {target} manevra yaptı!',
+  '✨ {target} son anda sıyrıldı!'
+];
+
+function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function createHpBar(percent) {
+  const filled = Math.round(percent / 10);
+  const empty = 10 - filled;
+  const color = percent > 60 ? '🟩' : percent > 30 ? '🟨' : '🟥';
+  return color.repeat(filled) + '⬛'.repeat(empty) + ` ${percent}%`;
+}
+
+function createDuelEmbed(phase, challenger, opponent, challengerTeam, opponentTeam, challengerStats, opponentStats, currentHp, round, battleLog, won = null) {
+  const embed = new EmbedBuilder();
+  
+  const challengerHpPercent = Math.max(0, Math.round((currentHp.challenger / challengerStats.hp) * 100));
+  const opponentHpPercent = Math.max(0, Math.round((currentHp.opponent / opponentStats.hp) * 100));
+  
+  const challengerHpBar = createHpBar(challengerHpPercent);
+  const opponentHpBar = createHpBar(opponentHpPercent);
+  
+  if (phase === 'intro') {
+    embed.setColor('#fbbf24')
+      .setTitle('⚔️ DÜELLO BAŞLIYOR! ⚔️')
+      .setDescription(`**${challenger.username}** vs **${opponent.username}**\n\`\`\`\n${'═'.repeat(30)}\n\`\`\``);
+    
+    let challengerTeamStr = challengerTeam.map(t => {
+      const base = `${t.animalInfo.emoji} **${t.userAnimal.nickname || t.animalInfo.name}** Lv.${t.userAnimal.level}`;
+      const eff = t.effectiveStats || t.userAnimal;
+      let stats = `┣ ❤️${eff.hp} ⚔️${eff.str} 🛡️${eff.def} ⚡${eff.spd}`;
+      
+      let equipLine = '';
+      if (t.equipment) {
+        const eqParts = [];
+        if (t.equipment.weaponInfo) eqParts.push(`⚔️${t.equipment.weaponInfo.emoji}`);
+        if (t.equipment.armorInfo) eqParts.push(`🛡️${t.equipment.armorInfo.emoji}`);
+        if (t.equipment.accessoryInfo) eqParts.push(`💍${t.equipment.accessoryInfo.emoji}`);
+        if (eqParts.length > 0) equipLine = `\n┗ ${eqParts.join(' ')}`;
+      }
+      
+      return base + '\n' + stats + equipLine;
+    }).join('\n\n');
+    
+    let opponentTeamStr = opponentTeam.map(t => {
+      const base = `${t.animalInfo.emoji} **${t.userAnimal.nickname || t.animalInfo.name}** Lv.${t.userAnimal.level}`;
+      const eff = t.effectiveStats || t.userAnimal;
+      let stats = `┣ ❤️${eff.hp} ⚔️${eff.str} 🛡️${eff.def} ⚡${eff.spd}`;
+      
+      let equipLine = '';
+      if (t.equipment) {
+        const eqParts = [];
+        if (t.equipment.weaponInfo) eqParts.push(`⚔️${t.equipment.weaponInfo.emoji}`);
+        if (t.equipment.armorInfo) eqParts.push(`🛡️${t.equipment.armorInfo.emoji}`);
+        if (t.equipment.accessoryInfo) eqParts.push(`💍${t.equipment.accessoryInfo.emoji}`);
+        if (eqParts.length > 0) equipLine = `\n┗ ${eqParts.join(' ')}`;
+      }
+      
+      return base + '\n' + stats + equipLine;
+    }).join('\n\n');
+    
+    embed.addFields(
+      { name: `🟢 ${challenger.username}`, value: challengerTeamStr || 'Boş', inline: true },
+      { name: '⚔️', value: '\u200b', inline: true },
+      { name: `🔴 ${opponent.username}`, value: opponentTeamStr || 'Boş', inline: true }
+    );
+    
+  } else if (phase === 'battle') {
+    const animSet = battleAnimations[Math.floor(Math.random() * battleAnimations.length)];
+    const anim = animSet[Math.floor(Math.random() * animSet.length)];
+    
+    embed.setColor('#ef4444')
+      .setTitle(`${anim} TUR ${round} ${anim}`)
+      .setDescription(`**${challenger.username}** vs **${opponent.username}**\n\`\`\`ansi\n\u001b[1;31m⚔️ DÜELLO DEVAM EDİYOR ⚔️\u001b[0m\n\`\`\``);
+    
+    embed.addFields(
+      { name: `🟢 ${challenger.username}`, value: `${challengerHpBar}\n❤️ ${Math.max(0, currentHp.challenger)}/${challengerStats.hp}`, inline: true },
+      { name: '⚔️ vs ⚔️', value: '\u200b', inline: true },
+      { name: `🔴 ${opponent.username}`, value: `${opponentHpBar}\n❤️ ${Math.max(0, currentHp.opponent)}/${opponentStats.hp}`, inline: true }
+    );
+    
+    const recentLogs = battleLog.slice(-4).join('\n');
+    embed.addFields({ name: '📜 Savaş Günlüğü', value: recentLogs || '...', inline: false });
+    
+  } else if (phase === 'result') {
+    const winner = won === 'challenger' ? challenger : opponent;
+    const isChallenger = won === 'challenger';
+    
+    embed.setColor(isChallenger ? '#10b981' : '#ef4444')
+      .setTitle(`🏆 ${winner.username} KAZANDI! 🏆`)
+      .setDescription(`**${challenger.username}** vs **${opponent.username}**\n\`\`\`diff\n+ ${winner.username} galip geldi!\n\`\`\``);
+    
+    let challengerTeamStr = challengerTeam.map(t => {
+      const base = `${t.animalInfo.emoji} **${t.userAnimal.nickname || t.animalInfo.name}** Lv.${t.userAnimal.level}`;
+      const eff = t.effectiveStats || t.userAnimal;
+      let stats = `┣ ❤️${eff.hp} ⚔️${eff.str} 🛡️${eff.def} ⚡${eff.spd}`;
+      
+      let equipLine = '';
+      if (t.equipment) {
+        const eqParts = [];
+        if (t.equipment.weaponInfo) eqParts.push(`⚔️${t.equipment.weaponInfo.emoji}`);
+        if (t.equipment.armorInfo) eqParts.push(`🛡️${t.equipment.armorInfo.emoji}`);
+        if (t.equipment.accessoryInfo) eqParts.push(`💍${t.equipment.accessoryInfo.emoji}`);
+        if (eqParts.length > 0) equipLine = `\n┗ ${eqParts.join(' ')}`;
+      }
+      
+      return base + '\n' + stats + equipLine;
+    }).join('\n\n');
+    
+    let opponentTeamStr = opponentTeam.map(t => {
+      const base = `${t.animalInfo.emoji} **${t.userAnimal.nickname || t.animalInfo.name}** Lv.${t.userAnimal.level}`;
+      const eff = t.effectiveStats || t.userAnimal;
+      let stats = `┣ ❤️${eff.hp} ⚔️${eff.str} 🛡️${eff.def} ⚡${eff.spd}`;
+      
+      let equipLine = '';
+      if (t.equipment) {
+        const eqParts = [];
+        if (t.equipment.weaponInfo) eqParts.push(`⚔️${t.equipment.weaponInfo.emoji}`);
+        if (t.equipment.armorInfo) eqParts.push(`🛡️${t.equipment.armorInfo.emoji}`);
+        if (t.equipment.accessoryInfo) eqParts.push(`💍${t.equipment.accessoryInfo.emoji}`);
+        if (eqParts.length > 0) equipLine = `\n┗ ${eqParts.join(' ')}`;
+      }
+      
+      return base + '\n' + stats + equipLine;
+    }).join('\n\n');
+    
+    embed.addFields(
+      { name: `${isChallenger ? '🏆' : '💀'} ${challenger.username}`, value: challengerTeamStr || 'Boş', inline: true },
+      { name: isChallenger ? '✅' : '❌', value: '\u200b', inline: true },
+      { name: `${isChallenger ? '💀' : '🏆'} ${opponent.username}`, value: opponentTeamStr || 'Boş', inline: true }
+    );
+  }
+  
+  embed.setTimestamp();
+  return embed;
+}
+
 module.exports = {
   name: 'duello',
   aliases: ['düello', 'pvp', 'vs'],
@@ -58,6 +225,11 @@ module.exports = {
       .setColor('#f59e0b')
       .setTitle('⚔️ Düello Daveti!')
       .setDescription(`${message.author} seni düelloya davet ediyor!`)
+      .addFields(
+        { name: `🟢 ${message.author.username}`, value: `${challengerData.team.length} hayvanlı takım\nToplam Güç: ⚔️${challengerData.stats.str} 🛡️${challengerData.stats.def}`, inline: true },
+        { name: '⚔️', value: '\u200b', inline: true },
+        { name: `🔴 ${opponent.username}`, value: `${opponentData.team.length} hayvanlı takım\nToplam Güç: ⚔️${opponentData.stats.str} 🛡️${opponentData.stats.def}`, inline: true }
+      )
       .setFooter({ text: '30 saniye içinde yanıt ver!' })
       .setTimestamp();
 
@@ -85,43 +257,102 @@ module.exports = {
         const challengerStats = challengerData.stats;
         const opponentStats = opponentData.stats;
 
-        let challengerHp = challengerStats.hp;
-        let opponentHp = opponentStats.hp;
+        const currentHp = { challenger: challengerStats.hp, opponent: opponentStats.hp };
         const battleLog = [];
         let round = 0;
 
+        const introEmbed = createDuelEmbed('intro', message.author, opponent, challengerData.team, opponentData.team, challengerStats, opponentStats, currentHp, 0, []);
+        await interaction.update({ embeds: [introEmbed], components: [] });
+
+        await delay(2000);
+
         const challengerFirst = challengerStats.spd >= opponentStats.spd;
 
-        while (challengerHp > 0 && opponentHp > 0 && round < 20) {
+        while (currentHp.challenger > 0 && currentHp.opponent > 0 && round < 20) {
           round++;
 
           if (challengerFirst) {
-            const damage = Math.max(1, Math.floor(challengerStats.str * (1 - opponentStats.def / (opponentStats.def + 100)) * (0.9 + Math.random() * 0.2)));
-            opponentHp -= damage;
-            battleLog.push(`⚔️ ${message.author.username}: **${damage}** hasar!`);
+            const isCrit = Math.random() < 0.15;
+            const isDodge = Math.random() < (opponentStats.spd / (opponentStats.spd + 100));
+            
+            if (isDodge) {
+              const dodgeMsg = dodgeMessages[Math.floor(Math.random() * dodgeMessages.length)]
+                .replace('{target}', `🔴 ${opponent.username}`);
+              battleLog.push(dodgeMsg);
+            } else {
+              let damage = Math.max(1, Math.floor(challengerStats.str * (1 - opponentStats.def / (opponentStats.def + 100)) * (0.9 + Math.random() * 0.2)));
+              if (isCrit) {
+                damage = Math.floor(damage * 1.5);
+                const critMsg = critMessages[Math.floor(Math.random() * critMessages.length)]
+                  .replace('{attacker}', `🟢 ${message.author.username}`);
+                battleLog.push(critMsg);
+              }
+              currentHp.opponent -= damage;
+              
+              const hitMsg = hitMessages[Math.floor(Math.random() * hitMessages.length)]
+                .replace('{target}', `🔴`)
+                .replace('{damage}', damage.toString());
+              battleLog.push(`⚔️ ${message.author.username} saldırdı! ${hitMsg}`);
+            }
 
-            if (opponentHp <= 0) break;
+            if (currentHp.opponent <= 0) break;
 
-            const counterDamage = Math.max(1, Math.floor(opponentStats.str * (1 - challengerStats.def / (challengerStats.def + 100)) * (0.9 + Math.random() * 0.2)));
-            challengerHp -= counterDamage;
-            battleLog.push(`💥 ${opponent.username}: **${counterDamage}** hasar!`);
+            const opponentDodge = Math.random() < (challengerStats.spd / (challengerStats.spd + 100));
+            if (opponentDodge) {
+              const dodgeMsg = dodgeMessages[Math.floor(Math.random() * dodgeMessages.length)]
+                .replace('{target}', `🟢 ${message.author.username}`);
+              battleLog.push(dodgeMsg);
+            } else {
+              const counterDamage = Math.max(1, Math.floor(opponentStats.str * (1 - challengerStats.def / (challengerStats.def + 100)) * (0.9 + Math.random() * 0.2)));
+              currentHp.challenger -= counterDamage;
+              
+              const hitMsg = hitMessages[Math.floor(Math.random() * hitMessages.length)]
+                .replace('{target}', '🟢')
+                .replace('{damage}', counterDamage.toString());
+              battleLog.push(`💥 ${opponent.username} saldırdı! ${hitMsg}`);
+            }
           } else {
-            const damage = Math.max(1, Math.floor(opponentStats.str * (1 - challengerStats.def / (challengerStats.def + 100)) * (0.9 + Math.random() * 0.2)));
-            challengerHp -= damage;
-            battleLog.push(`💥 ${opponent.username}: **${damage}** hasar!`);
+            const isDodge = Math.random() < (challengerStats.spd / (challengerStats.spd + 100));
+            
+            if (isDodge) {
+              const dodgeMsg = dodgeMessages[Math.floor(Math.random() * dodgeMessages.length)]
+                .replace('{target}', `🟢 ${message.author.username}`);
+              battleLog.push(dodgeMsg);
+            } else {
+              const damage = Math.max(1, Math.floor(opponentStats.str * (1 - challengerStats.def / (challengerStats.def + 100)) * (0.9 + Math.random() * 0.2)));
+              currentHp.challenger -= damage;
+              
+              const hitMsg = hitMessages[Math.floor(Math.random() * hitMessages.length)]
+                .replace('{target}', '🟢')
+                .replace('{damage}', damage.toString());
+              battleLog.push(`💥 ${opponent.username} saldırdı! ${hitMsg}`);
+            }
 
-            if (challengerHp <= 0) break;
+            if (currentHp.challenger <= 0) break;
 
-            const counterDamage = Math.max(1, Math.floor(challengerStats.str * (1 - opponentStats.def / (opponentStats.def + 100)) * (0.9 + Math.random() * 0.2)));
-            opponentHp -= counterDamage;
-            battleLog.push(`⚔️ ${message.author.username}: **${counterDamage}** hasar!`);
+            const challengerDodge = Math.random() < (opponentStats.spd / (opponentStats.spd + 100));
+            if (challengerDodge) {
+              const dodgeMsg = dodgeMessages[Math.floor(Math.random() * dodgeMessages.length)]
+                .replace('{target}', `🔴 ${opponent.username}`);
+              battleLog.push(dodgeMsg);
+            } else {
+              const counterDamage = Math.max(1, Math.floor(challengerStats.str * (1 - opponentStats.def / (opponentStats.def + 100)) * (0.9 + Math.random() * 0.2)));
+              currentHp.opponent -= counterDamage;
+              
+              const hitMsg = hitMessages[Math.floor(Math.random() * hitMessages.length)]
+                .replace('{target}', '🔴')
+                .replace('{damage}', counterDamage.toString());
+              battleLog.push(`⚔️ ${message.author.username} saldırdı! ${hitMsg}`);
+            }
           }
+
+          const battleEmbed = createDuelEmbed('battle', message.author, opponent, challengerData.team, opponentData.team, challengerStats, opponentStats, currentHp, round, battleLog);
+          await challengeMsg.edit({ embeds: [battleEmbed] });
+          await delay(1500);
         }
 
-        const challengerWon = opponentHp <= 0;
-        const winner = challengerWon ? message.author : opponent;
+        const challengerWon = currentHp.opponent <= 0;
 
-        // Update quest progress for both players
         await letheStorage.updateQuestProgress(message.author.id, 'pvp', 1);
         await letheStorage.updateQuestProgress(opponent.id, 'pvp', 1);
         
@@ -133,19 +364,12 @@ module.exports = {
           await letheStorage.updateQuestProgress(opponent.id, 'pvp_win', 1);
         }
 
-        const lastLogs = battleLog.slice(-6).join('\n');
+        const resultEmbed = createDuelEmbed('result', message.author, opponent, challengerData.team, opponentData.team, challengerStats, opponentStats, currentHp, round, battleLog, challengerWon ? 'challenger' : 'opponent');
+        
+        resultEmbed.addFields(
+          { name: '🎯 Toplam Tur', value: `${round}`, inline: true }
+        );
 
-        const resultEmbed = new EmbedBuilder()
-          .setColor(challengerWon ? '#10b981' : '#ef4444')
-          .setTitle(`🏆 ${winner.username} Kazandı!`)
-          .setDescription(`${message.author.username} vs ${opponent.username}`)
-          .addFields(
-            { name: '📜 Savaş', value: lastLogs || 'Savaş çok hızlı bitti!', inline: false },
-            { name: '🎯 Sonuç', value: `${round} turda ${winner.username} galip geldi!`, inline: false }
-          )
-          .setTimestamp();
-
-        // Show completed quests with rewards
         if (completedQuests.length > 0) {
           for (const q of completedQuests) {
             let rewardText = [];
@@ -160,7 +384,9 @@ module.exports = {
           }
         }
 
-        await interaction.update({ embeds: [resultEmbed], components: [] });
+        resultEmbed.setFooter({ text: challengerWon ? `🎉 Tebrikler ${message.author.username}!` : `🎉 Tebrikler ${opponent.username}!` });
+
+        await challengeMsg.edit({ embeds: [resultEmbed] });
       }
     });
 
