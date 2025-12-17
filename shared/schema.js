@@ -499,6 +499,8 @@ const userLetheProfile = pgTable('user_lethe_profile', {
   equippedAccessory: text('equipped_accessory'),
   activeBoosts: jsonb('active_boosts').default({}),
   lastHunt: timestamp('last_hunt'),
+  lastBattle: timestamp('last_battle'),
+  lastBoss: timestamp('last_boss'),
   createdAt: timestamp('created_at').defaultNow()
 });
 

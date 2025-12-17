@@ -261,11 +261,18 @@ module.exports = {
       return message.reply(`❌ Lethe Game komutları sadece belirlenen kanallarda çalışır! \`!oyunkanal liste\` ile kontrol et.`);
     }
     
+    const cooldownCheck = await letheStorage.checkBattleCooldown(message.author.id);
+    if (!cooldownCheck.canBattle) {
+      return message.reply(`⏳ Savaş için dinlenmen gerekiyor! **${cooldownCheck.remainingSeconds} saniye** bekle.`);
+    }
+    
     const teamData = await letheStorage.getTeamWithEquipment(message.author.id);
 
     if (teamData.team.length === 0) {
       return message.reply('❌ Takımın boş! Önce `!takımekle` ile hayvan ekle.');
     }
+    
+    await letheStorage.setBattleCooldown(message.author.id);
 
     const userStats = teamData.stats;
     const profile = await letheStorage.getProfile(message.author.id);

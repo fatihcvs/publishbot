@@ -80,6 +80,14 @@ module.exports = {
       return message.reply(`❌ Lethe Game komutları sadece belirlenen kanallarda çalışır! \`!oyunkanal liste\` ile kontrol et.`);
     }
     
+    const cooldownCheck = await letheStorage.checkBossCooldown(message.author.id);
+    if (!cooldownCheck.canBattle) {
+      if (cooldownCheck.remainingMinutes > 0) {
+        return message.reply(`⏳ Boss savaşı için dinlenmen gerekiyor! **${cooldownCheck.remainingMinutes} dakika ${cooldownCheck.remainingSeconds} saniye** bekle.`);
+      }
+      return message.reply(`⏳ Boss savaşı için dinlenmen gerekiyor! **${cooldownCheck.remainingSeconds} saniye** bekle.`);
+    }
+    
     const { db } = require('../database/db');
     const { letheBosses } = require('../../shared/schema');
 
@@ -94,6 +102,8 @@ module.exports = {
     if (bosses.length === 0) {
       return message.reply('❌ Henüz boss tanımlanmamış!');
     }
+    
+    await letheStorage.setBossCooldown(message.author.id);
 
     const profile = await letheStorage.getProfile(message.author.id);
     

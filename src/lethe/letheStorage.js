@@ -504,6 +504,47 @@ async function getProfile(userId) {
   return await getOrCreateProfile(userId);
 }
 
+async function checkBattleCooldown(userId) {
+  const profile = await getOrCreateProfile(userId);
+  const battleCooldown = 15000; // 15 seconds
+  
+  if (profile.lastBattle) {
+    const timeSince = Date.now() - new Date(profile.lastBattle).getTime();
+    if (timeSince < battleCooldown) {
+      return { canBattle: false, remainingSeconds: Math.ceil((battleCooldown - timeSince) / 1000) };
+    }
+  }
+  return { canBattle: true };
+}
+
+async function setBattleCooldown(userId) {
+  await db.update(userLetheProfile)
+    .set({ lastBattle: new Date() })
+    .where(eq(userLetheProfile.visitorId, userId));
+}
+
+async function checkBossCooldown(userId) {
+  const profile = await getOrCreateProfile(userId);
+  const bossCooldown = 900000; // 15 minutes (900 seconds)
+  
+  if (profile.lastBoss) {
+    const timeSince = Date.now() - new Date(profile.lastBoss).getTime();
+    if (timeSince < bossCooldown) {
+      const remainingMs = bossCooldown - timeSince;
+      const minutes = Math.floor(remainingMs / 60000);
+      const seconds = Math.ceil((remainingMs % 60000) / 1000);
+      return { canBattle: false, remainingMinutes: minutes, remainingSeconds: seconds };
+    }
+  }
+  return { canBattle: true };
+}
+
+async function setBossCooldown(userId) {
+  await db.update(userLetheProfile)
+    .set({ lastBoss: new Date() })
+    .where(eq(userLetheProfile.visitorId, userId));
+}
+
 async function getAllAnimals() {
   return await db.select().from(letheAnimals);
 }
@@ -1666,5 +1707,10 @@ module.exports = {
   trainAnimal,
   getAnimalDetails,
   // Special
-  giveAnimalToUser
+  giveAnimalToUser,
+  // Cooldowns
+  checkBattleCooldown,
+  setBattleCooldown,
+  checkBossCooldown,
+  setBossCooldown
 };
