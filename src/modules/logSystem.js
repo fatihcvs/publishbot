@@ -11,15 +11,51 @@ class LogSystem {
     const logConfig = guildData?.logConfig || {};
     const logChannel = guildData?.logChannel;
     
-    // Check if this log type is enabled
-    const isEnabled = logConfig[logType] === true;
+    // Map internal log types to dashboard checkbox names
+    const typeMapping = {
+      'messageDelete': ['messageDelete'],
+      'messageUpdate': ['messageEdit', 'messageUpdate'],
+      'channelCreate': ['channelCreate'],
+      'channelUpdate': ['channelUpdate'],
+      'channelDelete': ['channelDelete'],
+      'roleCreate': ['roleCreate'],
+      'roleUpdate': ['roleUpdate'],
+      'roleDelete': ['roleDelete'],
+      'memberJoin': ['memberJoin'],
+      'memberLeave': ['memberLeave'],
+      'memberUpdate': ['memberRoleAdd', 'memberRoleRemove', 'nicknameChange', 'memberUpdate'],
+      'banAdd': ['memberBan', 'banAdd'],
+      'banRemove': ['memberUnban', 'banRemove'],
+      'voiceActivity': ['voiceJoin', 'voiceLeave', 'voiceMove', 'voiceActivity'],
+      'guildUpdate': ['guildUpdate'],
+      'inviteCreate': ['invites', 'inviteCreate'],
+      'inviteDelete': ['invites', 'inviteDelete']
+    };
     
-    if (!isEnabled || !logChannel) return null;
+    // Check if any of the mapped types are enabled
+    const possibleTypes = typeMapping[logType] || [logType];
+    let isEnabled = false;
+    let channelId = logChannel;
+    
+    for (const type of possibleTypes) {
+      const setting = logConfig[type];
+      // Support both formats: boolean (new) and object with enabled/channel (old)
+      if (setting === true) {
+        isEnabled = true;
+        break;
+      } else if (setting && typeof setting === 'object' && setting.enabled) {
+        isEnabled = true;
+        channelId = setting.channel || logChannel;
+        break;
+      }
+    }
+    
+    if (!isEnabled || !channelId) return null;
     
     const guild = this.client.guilds.cache.get(guildId);
     if (!guild) return null;
     
-    return guild.channels.cache.get(logChannel);
+    return guild.channels.cache.get(channelId);
   }
 
   async log(guildId, logType, embed) {
