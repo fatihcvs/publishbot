@@ -674,6 +674,105 @@ app.get('/api/guild/:guildId/invites/leaderboard', isAuthenticated, requireManag
   }
 });
 
+app.get('/api/guild/:guildId/reminders', isAuthenticated, requireManagerAccess, async (req, res) => {
+  const { guildId } = req.params;
+  
+  try {
+    const reminderList = await storage.getGuildReminders(guildId);
+    res.json(reminderList);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get reminders' });
+  }
+});
+
+app.delete('/api/guild/:guildId/reminders/:id', isAuthenticated, requireManagerAccess, async (req, res) => {
+  const { id } = req.params;
+  
+  try {
+    await storage.deleteReminder(parseInt(id));
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to delete reminder' });
+  }
+});
+
+app.get('/api/guild/:guildId/giveaways/all', isAuthenticated, requireManagerAccess, async (req, res) => {
+  const { guildId } = req.params;
+  
+  try {
+    const giveawayList = await storage.getGuildGiveaways(guildId);
+    res.json(giveawayList);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get giveaways' });
+  }
+});
+
+app.post('/api/guild/:guildId/giveaways/:id/end', isAuthenticated, requireManagerAccess, async (req, res) => {
+  const { id } = req.params;
+  
+  try {
+    await storage.updateGiveaway(parseInt(id), { ended: true });
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to end giveaway' });
+  }
+});
+
+app.get('/api/guild/:guildId/tempvoice/config', isAuthenticated, requireManagerAccess, async (req, res) => {
+  const { guildId } = req.params;
+  
+  try {
+    const guild = await storage.getGuild(guildId);
+    res.json({
+      tempVoiceChannel: guild?.tempVoiceChannel || null,
+      tempVoiceCategory: guild?.tempVoiceCategory || null
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get temp voice config' });
+  }
+});
+
+app.post('/api/guild/:guildId/tempvoice/config', isAuthenticated, requireManagerAccess, async (req, res) => {
+  const { guildId } = req.params;
+  const { tempVoiceCategory, tempVoiceChannel, createNew } = req.body;
+  
+  try {
+    let channelId = tempVoiceChannel;
+    
+    if (createNew && discordClient) {
+      const guild = discordClient.guilds.cache.get(guildId);
+      if (guild) {
+        const newChannel = await guild.channels.create({
+          name: '➕ Oda Oluştur',
+          type: 2,
+          parent: tempVoiceCategory
+        });
+        channelId = newChannel.id;
+      }
+    }
+    
+    await storage.upsertGuild(guildId, { 
+      tempVoiceCategory,
+      tempVoiceChannel: channelId !== 'create_new' ? channelId : null
+    });
+    res.json({ success: true, channelId });
+  } catch (error) {
+    console.error('Temp voice config error:', error);
+    res.status(500).json({ error: 'Failed to update temp voice config' });
+  }
+});
+
+app.get('/api/guild/:guildId/polls', isAuthenticated, requireManagerAccess, async (req, res) => {
+  const { guildId } = req.params;
+  
+  try {
+    const pollList = await storage.getActivePolls(guildId);
+    res.json(pollList);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get polls' });
+  }
+});
+
 app.get('/dashboard', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
 });

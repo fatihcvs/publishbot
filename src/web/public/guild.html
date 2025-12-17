@@ -870,16 +870,162 @@
           break;
           
         case 'giveaway':
+          loadGiveaways();
           bodyContent = `
-            <p style="color: var(--text-secondary); margin-bottom: 16px;">Çekiliş sistemi aktif. Bot komutlarını kullanarak çekiliş oluşturabilirsiniz:</p>
-            <div class="feature-card" style="background: var(--bg-tertiary);">
-              <p><strong>!çekiliş &lt;süre&gt; &lt;ödül&gt;</strong> - Yeni çekiliş başlatır</p>
-              <p><strong>!groll &lt;mesaj_id&gt;</strong> - Çekilişi yeniden çeker</p>
-              <p><strong>!gend &lt;mesaj_id&gt;</strong> - Çekilişi erken bitirir</p>
+            <div id="giveawaysList"></div>
+            <div class="feature-card" style="background: var(--bg-tertiary); margin-top: 16px;">
+              <p style="margin-bottom: 8px;"><strong>Bot Komutları:</strong></p>
+              <p><code>!çekiliş &lt;süre&gt; &lt;ödül&gt;</code> - Yeni çekiliş başlatır</p>
+              <p><code>!groll &lt;mesaj_id&gt;</code> - Çekilişi yeniden çeker</p>
+              <p><code>!gend &lt;mesaj_id&gt;</code> - Çekilişi erken bitirir</p>
             </div>
           `;
           footerContent = `
             <button class="btn btn-outline" onclick="disableFeature('giveaway')">Devre Dışı Bırak</button>
+            <button class="btn btn-primary" onclick="closeModal()">Tamam</button>
+          `;
+          break;
+        
+        case 'reminders':
+          loadReminders();
+          bodyContent = `
+            <div id="remindersList"></div>
+            <div class="feature-card" style="background: var(--bg-tertiary); margin-top: 16px;">
+              <p style="margin-bottom: 8px;"><strong>Bot Komutu:</strong></p>
+              <p><code>!hatırlat &lt;süre&gt; &lt;mesaj&gt;</code></p>
+              <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;">Örnek: !hatırlat 30m Toplantıya git</p>
+              <p style="font-size: 12px; color: var(--text-muted);">Birimler: s (saniye), m (dakika), h (saat), d (gün)</p>
+            </div>
+          `;
+          footerContent = `
+            <button class="btn btn-outline" onclick="disableFeature('reminders')">Devre Dışı Bırak</button>
+            <button class="btn btn-primary" onclick="closeModal()">Tamam</button>
+          `;
+          break;
+        
+        case 'tempvoice':
+          bodyContent = `
+            <div class="form-group">
+              <label class="form-label">Geçici Ses Kanalları Kategorisi</label>
+              <select class="form-select" id="tempVoiceCategory">
+                <option value="">Kategori Seçin</option>
+                ${guildData.channels.filter(c => c.type === 4).map(c => `<option value="${c.id}" ${settings.tempVoiceCategory === c.id ? 'selected' : ''}>${c.name}</option>`).join('')}
+              </select>
+              <small style="color: var(--text-muted);">Geçici ses odaları bu kategoride oluşturulacak</small>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Tetikleyici Ses Kanalı</label>
+              <select class="form-select" id="tempVoiceChannel">
+                <option value="">Ses Kanalı Seçin</option>
+                <option value="create_new">+ Yeni Kanal Oluştur</option>
+                ${guildData.channels.filter(c => c.type === 2).map(c => `<option value="${c.id}" ${settings.tempVoiceChannel === c.id ? 'selected' : ''}>${c.name}</option>`).join('')}
+              </select>
+              <small style="color: var(--text-muted);">Kullanıcılar bu kanala katıldığında kendi odalarını oluşturacak</small>
+            </div>
+            ${settings.tempVoiceChannel ? `
+              <div class="feature-card" style="background: var(--bg-tertiary); border-left: 3px solid var(--status-online); margin-top: 12px;">
+                <p style="color: var(--status-online);"><i class="fas fa-check-circle"></i> Sistem aktif</p>
+              </div>
+            ` : ''}
+          `;
+          footerContent = `
+            <button class="btn btn-outline" onclick="disableFeature('tempvoice')">Devre Dışı Bırak</button>
+            <button class="btn btn-primary" onclick="saveTempVoiceSettings()">Kaydet</button>
+          `;
+          break;
+        
+        case 'statchannels':
+          bodyContent = `
+            <p style="color: var(--text-secondary); margin-bottom: 16px;">İstatistik kanalları sunucu bilgilerini gösteren ses kanalları oluşturur.</p>
+            <div class="feature-card" style="background: var(--bg-tertiary);">
+              <p style="margin-bottom: 8px;"><strong>Kullanılabilir Sayaçlar:</strong></p>
+              <p><code>!istatistik üye</code> - Üye sayacı</p>
+              <p><code>!istatistik bot</code> - Bot sayacı</p>
+              <p><code>!istatistik kanal</code> - Kanal sayacı</p>
+              <p><code>!istatistik rol</code> - Rol sayacı</p>
+              <p><code>!istatistik çevrimiçi</code> - Çevrimiçi sayacı</p>
+            </div>
+          `;
+          footerContent = `
+            <button class="btn btn-outline" onclick="disableFeature('statchannels')">Devre Dışı Bırak</button>
+            <button class="btn btn-primary" onclick="closeModal()">Tamam</button>
+          `;
+          break;
+        
+        case 'polls':
+          loadPolls();
+          bodyContent = `
+            <div id="pollsList"></div>
+            <div class="feature-card" style="background: var(--bg-tertiary); margin-top: 16px;">
+              <p style="margin-bottom: 8px;"><strong>Bot Komutu:</strong></p>
+              <p><code>!anket "Soru" "Seçenek1" "Seçenek2"</code></p>
+              <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;">10 seçeneğe kadar desteklenir</p>
+            </div>
+          `;
+          footerContent = `
+            <button class="btn btn-outline" onclick="disableFeature('polls')">Devre Dışı Bırak</button>
+            <button class="btn btn-primary" onclick="closeModal()">Tamam</button>
+          `;
+          break;
+        
+        case 'embed':
+          bodyContent = `
+            <p style="color: var(--text-secondary); margin-bottom: 16px;">Gömülü mesaj oluşturucu ile özel embed mesajlar oluşturun.</p>
+            <div class="feature-card" style="background: var(--bg-tertiary);">
+              <p style="margin-bottom: 8px;"><strong>Bot Komutları:</strong></p>
+              <p><code>!embed basit &lt;başlık&gt; | &lt;açıklama&gt;</code></p>
+              <p><code>!embed gelişmiş &lt;başlık&gt; | &lt;açıklama&gt; | &lt;renk&gt;</code></p>
+              <p><code>!embed alan &lt;başlık&gt; | &lt;alan_adı:değer&gt;</code></p>
+              <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;">Renkler: kırmızı, mavi, yeşil, sarı, mor, turuncu veya hex kodu</p>
+            </div>
+          `;
+          footerContent = `
+            <button class="btn btn-outline" onclick="disableFeature('embed')">Devre Dışı Bırak</button>
+            <button class="btn btn-primary" onclick="closeModal()">Tamam</button>
+          `;
+          break;
+        
+        case 'achievements':
+          bodyContent = `
+            <p style="color: var(--text-secondary); margin-bottom: 16px;">Kullanıcılar çeşitli aktiviteler yaparak başarımlar kazanabilir.</p>
+            <div class="feature-card" style="background: var(--bg-tertiary);">
+              <p style="margin-bottom: 8px;"><strong>Bot Komutu:</strong></p>
+              <p><code>!başarımlar [@kullanıcı]</code> - Başarımları görüntüler</p>
+              <p style="margin-top: 12px;"><strong>Başarım Kategorileri:</strong></p>
+              <ul style="color: var(--text-muted); font-size: 13px; margin-top: 8px; padding-left: 20px;">
+                <li>Mesajlaşma başarımları</li>
+                <li>Seviye başarımları</li>
+                <li>Ekonomi başarımları</li>
+                <li>Oyun başarımları</li>
+                <li>Lethe Game başarımları</li>
+              </ul>
+            </div>
+          `;
+          footerContent = `
+            <button class="btn btn-outline" onclick="disableFeature('achievements')">Devre Dışı Bırak</button>
+            <button class="btn btn-primary" onclick="closeModal()">Tamam</button>
+          `;
+          break;
+        
+        case 'automation':
+          bodyContent = `
+            <p style="color: var(--text-secondary); margin-bottom: 16px;">Otomasyon sistemi ile sunucunuzu daha verimli yönetin.</p>
+            <div class="feature-card" style="background: var(--bg-tertiary);">
+              <p style="margin-bottom: 8px;"><strong>Mevcut Özellikler:</strong></p>
+              <ul style="color: var(--text-muted); font-size: 13px; margin-top: 8px; padding-left: 20px;">
+                <li>Otomatik rol (yeni üyelere)</li>
+                <li>Hoş geldin mesajları</li>
+                <li>Zamanlanmış mesajlar</li>
+                <li>AutoMod kuralları</li>
+                <li>Otomatik ceza sistemi</li>
+              </ul>
+              <p style="margin-top: 12px;"><strong>Bot Komutu:</strong></p>
+              <p><code>!zamanlı ekle #kanal &lt;dakika&gt; &lt;mesaj&gt;</code></p>
+              <p><code>!zamanlı liste</code> - Zamanlanmış mesajları listeler</p>
+            </div>
+          `;
+          footerContent = `
+            <button class="btn btn-outline" onclick="disableFeature('automation')">Devre Dışı Bırak</button>
             <button class="btn btn-primary" onclick="closeModal()">Tamam</button>
           `;
           break;
@@ -1237,6 +1383,147 @@
       };
       
       await saveSettings(newSettings);
+    }
+    
+    async function saveTempVoiceSettings() {
+      const category = document.getElementById('tempVoiceCategory').value;
+      const channel = document.getElementById('tempVoiceChannel').value;
+      
+      if (!category) {
+        showToast('Lütfen bir kategori seçin', 'error');
+        return;
+      }
+      
+      try {
+        const res = await fetch(`/api/guild/${guildId}/tempvoice/config`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            tempVoiceCategory: category,
+            tempVoiceChannel: channel,
+            createNew: channel === 'create_new'
+          })
+        });
+        
+        if (!res.ok) {
+          const error = await res.json();
+          showToast(error.error || 'Hata oluştu', 'error');
+          return;
+        }
+        
+        await saveSettings({ modules: { ...modules, tempvoice: true } });
+      } catch (error) {
+        showToast('Hata oluştu', 'error');
+      }
+    }
+    
+    async function loadGiveaways() {
+      try {
+        const res = await fetch(`/api/guild/${guildId}/giveaways/all`);
+        const giveawayList = await res.json();
+        
+        const container = document.getElementById('giveawaysList');
+        if (!container) return;
+        
+        if (giveawayList.length === 0) {
+          container.innerHTML = '<p style="color: var(--text-muted);">Aktif veya geçmiş çekiliş yok.</p>';
+          return;
+        }
+        
+        container.innerHTML = giveawayList.map(g => `
+          <div class="feature-card" style="background: var(--bg-tertiary); margin-bottom: 8px; padding: 12px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <strong>${g.prize}</strong>
+                <span style="margin-left: 8px; padding: 2px 8px; border-radius: 4px; font-size: 11px; background: ${g.ended ? 'var(--status-offline)' : 'var(--status-online)'}; color: white;">${g.ended ? 'Bitti' : 'Aktif'}</span>
+              </div>
+              ${!g.ended ? `<button class="btn btn-outline" style="padding: 6px 12px;" onclick="endGiveaway(${g.id})">Bitir</button>` : ''}
+            </div>
+            <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;">${g.winners} kazanan</p>
+          </div>
+        `).join('');
+      } catch (error) {
+        console.error('Giveaways error:', error);
+      }
+    }
+    
+    async function endGiveaway(id) {
+      try {
+        await fetch(`/api/guild/${guildId}/giveaways/${id}/end`, { method: 'POST' });
+        showToast('Çekiliş sonlandırıldı', 'success');
+        loadGiveaways();
+      } catch (error) {
+        showToast('Hata oluştu', 'error');
+      }
+    }
+    
+    async function loadReminders() {
+      try {
+        const res = await fetch(`/api/guild/${guildId}/reminders`);
+        const reminderList = await res.json();
+        
+        const container = document.getElementById('remindersList');
+        if (!container) return;
+        
+        if (reminderList.length === 0) {
+          container.innerHTML = '<p style="color: var(--text-muted);">Aktif hatırlatıcı yok.</p>';
+          return;
+        }
+        
+        container.innerHTML = reminderList.map(r => `
+          <div class="feature-card" style="background: var(--bg-tertiary); margin-bottom: 8px; padding: 12px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <strong>${r.message}</strong>
+              </div>
+              <button class="btn btn-outline" style="padding: 6px 12px;" onclick="deleteReminder(${r.id})">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+            <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;">
+              <i class="fas fa-clock"></i> ${new Date(r.remindAt).toLocaleString('tr-TR')}
+            </p>
+          </div>
+        `).join('');
+      } catch (error) {
+        console.error('Reminders error:', error);
+      }
+    }
+    
+    async function deleteReminder(id) {
+      try {
+        await fetch(`/api/guild/${guildId}/reminders/${id}`, { method: 'DELETE' });
+        showToast('Hatırlatıcı silindi', 'success');
+        loadReminders();
+      } catch (error) {
+        showToast('Hata oluştu', 'error');
+      }
+    }
+    
+    async function loadPolls() {
+      try {
+        const res = await fetch(`/api/guild/${guildId}/polls`);
+        const pollList = await res.json();
+        
+        const container = document.getElementById('pollsList');
+        if (!container) return;
+        
+        if (pollList.length === 0) {
+          container.innerHTML = '<p style="color: var(--text-muted);">Aktif anket yok.</p>';
+          return;
+        }
+        
+        container.innerHTML = pollList.map(p => `
+          <div class="feature-card" style="background: var(--bg-tertiary); margin-bottom: 8px; padding: 12px;">
+            <strong>${p.question}</strong>
+            <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;">
+              ${Array.isArray(p.options) ? p.options.length : 0} seçenek
+            </p>
+          </div>
+        `).join('');
+      } catch (error) {
+        console.error('Polls error:', error);
+      }
     }
     
     async function loadReactionRoles() {

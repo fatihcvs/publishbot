@@ -174,6 +174,25 @@ class DatabaseStorage {
     await db.update(reminders).set({ completed: true }).where(eq(reminders.id, id));
   }
 
+  async getGuildReminders(guildId) {
+    if (!db) return [];
+    return db.select().from(reminders)
+      .where(and(eq(reminders.guildId, guildId), eq(reminders.completed, false)))
+      .orderBy(reminders.remindAt);
+  }
+
+  async deleteReminder(id) {
+    if (!db) return;
+    await db.delete(reminders).where(eq(reminders.id, id));
+  }
+
+  async getGuildGiveaways(guildId) {
+    if (!db) return [];
+    return db.select().from(giveaways)
+      .where(eq(giveaways.guildId, guildId))
+      .orderBy(desc(giveaways.createdAt));
+  }
+
   async setAfk(guildId, userId, reason) {
     if (!db) return null;
     await db.delete(afkUsers).where(
