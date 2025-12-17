@@ -261,6 +261,37 @@ async function getUserAnimals(userId) {
   .orderBy(userAnimals.caughtAt);
 }
 
+async function giveAnimalToUser(userId, animalId) {
+  const animalData = await db.select().from(letheAnimals)
+    .where(eq(letheAnimals.animalId, animalId))
+    .limit(1);
+
+  if (animalData.length === 0) {
+    return { success: false, error: 'Animal not found' };
+  }
+
+  const animal = animalData[0];
+  
+  const result = await db.insert(userAnimals).values({
+    userId,
+    animalId: animal.animalId,
+    hp: animal.baseHp,
+    str: animal.baseStr,
+    def: animal.baseDef,
+    spd: animal.baseSpd
+  }).returning();
+
+  await getOrCreateProfile(userId);
+  
+  await db.update(userLetheProfile)
+    .set({ 
+      xp: sql`${userLetheProfile.xp} + ${animal.xpReward}`
+    })
+    .where(eq(userLetheProfile.visitorId, userId));
+
+  return { success: true, animal, animalId: result[0]?.id };
+}
+
 async function sellAnimal(userId, userAnimalId) {
   const animal = await db.select({
     userAnimal: userAnimals,
@@ -1474,5 +1505,7 @@ module.exports = {
   evolutionGemRequirements,
   // Training System
   trainAnimal,
-  getAnimalDetails
+  getAnimalDetails,
+  // Special
+  giveAnimalToUser
 };
