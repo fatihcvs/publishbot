@@ -66,6 +66,7 @@ Güçlü ve tam donanımlı Discord moderasyon botu + Web Dashboard.
 
 **Temel Komutlar:**
 - `!avla` / `!hunt` - Hayvan avla (15 saniye cooldown)
+- `!bakiye` / `!para` - Para ve taşlarını görüntüle
 - `!koleksiyon` - Yakaladığın hayvanları görüntüle
 - `!takım` - Savaş takımını görüntüle
 - `!takımekle <id>` - Takıma hayvan ekle (max 3)
