@@ -195,10 +195,12 @@ app.post('/api/guild/:guildId/settings', isAuthenticated, requireManagerAccess, 
   
   try {
     console.log('Updating settings for guild:', guildId);
-    await storage.upsertGuild(guildId, settings);
+    console.log('logConfig being saved:', JSON.stringify(settings.logConfig));
+    const result = await storage.upsertGuild(guildId, settings);
+    console.log('Upsert completed, logConfig in result:', JSON.stringify(result?.logConfig));
     res.json({ success: true });
   } catch (error) {
-    console.error('Settings update error:', error.message);
+    console.error('Settings update error:', error.message, error);
     res.status(500).json({ error: 'Failed to update settings' });
   }
 });
