@@ -272,6 +272,15 @@
     let settings = {};
     let modules = {};
     
+    // Helper to check if log type is enabled (handles both old and new formats)
+    function isLogEnabled(logConfig, type) {
+      if (!logConfig) return false;
+      const value = logConfig[type];
+      if (value === true) return true;
+      if (value && typeof value === 'object' && value.enabled === true) return true;
+      return false;
+    }
+    
     const features = {
       basic: [
         { id: 'welcome', name: 'Hoşgeldin & Hoşçakal', description: 'Yeni üyelerinize otomatik bir karşılama mesajı gönderin ve onlara roller verin. Sunucudan ayrılan üyelere hoşçakal mesajı gönderin.', icon: 'fa-hand-wave', color: 'blue' },
@@ -802,27 +811,27 @@
             <h4 style="margin: 20px 0 12px; font-size: 14px; color: #5865F2;">Mesaj Olayları</h4>
             <div class="log-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
               <label class="log-checkbox">
-                <input type="checkbox" id="logMessageDelete" ${settings.logConfig?.messageDelete ? 'checked' : ''}>
+                <input type="checkbox" id="logMessageDelete" ${isLogEnabled(settings.logConfig, 'messageDelete') ? 'checked' : ''}>
                 <span>Mesaj Silme</span>
               </label>
               <label class="log-checkbox">
-                <input type="checkbox" id="logMessageEdit" ${settings.logConfig?.messageEdit ? 'checked' : ''}>
+                <input type="checkbox" id="logMessageEdit" ${isLogEnabled(settings.logConfig, 'messageEdit') ? 'checked' : ''}>
                 <span>Mesaj Düzenleme</span>
               </label>
               <label class="log-checkbox">
-                <input type="checkbox" id="logImageDelete" ${settings.logConfig?.imageDelete ? 'checked' : ''}>
+                <input type="checkbox" id="logImageDelete" ${isLogEnabled(settings.logConfig, 'imageDelete') ? 'checked' : ''}>
                 <span>Görsel Silme</span>
               </label>
               <label class="log-checkbox">
-                <input type="checkbox" id="logBulkDelete" ${settings.logConfig?.bulkDelete ? 'checked' : ''}>
+                <input type="checkbox" id="logBulkDelete" ${isLogEnabled(settings.logConfig, 'bulkDelete') ? 'checked' : ''}>
                 <span>Toplu Mesaj Silme</span>
               </label>
               <label class="log-checkbox">
-                <input type="checkbox" id="logInvites" ${settings.logConfig?.invites ? 'checked' : ''}>
+                <input type="checkbox" id="logInvites" ${isLogEnabled(settings.logConfig, 'invites') ? 'checked' : ''}>
                 <span>Davet Bilgileri</span>
               </label>
               <label class="log-checkbox">
-                <input type="checkbox" id="logModCommands" ${settings.logConfig?.modCommands ? 'checked' : ''}>
+                <input type="checkbox" id="logModCommands" ${isLogEnabled(settings.logConfig, 'modCommands') ? 'checked' : ''}>
                 <span>Moderatör Komutları</span>
               </label>
             </div>
@@ -830,35 +839,35 @@
             <h4 style="margin: 20px 0 12px; font-size: 14px; color: #5865F2;">Üye Olayları</h4>
             <div class="log-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
               <label class="log-checkbox">
-                <input type="checkbox" id="logMemberJoin" ${settings.logConfig?.memberJoin ? 'checked' : ''}>
+                <input type="checkbox" id="logMemberJoin" ${isLogEnabled(settings.logConfig, 'memberJoin') ? 'checked' : ''}>
                 <span>Üye Katılma</span>
               </label>
               <label class="log-checkbox">
-                <input type="checkbox" id="logMemberLeave" ${settings.logConfig?.memberLeave ? 'checked' : ''}>
+                <input type="checkbox" id="logMemberLeave" ${isLogEnabled(settings.logConfig, 'memberLeave') ? 'checked' : ''}>
                 <span>Üye Ayrılma</span>
               </label>
               <label class="log-checkbox">
-                <input type="checkbox" id="logMemberRoleAdd" ${settings.logConfig?.memberRoleAdd ? 'checked' : ''}>
+                <input type="checkbox" id="logMemberRoleAdd" ${isLogEnabled(settings.logConfig, 'memberRoleAdd') ? 'checked' : ''}>
                 <span>Üye Rol Ekleme</span>
               </label>
               <label class="log-checkbox">
-                <input type="checkbox" id="logMemberRoleRemove" ${settings.logConfig?.memberRoleRemove ? 'checked' : ''}>
+                <input type="checkbox" id="logMemberRoleRemove" ${isLogEnabled(settings.logConfig, 'memberRoleRemove') ? 'checked' : ''}>
                 <span>Üye Rol Çıkarma</span>
               </label>
               <label class="log-checkbox">
-                <input type="checkbox" id="logMemberTimeout" ${settings.logConfig?.memberTimeout ? 'checked' : ''}>
+                <input type="checkbox" id="logMemberTimeout" ${isLogEnabled(settings.logConfig, 'memberTimeout') ? 'checked' : ''}>
                 <span>Üye Zaman Aşımı</span>
               </label>
               <label class="log-checkbox">
-                <input type="checkbox" id="logNicknameChange" ${settings.logConfig?.nicknameChange ? 'checked' : ''}>
+                <input type="checkbox" id="logNicknameChange" ${isLogEnabled(settings.logConfig, 'nicknameChange') ? 'checked' : ''}>
                 <span>İsim Değişikliği</span>
               </label>
               <label class="log-checkbox">
-                <input type="checkbox" id="logMemberBan" ${settings.logConfig?.memberBan ? 'checked' : ''}>
+                <input type="checkbox" id="logMemberBan" ${isLogEnabled(settings.logConfig, 'memberBan') ? 'checked' : ''}>
                 <span>Üye Yasaklama</span>
               </label>
               <label class="log-checkbox">
-                <input type="checkbox" id="logMemberUnban" ${settings.logConfig?.memberUnban ? 'checked' : ''}>
+                <input type="checkbox" id="logMemberUnban" ${isLogEnabled(settings.logConfig, 'memberUnban') ? 'checked' : ''}>
                 <span>Üye Yasak Kaldırma</span>
               </label>
             </div>
@@ -866,15 +875,15 @@
             <h4 style="margin: 20px 0 12px; font-size: 14px; color: #5865F2;">Rol Olayları</h4>
             <div class="log-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
               <label class="log-checkbox">
-                <input type="checkbox" id="logRoleCreate" ${settings.logConfig?.roleCreate ? 'checked' : ''}>
+                <input type="checkbox" id="logRoleCreate" ${isLogEnabled(settings.logConfig, 'roleCreate') ? 'checked' : ''}>
                 <span>Rol Oluşturma</span>
               </label>
               <label class="log-checkbox">
-                <input type="checkbox" id="logRoleDelete" ${settings.logConfig?.roleDelete ? 'checked' : ''}>
+                <input type="checkbox" id="logRoleDelete" ${isLogEnabled(settings.logConfig, 'roleDelete') ? 'checked' : ''}>
                 <span>Rol Silme</span>
               </label>
               <label class="log-checkbox">
-                <input type="checkbox" id="logRoleUpdate" ${settings.logConfig?.roleUpdate ? 'checked' : ''}>
+                <input type="checkbox" id="logRoleUpdate" ${isLogEnabled(settings.logConfig, 'roleUpdate') ? 'checked' : ''}>
                 <span>Rol Güncelleme</span>
               </label>
             </div>
@@ -882,15 +891,15 @@
             <h4 style="margin: 20px 0 12px; font-size: 14px; color: #5865F2;">Kanal Olayları</h4>
             <div class="log-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
               <label class="log-checkbox">
-                <input type="checkbox" id="logChannelCreate" ${settings.logConfig?.channelCreate ? 'checked' : ''}>
+                <input type="checkbox" id="logChannelCreate" ${isLogEnabled(settings.logConfig, 'channelCreate') ? 'checked' : ''}>
                 <span>Kanal Oluşturma</span>
               </label>
               <label class="log-checkbox">
-                <input type="checkbox" id="logChannelUpdate" ${settings.logConfig?.channelUpdate ? 'checked' : ''}>
+                <input type="checkbox" id="logChannelUpdate" ${isLogEnabled(settings.logConfig, 'channelUpdate') ? 'checked' : ''}>
                 <span>Kanal Güncelleme</span>
               </label>
               <label class="log-checkbox">
-                <input type="checkbox" id="logChannelDelete" ${settings.logConfig?.channelDelete ? 'checked' : ''}>
+                <input type="checkbox" id="logChannelDelete" ${isLogEnabled(settings.logConfig, 'channelDelete') ? 'checked' : ''}>
                 <span>Kanal Silme</span>
               </label>
             </div>
@@ -898,15 +907,15 @@
             <h4 style="margin: 20px 0 12px; font-size: 14px; color: #5865F2;">Emoji Olayları</h4>
             <div class="log-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
               <label class="log-checkbox">
-                <input type="checkbox" id="logEmojiCreate" ${settings.logConfig?.emojiCreate ? 'checked' : ''}>
+                <input type="checkbox" id="logEmojiCreate" ${isLogEnabled(settings.logConfig, 'emojiCreate') ? 'checked' : ''}>
                 <span>Emoji Oluşturma</span>
               </label>
               <label class="log-checkbox">
-                <input type="checkbox" id="logEmojiUpdate" ${settings.logConfig?.emojiUpdate ? 'checked' : ''}>
+                <input type="checkbox" id="logEmojiUpdate" ${isLogEnabled(settings.logConfig, 'emojiUpdate') ? 'checked' : ''}>
                 <span>Emoji İsim Değişimi</span>
               </label>
               <label class="log-checkbox">
-                <input type="checkbox" id="logEmojiDelete" ${settings.logConfig?.emojiDelete ? 'checked' : ''}>
+                <input type="checkbox" id="logEmojiDelete" ${isLogEnabled(settings.logConfig, 'emojiDelete') ? 'checked' : ''}>
                 <span>Emoji Silme</span>
               </label>
             </div>
@@ -914,15 +923,15 @@
             <h4 style="margin: 20px 0 12px; font-size: 14px; color: #5865F2;">Ses Olayları</h4>
             <div class="log-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
               <label class="log-checkbox">
-                <input type="checkbox" id="logVoiceJoin" ${settings.logConfig?.voiceJoin ? 'checked' : ''}>
+                <input type="checkbox" id="logVoiceJoin" ${isLogEnabled(settings.logConfig, 'voiceJoin') ? 'checked' : ''}>
                 <span>Ses Kanalına Katılma</span>
               </label>
               <label class="log-checkbox">
-                <input type="checkbox" id="logVoiceLeave" ${settings.logConfig?.voiceLeave ? 'checked' : ''}>
+                <input type="checkbox" id="logVoiceLeave" ${isLogEnabled(settings.logConfig, 'voiceLeave') ? 'checked' : ''}>
                 <span>Ses Kanalından Ayrılma</span>
               </label>
               <label class="log-checkbox">
-                <input type="checkbox" id="logVoiceMove" ${settings.logConfig?.voiceMove ? 'checked' : ''}>
+                <input type="checkbox" id="logVoiceMove" ${isLogEnabled(settings.logConfig, 'voiceMove') ? 'checked' : ''}>
                 <span>Ses Kanalı Değiştirme</span>
               </label>
             </div>
