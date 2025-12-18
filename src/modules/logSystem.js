@@ -1,4 +1,4 @@
-const { EmbedBuilder } = require('discord.js');
+const { EmbedBuilder, AuditLogEvent } = require('discord.js');
 
 class LogSystem {
   constructor(client, storage) {
@@ -125,50 +125,140 @@ class LogSystem {
   }
 
   async roleCreate(role) {
+    let executor = null;
+    try {
+      const auditLogs = await role.guild.fetchAuditLogs({
+        type: AuditLogEvent.RoleCreate,
+        limit: 1
+      });
+      const logEntry = auditLogs.entries.first();
+      if (logEntry && logEntry.target.id === role.id && Date.now() - logEntry.createdTimestamp < 5000) {
+        executor = logEntry.executor;
+      }
+    } catch (error) {}
+
+    const roleInfo = [
+      `Name: ${role.name}`,
+      `Color: ${role.hexColor}`,
+      `Show in List: ${role.hoist ? 'On' : 'Off'}`,
+      `Mentionable: ${role.mentionable ? 'On' : 'Off'}`
+    ];
+
     const embed = new EmbedBuilder()
-      .setColor('#00ff00')
-      .setTitle('Rol Oluşturuldu')
+      .setColor('#57F287')
+      .setTitle('Role Created')
+      .setDescription(`**${role.name}** was created${executor ? ` by <@${executor.id}>` : ''}`)
       .addFields(
-        { name: 'Rol', value: `${role.name} (${role.id})`, inline: true },
-        { name: 'Renk', value: role.hexColor, inline: true }
+        { name: 'Role Info', value: roleInfo.join('\n'), inline: true },
+        { name: 'Role ID', value: `\`${role.id}\``, inline: true }
       )
+      .setFooter({ text: `${role.guild.name} • ${role.guild.id}` })
       .setTimestamp();
 
     await this.log(role.guild.id, 'roleCreate', embed);
   }
 
   async roleDelete(role) {
+    let executor = null;
+    try {
+      const auditLogs = await role.guild.fetchAuditLogs({
+        type: AuditLogEvent.RoleDelete,
+        limit: 1
+      });
+      const logEntry = auditLogs.entries.first();
+      if (logEntry && logEntry.target.id === role.id && Date.now() - logEntry.createdTimestamp < 5000) {
+        executor = logEntry.executor;
+      }
+    } catch (error) {}
+
+    const roleInfo = [
+      `Name: ${role.name}`,
+      `Color: ${role.hexColor}`,
+      `Had ${role.members?.size || 0} members`
+    ];
+
     const embed = new EmbedBuilder()
-      .setColor('#ff0000')
-      .setTitle('Rol Silindi')
+      .setColor('#ED4245')
+      .setTitle('Role Deleted')
+      .setDescription(`**${role.name}** was deleted${executor ? ` by <@${executor.id}>` : ''}`)
       .addFields(
-        { name: 'Rol', value: `${role.name} (${role.id})`, inline: true },
-        { name: 'Renk', value: role.hexColor, inline: true }
+        { name: 'Role Info', value: roleInfo.join('\n'), inline: true },
+        { name: 'Role ID', value: `\`${role.id}\``, inline: true }
       )
+      .setFooter({ text: `${role.guild.name} • ${role.guild.id}` })
       .setTimestamp();
 
     await this.log(role.guild.id, 'roleDelete', embed);
   }
 
   async roleUpdate(oldRole, newRole) {
-    const changes = [];
-    if (oldRole.name !== newRole.name) {
-      changes.push(`İsim: ${oldRole.name} → ${newRole.name}`);
-    }
-    if (oldRole.hexColor !== newRole.hexColor) {
-      changes.push(`Renk: ${oldRole.hexColor} → ${newRole.hexColor}`);
-    }
+    // Check if any tracked properties changed
+    const hasChanges = 
+      oldRole.name !== newRole.name ||
+      oldRole.hexColor !== newRole.hexColor ||
+      oldRole.hoist !== newRole.hoist ||
+      oldRole.mentionable !== newRole.mentionable ||
+      oldRole.icon !== newRole.icon ||
+      oldRole.permissions.bitfield !== newRole.permissions.bitfield;
     
-    if (changes.length === 0) return;
-    
+    if (!hasChanges) return;
+
+    // Try to get who updated the role from audit logs
+    let executor = null;
+    try {
+      const auditLogs = await newRole.guild.fetchAuditLogs({
+        type: AuditLogEvent.RoleUpdate,
+        limit: 1
+      });
+      const logEntry = auditLogs.entries.first();
+      if (logEntry && logEntry.target.id === newRole.id && Date.now() - logEntry.createdTimestamp < 5000) {
+        executor = logEntry.executor;
+      }
+    } catch (error) {
+      // Audit log access might be restricted
+    }
+
+    // Build old role info
+    const oldRoleInfo = [
+      `Name: ${oldRole.name}`,
+      `icon: ${oldRole.icon ? 'Yes' : 'None'}`,
+      `Color: ${oldRole.hexColor}`,
+      `Show in List: ${oldRole.hoist ? 'On' : 'Off'}`,
+      `Mentionable: ${oldRole.mentionable ? 'On' : 'Off'}`
+    ];
+
+    // Build new role info with checkmarks for changes
+    const newRoleInfo = [
+      `${oldRole.name !== newRole.name ? '✅' : ''} Name: ${newRole.name}`,
+      `${oldRole.icon !== newRole.icon ? '✅' : ''} icon: ${newRole.icon ? 'Yes' : 'None'}`,
+      `${oldRole.hexColor !== newRole.hexColor ? '🔄' : ''} Color: ${newRole.hexColor}`,
+      `${oldRole.hoist !== newRole.hoist ? '✅' : ''} Show in List: ${newRole.hoist ? 'On' : 'Off'}`,
+      `${oldRole.mentionable !== newRole.mentionable ? '✅' : ''} Mentionable: ${newRole.mentionable ? 'On' : 'Off'}`
+    ];
+
     const embed = new EmbedBuilder()
-      .setColor('#ffaa00')
-      .setTitle('Rol Güncellendi')
+      .setColor(newRole.hexColor || '#ffaa00')
+      .setTitle('Role Updated')
+      .setDescription(`**${newRole.name}** was updated${executor ? ` by <@${executor.id}>` : ''}`)
       .addFields(
-        { name: 'Rol', value: `${newRole.name} (${newRole.id})`, inline: true },
-        { name: 'Değişiklikler', value: changes.join('\n') }
+        { name: 'Old Role', value: oldRoleInfo.join('\n'), inline: true },
+        { name: 'New Role', value: newRoleInfo.join('\n'), inline: true }
       )
+      .setFooter({ text: `${newRole.guild.name} • ${newRole.id}` })
       .setTimestamp();
+
+    // Add permission changes if any
+    if (oldRole.permissions.bitfield !== newRole.permissions.bitfield) {
+      const addedPerms = newRole.permissions.toArray().filter(p => !oldRole.permissions.has(p));
+      const removedPerms = oldRole.permissions.toArray().filter(p => oldRole.permissions.has(p) && !newRole.permissions.has(p));
+      
+      if (addedPerms.length > 0 || removedPerms.length > 0) {
+        let permChanges = '';
+        if (addedPerms.length > 0) permChanges += `➕ ${addedPerms.slice(0, 5).join(', ')}${addedPerms.length > 5 ? ` +${addedPerms.length - 5} more` : ''}\n`;
+        if (removedPerms.length > 0) permChanges += `➖ ${removedPerms.slice(0, 5).join(', ')}${removedPerms.length > 5 ? ` +${removedPerms.length - 5} more` : ''}`;
+        embed.addFields({ name: 'Permission Changes', value: permChanges || 'None' });
+      }
+    }
 
     await this.log(newRole.guild.id, 'roleUpdate', embed);
   }
