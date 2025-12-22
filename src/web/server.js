@@ -789,7 +789,7 @@ app.get('/lethe-game', (req, res) => {
 });
 
 app.get('/lethe-rehber', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'lethe-rehber.html'));
+  res.redirect('/lethe-game');
 });
 
 const PORT = 5000;
