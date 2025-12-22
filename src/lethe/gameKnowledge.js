@@ -61,14 +61,14 @@ Lethe Game, Publisher Bot'un global hayvan koleksiyon ve savaş oyunudur. Oyuncu
 
 | Nadirlik | Şans | Renk | Satış Fiyatı | XP |
 |----------|------|------|--------------|-----|
-| Common | %58 | Gri | 5 💰 | 1 |
+| Common | %60 | Gri | 5 💰 | 1 |
 | Uncommon | %25 | Yeşil | 25 💰 | 5 |
 | Rare | %10 | Mavi | 100 💰 | 25 |
-| Epic | %5 | Mor | 500 💰 | 100 |
-| Legendary | %1.5 | Turuncu | 2,500 💰 | 500 |
-| Mythic | %0.4 | Kırmızı | 10,000 💰 | 2,000 |
-| Hidden | %0.1 | Siyah | 100,000 💰 | 10,000 |
-| Eternal | %0.001 | Altın | 1,000,000 💰 | 100,000 |
+| Epic | %4 | Mor | 500 💰 | 100 |
+| Legendary | %0.8 | Turuncu | 2,500 💰 | 500 |
+| Mythic | %0.15 | Kırmızı | 10,000 💰 | 2,000 |
+| Hidden | %0.04 | Siyah | 100,000 💰 | 10,000 |
+| Eternal | %0.01 | Altın | 1,000,000 💰 | 100,000 |
 
 ### HAYVAN İSTATİSTİKLERİ
 

@@ -84,14 +84,14 @@ function getVipPromoMessage() {
 }
 
 const rarityChances = {
-  common: 0.579999,
+  common: 0.60,
   uncommon: 0.25,
   rare: 0.10,
-  epic: 0.05,
-  legendary: 0.015,
-  mythic: 0.004,
-  hidden: 0.001,
-  eternal: 0.000001
+  epic: 0.04,
+  legendary: 0.008,      // 0.8% (önceki: 1.5%)
+  mythic: 0.0015,        // 0.15% (önceki: 0.4%)
+  hidden: 0.0004,        // 0.04% (önceki: 0.1%)
+  eternal: 0.0001        // 0.01% (önceki: 0.0001%)
 };
 
 async function seedDatabase() {
