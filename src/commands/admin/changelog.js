@@ -3,82 +3,93 @@ const { EmbedBuilder } = require('discord.js');
 const LATEST_CHANGELOG = {
   version: "2.0.0",
   date: "22 Aralık 2024",
-  title: "🎮 Faz 4: Oyuncu Etkileşim Sistemleri",
-  sections: [
-    {
-      emoji: "🔄",
-      title: "Takas Sistemi",
-      features: [
-        "`!takas @kullanıcı hayvan:<id> para:<miktar>` - Takas teklifi gönder",
-        "`!takas @kullanıcı hayvan:<id> için:hayvan:<id>` - Hayvan takası teklif et",
-        "`!takas liste` - Bekleyen takasları görüntüle",
-        "`!takas kabul <id>` - Teklifi kabul et",
-        "`!takas reddet <id>` - Teklifi reddet",
-        "✨ Teklifler 24 saat geçerlidir",
-        "⚠️ Takımdaki hayvanlar takas edilemez"
-      ]
-    },
-    {
-      emoji: "🎁",
-      title: "Hediye Sistemi",
-      features: [
-        "`!hediye @kullanıcı <miktar>` - Altın hediye et (10-100.000)",
-        "`!hediye @kullanıcı hayvan:<id>` - Hayvan hediye et",
-        "`!hediye geçmiş` - Hediye geçmişini görüntüle",
-        "⏱️ Aynı kişiye 1 saat bekleme süresi",
-        "❤️ Arkadaşlarınızla eşyalarınızı paylaşın!"
-      ]
-    },
-    {
-      emoji: "👥",
-      title: "Arkadaş Sistemi",
-      features: [
-        "`!arkadas ekle @kullanıcı` - Arkadaşlık isteği gönder",
-        "`!arkadas sil @kullanıcı` - Arkadaş listesinden çıkar",
-        "`!arkadas liste` - Arkadaş listeni gör",
-        "`!arkadas istekler` - Gelen istekleri gör",
-        "`!arkadas kabul <id>` - İsteği kabul et",
-        "📊 Arkadaşlarının profillerini ve istatistiklerini gör!"
-      ]
-    },
-    {
-      emoji: "⚔️",
-      title: "Co-op Raid Sistemi",
-      features: [
-        "`!raid başlat <boss>` - Sunucuda raid başlat",
-        "`!raid katıl` - Aktif raid'e katıl",
-        "`!raid saldır` - Boss'a saldır",
-        "`!raid durum` - Raid durumunu gör",
-        "`!raid bosslar` - Raid boss listesi",
-        "👥 Maximum 5 oyuncu katılabilir",
-        "💰 Hasara göre ödül dağılımı (2x normal boss ödülü!)",
-        "🎯 Takım çalışması ile dev bossları yenin!"
-      ]
-    },
-    {
-      emoji: "🏆",
-      title: "Gelişmiş Sıralama Sistemi",
-      features: [
-        "`!siralama coins` - Altın sıralaması",
-        "`!siralama level` - Seviye sıralaması",
-        "`!siralama hunts` - Av sayısı sıralaması",
-        "`!siralama battles` - Savaş zaferleri",
-        "`!siralama pvp` - PvP zaferleri",
-        "`!siralama animals` - Hayvan sayısı",
-        "🌍 Global sıralama - Tüm sunuculardan oyuncular!",
-        "📊 Kısa komutlar: `!lb`, `!top`, `!lider`"
-      ]
-    },
-    {
-      emoji: "🤖",
-      title: "AI Güncellemesi",
-      features: [
-        "Yapay zeka artık tüm Faz 4 özelliklerini biliyor",
-        "Oyuncular @Publisher etiketleyerek yeni sistemler hakkında soru sorabilir",
-        "Takas, hediye, raid stratejileri için AI'dan yardım alın!"
-      ]
-    }
-  ],
+  
+  botUpdates: {
+    title: "🤖 Publisher Bot Güncellemeleri",
+    sections: [
+      {
+        emoji: "🤖",
+        title: "Yapay Zeka İyileştirmeleri",
+        features: [
+          "GPT-4o ile gelişmiş sohbet deneyimi",
+          "@Publisher etiketleyerek tüm dillerde sohbet edin",
+          "Oyun rehberliği için AI desteği eklendi",
+          "20+ dil desteği ile çok dilli sohbet"
+        ]
+      },
+      {
+        emoji: "📢",
+        title: "Yönetici Araçları",
+        features: [
+          "`!changelog` - Son güncellemeleri görüntüle",
+          "`!changelog gönder` - Tüm sunucu yöneticilerine duyuru gönder",
+          "Gelişmiş log sistemi ve hata takibi"
+        ]
+      }
+    ]
+  },
+  
+  letheUpdates: {
+    title: "🎮 Lethe Game - Faz 4: Oyuncu Etkileşim Sistemleri",
+    sections: [
+      {
+        emoji: "🔄",
+        title: "Takas Sistemi",
+        features: [
+          "`!takas @kullanıcı hayvan:<id> para:<miktar>` - Takas teklifi gönder",
+          "`!takas @kullanıcı hayvan:<id> için:hayvan:<id>` - Hayvan takası",
+          "`!takas liste` - Bekleyen takasları görüntüle",
+          "`!takas kabul/reddet <id>` - Teklifi işle",
+          "✨ Teklifler 24 saat geçerlidir",
+          "⚠️ Takımdaki hayvanlar takas edilemez"
+        ]
+      },
+      {
+        emoji: "🎁",
+        title: "Hediye Sistemi",
+        features: [
+          "`!hediye @kullanıcı <miktar>` - Altın hediye et (10-100.000)",
+          "`!hediye @kullanıcı hayvan:<id>` - Hayvan hediye et",
+          "`!hediye geçmiş` - Hediye geçmişini görüntüle",
+          "⏱️ Aynı kişiye 1 saat bekleme süresi"
+        ]
+      },
+      {
+        emoji: "👥",
+        title: "Arkadaş Sistemi",
+        features: [
+          "`!arkadas ekle/sil @kullanıcı` - Arkadaş yönetimi",
+          "`!arkadas liste` - Arkadaş listeni gör",
+          "`!arkadas istekler` - Gelen istekleri gör",
+          "`!arkadas kabul <id>` - İsteği kabul et",
+          "📊 Arkadaşlarının istatistiklerini takip et!"
+        ]
+      },
+      {
+        emoji: "⚔️",
+        title: "Co-op Raid Sistemi",
+        features: [
+          "`!raid başlat <boss>` - Sunucuda raid başlat",
+          "`!raid katıl` - Aktif raid'e katıl",
+          "`!raid saldır` - Boss'a saldır",
+          "`!raid durum` - Raid durumunu gör",
+          "👥 Maximum 5 oyuncu katılabilir",
+          "💰 Hasara göre ödül (2x normal boss!)"
+        ]
+      },
+      {
+        emoji: "🏆",
+        title: "Gelişmiş Sıralama",
+        features: [
+          "`!siralama coins/level/hunts` - Kategori sıralaması",
+          "`!siralama battles/pvp/animals` - Daha fazla kategori",
+          "🌍 Global sıralama - Tüm sunuculardan oyuncular!",
+          "📊 Kısa: `!lb`, `!top`, `!lider`"
+        ]
+      }
+    ]
+  },
+  
   footer: "Publisher Bot - Lethe Game v2.0 | Sorularınız için: @Publisher"
 };
 
@@ -106,42 +117,71 @@ async function sendChangelogToAdmins(client) {
       const mainEmbed = new EmbedBuilder()
         .setColor(0x5865F2)
         .setTitle(`📢 Publisher Bot Güncelleme Duyurusu`)
-        .setDescription(`Merhaba **${owner.user.username}**! 👋\n\n**${guild.name}** sunucunuzda kullandığınız Publisher Bot'a yeni özellikler eklendi!\n\n**${LATEST_CHANGELOG.title}**\n📅 Tarih: ${LATEST_CHANGELOG.date}\n\nAşağıda tüm yeni özelliklerin detaylı listesini bulabilirsiniz.`)
+        .setDescription(`Merhaba **${owner.user.username}**! 👋\n\n**${guild.name}** sunucunuzda kullandığınız Publisher Bot'a yeni özellikler eklendi!\n\n📅 **Tarih:** ${LATEST_CHANGELOG.date}\n📦 **Versiyon:** ${LATEST_CHANGELOG.version}\n\nAşağıda tüm yeni özelliklerin detaylı listesini bulabilirsiniz.`)
         .setThumbnail(client.user.displayAvatarURL({ dynamic: true, size: 256 }))
         .setTimestamp();
 
-      const featureEmbeds = LATEST_CHANGELOG.sections.map((section, index) => {
+      const botHeaderEmbed = new EmbedBuilder()
+        .setColor(0x3498DB)
+        .setTitle(LATEST_CHANGELOG.botUpdates.title)
+        .setDescription('Genel bot özellikleri ve iyileştirmeler:');
+
+      const botFeatureEmbeds = LATEST_CHANGELOG.botUpdates.sections.map((section) => {
         return new EmbedBuilder()
-          .setColor(0x5865F2)
+          .setColor(0x3498DB)
+          .setTitle(`${section.emoji} ${section.title}`)
+          .setDescription(section.features.join('\n'));
+      });
+
+      const letheHeaderEmbed = new EmbedBuilder()
+        .setColor(0x9B59B6)
+        .setTitle(LATEST_CHANGELOG.letheUpdates.title)
+        .setDescription('Hayvan koleksiyon oyununa eklenen yeni özellikler:');
+
+      const letheFeatureEmbeds = LATEST_CHANGELOG.letheUpdates.sections.map((section, index) => {
+        return new EmbedBuilder()
+          .setColor(0x9B59B6)
           .setTitle(`${section.emoji} ${section.title}`)
           .setDescription(section.features.join('\n'))
-          .setFooter(index === LATEST_CHANGELOG.sections.length - 1 ? { text: LATEST_CHANGELOG.footer } : null);
+          .setFooter(index === LATEST_CHANGELOG.letheUpdates.sections.length - 1 ? { text: LATEST_CHANGELOG.footer } : null);
       });
 
       const summaryEmbed = new EmbedBuilder()
         .setColor(0x00FF00)
-        .setTitle('✅ Özet')
-        .setDescription(`**Yeni Eklenen Sistemler:**
+        .setTitle('✅ Güncelleme Özeti')
+        .setDescription(`**🤖 Bot Güncellemeleri:**
+• Yapay Zeka (GPT-4o) entegrasyonu
+• Gelişmiş çok dilli destek
+• Yönetici duyuru araçları
+
+**🎮 Lethe Game Güncellemeleri:**
 • 🔄 Takas Sistemi - Oyuncular arası hayvan ve para takası
 • 🎁 Hediye Sistemi - Arkadaşlara hediye gönderme
 • 👥 Arkadaş Sistemi - Arkadaş ekleme ve istatistik paylaşımı
 • ⚔️ Co-op Raid - 5 kişilik takım boss savaşları
 • 🏆 Gelişmiş Sıralama - 6 farklı kategoride global liderlik tablosu
 
-**Toplam Yeni Komut:** 20+
-**Toplam Yeni Özellik:** 30+
+**📊 Toplam:** 20+ yeni komut, 30+ yeni özellik
 
-Tüm bu özellikler **Lethe Game** oyun sisteminizde aktif! Oyuncularınız hemen kullanmaya başlayabilir.
+Tüm bu özellikler sunucunuzda aktif! Oyuncularınız hemen kullanmaya başlayabilir.
 
 ❓ Sorularınız için botu etiketleyebilir veya \`!yardım\` komutunu kullanabilirsiniz.`)
         .setFooter({ text: '💙 Publisher Bot kullandığınız için teşekkürler!' });
 
       try {
         await owner.send({ embeds: [mainEmbed] });
+        await new Promise(resolve => setTimeout(resolve, 300));
         
-        for (const embed of featureEmbeds) {
+        await owner.send({ embeds: [botHeaderEmbed] });
+        for (const embed of botFeatureEmbeds) {
           await owner.send({ embeds: [embed] });
-          await new Promise(resolve => setTimeout(resolve, 500));
+          await new Promise(resolve => setTimeout(resolve, 300));
+        }
+        
+        await owner.send({ embeds: [letheHeaderEmbed] });
+        for (const embed of letheFeatureEmbeds) {
+          await owner.send({ embeds: [embed] });
+          await new Promise(resolve => setTimeout(resolve, 300));
         }
         
         await owner.send({ embeds: [summaryEmbed] });
@@ -233,22 +273,38 @@ module.exports = {
     
     const mainEmbed = new EmbedBuilder()
       .setColor(0x5865F2)
-      .setTitle(`📢 ${LATEST_CHANGELOG.title}`)
-      .setDescription(`📅 **Tarih:** ${LATEST_CHANGELOG.date}\n\n**Yeni Özellikler:**`)
+      .setTitle(`📢 Publisher Bot v${LATEST_CHANGELOG.version} Güncellemeleri`)
+      .setDescription(`📅 **Tarih:** ${LATEST_CHANGELOG.date}`)
       .setThumbnail(client.user.displayAvatarURL({ dynamic: true, size: 256 }))
       .setTimestamp();
     
-    for (const section of LATEST_CHANGELOG.sections) {
-      mainEmbed.addFields({
+    const botEmbed = new EmbedBuilder()
+      .setColor(0x3498DB)
+      .setTitle(LATEST_CHANGELOG.botUpdates.title);
+    
+    for (const section of LATEST_CHANGELOG.botUpdates.sections) {
+      botEmbed.addFields({
         name: `${section.emoji} ${section.title}`,
         value: section.features.slice(0, 3).join('\n') + (section.features.length > 3 ? '\n...' : ''),
         inline: false
       });
     }
     
-    mainEmbed.setFooter({ text: 'Detaylı bilgi için !yardım komutunu kullanın' });
+    const letheEmbed = new EmbedBuilder()
+      .setColor(0x9B59B6)
+      .setTitle(LATEST_CHANGELOG.letheUpdates.title);
     
-    await message.reply({ embeds: [mainEmbed] });
+    for (const section of LATEST_CHANGELOG.letheUpdates.sections) {
+      letheEmbed.addFields({
+        name: `${section.emoji} ${section.title}`,
+        value: section.features.slice(0, 2).join('\n') + (section.features.length > 2 ? '\n...' : ''),
+        inline: true
+      });
+    }
+    
+    letheEmbed.setFooter({ text: 'Detaylı bilgi için !yardım komutunu kullanın | ' + LATEST_CHANGELOG.footer });
+    
+    await message.reply({ embeds: [mainEmbed, botEmbed, letheEmbed] });
   },
   
   sendChangelogToAdmins
