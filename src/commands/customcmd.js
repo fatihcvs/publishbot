@@ -1,4 +1,5 @@
 const { EmbedBuilder, PermissionFlagsBits } = require('discord.js');
+const { storage } = require('../database/storage');
 
 module.exports = {
   name: 'komutekle',
@@ -13,19 +14,19 @@ module.exports = {
       return message.reply('Kullanım: `!komutekle <komut> <yanıt>`\nÖrnek: `!komutekle selam Merhaba!`');
     }
     
-    if (!client.customCommands[message.guild.id]) {
-      client.customCommands[message.guild.id] = {};
+    const existing = await storage.getCustomCommand(message.guild.id, cmdName);
+    if (existing) {
+      await storage.deleteCustomCommand(message.guild.id, cmdName);
     }
     
-    client.customCommands[message.guild.id][cmdName] = response;
-    client.saveCustomCommands();
+    await storage.addCustomCommand(message.guild.id, cmdName, response, message.author.id);
     
     const embed = new EmbedBuilder()
       .setColor('#00ff00')
       .setTitle('Özel Komut Eklendi')
       .addFields(
-        { name: 'Komut', value: cmdName, inline: true },
-        { name: 'Yanıt', value: response, inline: true }
+        { name: 'Komut', value: `!${cmdName}`, inline: true },
+        { name: 'Yanıt', value: response.slice(0, 100), inline: true }
       )
       .setTimestamp();
     
