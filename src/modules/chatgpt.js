@@ -1,4 +1,5 @@
 const OpenAI = require('openai');
+const { isLetheGameQuestion, getLetheGameContext } = require('../lethe/gameKnowledge');
 
 // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -47,10 +48,28 @@ async function chat(userId, userMessage) {
       history.splice(0, 1);
     }
 
+    let systemPrompt = ASSISTANT_SYSTEM_PROMPT;
+    
+    if (isLetheGameQuestion(userMessage)) {
+      const letheContext = getLetheGameContext();
+      systemPrompt = `${ASSISTANT_SYSTEM_PROMPT}
+
+ÖNEMLI: Kullanıcı Lethe Game hakkında soru soruyor. Aşağıdaki oyun bilgilerini kullanarak yardımcı ol. Komutları, mekanikleri ve stratejileri açıkça anlat. Oyun bilgisi günceldir.
+
+${letheContext}
+
+Lethe Game sorularını yanıtlarken:
+- Komutları kod formatında göster (\`!komut\`)
+- Nadirlik renkleri ve şanslarını belirt
+- Strateji ve ipuçları ver
+- VIP sunucu bonuslarını hatırlat
+- Kısa ve öz cevaplar ver (Discord limiti var)`;
+    }
+
     const response = await openai.chat.completions.create({
       model: 'gpt-4o',
       messages: [
-        { role: 'system', content: ASSISTANT_SYSTEM_PROMPT },
+        { role: 'system', content: systemPrompt },
         ...history
       ],
       max_tokens: 1024

@@ -153,6 +153,17 @@ Güçlü ve tam donanımlı Discord moderasyon botu + Web Dashboard.
 - `!analiz [soru]` - Görselleri yapay zeka ile analiz etme
 - `!çevir <dil> <metin>` - 20+ dile çeviri yapma
 
+**Lethe Game AI Rehberi:**
+Yapay zeka, Lethe Game hakkında tam bilgiye sahiptir! Oyuncular botu etiketleyerek oyun hakkında soru sorabilir:
+- "Nasıl avlarım?"
+- "En güçlü hayvan hangisi?"
+- "Boss'ları nasıl yenerim?"
+- "Evrim sistemi nasıl çalışıyor?"
+- Strateji ve ipuçları
+- Komut kullanımları
+
+AI, oyun güncellendiğinde otomatik olarak güncellenir (gameKnowledge.js üzerinden).
+
 **Desteklenen Diller:**
 Türkçe, İngilizce, Almanca, Fransızca, İspanyolca, Felemenkçe (Hollandaca), İtalyanca, Portekizce, Rusça, Japonca, Korece, Çince, Arapça, Lehçe, İsveççe, Norveççe, Fince, Danca, Yunanca, Ukraynaca
 
@@ -202,7 +213,8 @@ Dashboard için gereken environment variables:
 │   │   └── embed.js      # Embed oluşturucu
 │   ├── lethe/            # Lethe Game modülü
 │   │   ├── letheStorage.js  # Global oyun veritabanı işlemleri
-│   │   └── seedData.js   # Hayvan ve eşya verileri
+│   │   ├── seedData.js   # Hayvan ve eşya verileri
+│   │   └── gameKnowledge.js # AI için oyun bilgi tabanı
 │   ├── modules/          # AutoMod, AutoPunish, Scheduler
 │   ├── database/         # Storage layer (PostgreSQL/JSON fallback)
 │   └── web/              # Express web server
