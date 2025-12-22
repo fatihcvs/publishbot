@@ -364,7 +364,9 @@ const letheAnimals = pgTable('lethe_animals', {
   baseDef: integer('base_def').default(10),
   baseSpd: integer('base_spd').default(10),
   sellPrice: integer('sell_price').default(5),
-  xpReward: integer('xp_reward').default(1)
+  xpReward: integer('xp_reward').default(1),
+  season: text('season'),
+  isVipExclusive: boolean('is_vip_exclusive').default(false)
 });
 
 const userAnimals = pgTable('user_animals', {

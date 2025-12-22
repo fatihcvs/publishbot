@@ -99,13 +99,29 @@ module.exports = {
     let description = `**${rarityName}** bir hayvan yakaladın!`;
     if (isVipExclusive) {
       description = `🌟 **VIP ÖZEL** 🌟\n**${rarityName}** bir VIP hayvan yakaladın!`;
+    } else if (result.isSeasonal && result.seasonInfo) {
+      description = `${result.seasonInfo.emoji} **SEZONLUK** ${result.seasonInfo.emoji}\n**${rarityName}** bir ${result.seasonInfo.name} hayvanı yakaladın!`;
     }
     if (result.isVip && result.xpBonus > 0) {
       description += `\n\n🌟 *VIP Bonus: +${result.xpBonus} XP*`;
     }
 
+    let embedColor = rarityColor;
+    if (isVipExclusive) {
+      embedColor = '#FFD700';
+    } else if (result.isSeasonal && result.seasonInfo) {
+      embedColor = result.seasonInfo.color;
+    }
+
+    let footerText = 'Koleksiyonunu görmek için: !k';
+    if (result.isVip) {
+      footerText = '🌟 VIP Sunucu Bonusları Aktif!';
+    } else if (result.isSeasonal && result.seasonInfo) {
+      footerText = `${result.seasonInfo.emoji} ${result.seasonInfo.name} Sezonu - Sadece ${result.seasonInfo.months} arası yakalanabilir!`;
+    }
+
     const embed = new EmbedBuilder()
-      .setColor(isVipExclusive ? '#FFD700' : rarityColor)
+      .setColor(embedColor)
       .setTitle(`${animal.emoji} ${animal.name} Yakaladın!`)
       .setDescription(description)
       .addFields(
@@ -116,7 +132,7 @@ module.exports = {
         { name: '💰 Değer', value: `${animal.sellPrice}`, inline: true },
         { name: '✨ XP', value: `+${animal.xpReward}${result.xpBonus > 0 ? ` (+${result.xpBonus})` : ''}`, inline: true }
       )
-      .setFooter({ text: result.isVip ? '🌟 VIP Sunucu Bonusları Aktif!' : 'Koleksiyonunu görmek için: !k' })
+      .setFooter({ text: footerText })
       .setTimestamp();
 
     // Show gem drop

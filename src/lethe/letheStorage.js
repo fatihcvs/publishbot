@@ -99,6 +99,19 @@ async function seedDatabase() {
   try {
     const existingAnimals = await db.select().from(letheAnimals).limit(1);
     if (existingAnimals.length > 0) {
+      // Check if seasonal animals are seeded
+      const seasonalCheck = await db.select().from(letheAnimals)
+        .where(sql`${letheAnimals.season} IS NOT NULL`)
+        .limit(1);
+      
+      if (seasonalCheck.length === 0 && seedData.seasonalAnimals) {
+        console.log('Seeding seasonal animals...');
+        for (const animal of seedData.seasonalAnimals) {
+          await db.insert(letheAnimals).values(animal).onConflictDoNothing();
+        }
+        console.log('Seasonal animals seeded!');
+      }
+      
       console.log('Lethe Game data already seeded');
       return;
     }
@@ -106,6 +119,14 @@ async function seedDatabase() {
     for (const animal of seedData.animals) {
       await db.insert(letheAnimals).values(animal).onConflictDoNothing();
     }
+    
+    // Seed seasonal animals
+    if (seedData.seasonalAnimals) {
+      for (const animal of seedData.seasonalAnimals) {
+        await db.insert(letheAnimals).values(animal).onConflictDoNothing();
+      }
+    }
+    
     for (const weapon of seedData.weapons) {
       await db.insert(letheWeapons).values(weapon).onConflictDoNothing();
     }
@@ -304,6 +325,9 @@ async function huntAnimal(userId, guildId = null) {
     }
   }
 
+  // Get current season
+  const currentSeason = seedData.getCurrentSeason();
+
   const roll = Math.random();
   let cumulative = 0;
   let selectedRarity = 'common';
@@ -332,6 +356,8 @@ async function huntAnimal(userId, guildId = null) {
 
   // Check for VIP exclusive animal chance (only in VIP server)
   let caughtAnimal = null;
+  let isSeasonal = false;
+  
   if (isVip && Math.random() < 0.02) { // 2% chance for VIP exclusive
     const vipAnimals = await db.select().from(letheAnimals)
       .where(sql`${letheAnimals.animalId} IN ('vip_phoenix', 'vip_guardian', 'vip_spirit')`);
@@ -342,10 +368,15 @@ async function huntAnimal(userId, guildId = null) {
 
   // Regular animal selection if no VIP exclusive
   if (!caughtAnimal) {
+    // Get regular animals (no season) and current season animals
     const animalsOfRarity = await db.select().from(letheAnimals)
       .where(and(
         eq(letheAnimals.rarity, selectedRarity),
-        sql`${letheAnimals.animalId} NOT IN ('vip_phoenix', 'vip_guardian', 'vip_spirit')`
+        sql`${letheAnimals.animalId} NOT IN ('vip_phoenix', 'vip_guardian', 'vip_spirit')`,
+        or(
+          sql`${letheAnimals.season} IS NULL`,
+          eq(letheAnimals.season, currentSeason)
+        )
       ));
 
     if (animalsOfRarity.length === 0) {
@@ -353,6 +384,7 @@ async function huntAnimal(userId, guildId = null) {
     }
 
     caughtAnimal = animalsOfRarity[Math.floor(Math.random() * animalsOfRarity.length)];
+    isSeasonal = caughtAnimal.season !== null;
   }
 
   await db.insert(userAnimals).values({
@@ -382,6 +414,9 @@ async function huntAnimal(userId, guildId = null) {
     success: true, 
     animal: caughtAnimal, 
     isVip,
+    isSeasonal,
+    currentSeason,
+    seasonInfo: isSeasonal ? seedData.getSeasonInfo(currentSeason) : null,
     xpBonus: isVip ? Math.floor(caughtAnimal.xpReward * (vipBonuses.xpMultiplier - 1)) : 0
   };
 }
