@@ -65,9 +65,21 @@ class SocialNotificationSystem {
     const key = `kick:${notification.username}:${guild.id}`;
     
     try {
-      const response = await fetch(`https://kick.com/api/v2/channels/${notification.username}`);
+      const response = await fetch(`https://kick.com/api/v2/channels/${notification.username}`, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Accept': 'application/json',
+          'Accept-Language': 'en-US,en;q=0.9',
+          'Referer': 'https://kick.com/',
+          'Origin': 'https://kick.com'
+        }
+      });
       
       if (!response.ok) {
+        if (response.status === 403 || response.status === 503) {
+          console.log(`Kick API blocked for ${notification.username} - Cloudflare protection`);
+          await this.checkKickAlternative(notification, guild, key);
+        }
         return;
       }
       
@@ -87,7 +99,46 @@ class SocialNotificationSystem {
       
       this.liveStatus.set(key, isLive);
     } catch (error) {
-      console.error(`Kick check error for ${notification.username}:`, error);
+      console.error(`Kick check error for ${notification.username}:`, error.message);
+      await this.checkKickAlternative(notification, guild, key);
+    }
+  }
+
+  async checkKickAlternative(notification, guild, key) {
+    try {
+      const response = await fetch(`https://kick.com/${notification.username}`, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+        }
+      });
+      
+      if (!response.ok) {
+        return;
+      }
+      
+      const html = await response.text();
+      
+      const isLive = html.includes('"is_live":true') || 
+                     html.includes('"livestream":{') && !html.includes('"livestream":null');
+      const wasLive = this.liveStatus.get(key) || false;
+      
+      if (isLive && !wasLive) {
+        const titleMatch = html.match(/"session_title":"([^"]+)"/);
+        const categoryMatch = html.match(/"category":\{"id":\d+,"name":"([^"]+)"/);
+        
+        await this.sendNotification(notification, guild, 'kick', {
+          username: notification.username,
+          title: titleMatch ? titleMatch[1] : 'Yayın',
+          category: categoryMatch ? categoryMatch[1] : 'Bilinmiyor',
+          viewers: 0,
+          thumbnail: null
+        });
+      }
+      
+      this.liveStatus.set(key, isLive);
+    } catch (error) {
+      console.error(`Kick alternative check error for ${notification.username}:`, error.message);
     }
   }
 
