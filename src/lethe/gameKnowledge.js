@@ -1,4 +1,4 @@
-const { animals, weapons, armors, accessories, consumables, baits, crates, bosses, achievements } = require('./seedData');
+const { animals, seasonalAnimals, weapons, armors, accessories, consumables, baits, crates, bosses, achievements, getCurrentSeason, getSeasonInfo } = require('./seedData');
 
 const LETHE_GAME_KNOWLEDGE = `
 ## LETHE GAME - TAM OYUN REHBERİ
@@ -19,6 +19,8 @@ Lethe Game, Publisher Bot'un global hayvan koleksiyon ve savaş oyunudur. Oyuncu
 - \`!a\` veya \`!avla\` veya \`!hunt\` - Hayvan avla (15 saniye bekleme süresi)
 - \`!k\` veya \`!koleksiyon\` - Yakaladığın hayvanları görüntüle
 - \`!sat <id>\` - Hayvan sat (satış fiyatı nadirlığe göre değişir)
+- \`!sezon\` - Aktif sezonu ve sezonluk hayvanları göster
+- \`!sezon tüm\` - Tüm sezonların hayvanlarını göster
 
 **Ekonomi:**
 - \`!p\` veya \`!para\` veya \`!bakiye\` - Para ve taşlarını görüntüle
@@ -172,13 +174,45 @@ ThePublisher sunucusunda (ID: 291436861082042378) oynayanlara özel:
 - 🛒 **%15 Mağaza İndirimi** - Tüm eşyalarda indirim
 - 🦅 **3 Özel VIP Hayvan** - Sadece VIP sunucusunda yakalanabilir
 
+### SEZONLUK HAYVAN SİSTEMİ (FAZ 5)
+
+Yıl boyunca değişen sezonlara özel hayvanlar! Bu hayvanlar sadece kendi sezonlarında yakalanabilir.
+
+**Sezonlar ve Dönemleri:**
+- 🌸 **Bahar (Spring)** - Mart, Nisan, Mayıs
+- ☀️ **Yaz (Summer)** - Haziran, Temmuz, Ağustos
+- 🍂 **Sonbahar (Fall)** - Eylül, Ekim, Kasım
+- ❄️ **Kış (Winter)** - Aralık, Ocak, Şubat
+
+**Sezon Komutları:**
+- \`!sezon\` veya \`!season\` - Aktif sezonu ve o sezonun hayvanlarını göster
+- \`!sezon tüm\` veya \`!sezon hepsi\` - Tüm sezonların hayvanlarını göster
+
+**Her Sezonun Hayvanları (Toplam ${seasonalAnimals?.length || 48} Sezonluk Hayvan):**
+
+Her sezon için 12 özel hayvan var (Common'dan Hidden'a kadar tüm nadirlik seviyelerinde):
+- 3x Common
+- 2x Uncommon  
+- 2x Rare
+- 2x Epic
+- 1x Legendary
+- 1x Mythic
+- 1x Hidden
+
+**Önemli Notlar:**
+- Sezonluk hayvanlar normal avlanma şanslarına dahildir
+- Sadece aktif sezondaki hayvanlar yakalanabilir
+- Eternal nadirliğinde sezonluk hayvan YOKTUR
+- Yakaladığın sezonluk hayvanlar kalıcı olarak koleksiyonunda kalır
+
 ### BAŞARIMLAR
 
 ${achievements.map(a => `- ${a.emoji} **${a.name}**: ${a.description} → ${a.rewardMoney} 💰`).join('\n')}
 
 ### TOPLAM İÇERİK
 
-- **${animals.length} Hayvan** (Common'dan Eternal'a kadar)
+- **${animals.length} Normal Hayvan** (Common'dan Eternal'a kadar)
+- **${seasonalAnimals?.length || 48} Sezonluk Hayvan** (4 sezon, her sezon 12 hayvan)
 - **${bosses.length} Boss** (Farklı zorluk seviyeleri)
 - **${weapons.length + armors.length + accessories.length} Ekipman**
 - **${consumables.length} İksir**
