@@ -1370,6 +1370,68 @@
             <button class="btn btn-primary" onclick="saveInviteSettings()">Kaydet</button>
           `;
           break;
+        
+        case 'help':
+          bodyContent = `
+            <h4 style="margin: 0 0 12px; font-size: 14px; color: #5865F2;">📖 Yardım Komutu Ayarları</h4>
+            <div class="form-group">
+              <label class="form-label">Bot Prefix</label>
+              <input type="text" class="form-input" id="helpPrefix" value="${settings.prefix || '!'}" maxlength="5">
+              <small style="color: var(--text-muted);">Komutların başında kullanılacak karakter (varsayılan: !)</small>
+            </div>
+            
+            <h4 style="margin: 20px 0 12px; font-size: 14px; color: #5865F2;">📋 Yardım Kategorileri</h4>
+            <div class="form-group" style="display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <label class="form-label" style="margin: 0;">Moderasyon Komutları</label>
+                <small style="color: var(--text-muted); display: block;">kick, ban, mute, warn vb.</small>
+              </div>
+              <div class="toggle-switch ${settings.helpCategories?.moderation !== false ? 'active' : ''}" onclick="this.classList.toggle('active')" id="helpModToggle"></div>
+            </div>
+            <div class="form-group" style="display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <label class="form-label" style="margin: 0;">Eğlence Komutları</label>
+                <small style="color: var(--text-muted); display: block;">çekiliş, anket, hatırlatıcı vb.</small>
+              </div>
+              <div class="toggle-switch ${settings.helpCategories?.fun !== false ? 'active' : ''}" onclick="this.classList.toggle('active')" id="helpFunToggle"></div>
+            </div>
+            <div class="form-group" style="display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <label class="form-label" style="margin: 0;">Ekonomi Komutları</label>
+                <small style="color: var(--text-muted); display: block;">para, günlük, çalış, mağaza vb.</small>
+              </div>
+              <div class="toggle-switch ${settings.helpCategories?.economy !== false ? 'active' : ''}" onclick="this.classList.toggle('active')" id="helpEconomyToggle"></div>
+            </div>
+            <div class="form-group" style="display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <label class="form-label" style="margin: 0;">Seviye Komutları</label>
+                <small style="color: var(--text-muted); display: block;">seviye, sıralama, başarımlar vb.</small>
+              </div>
+              <div class="toggle-switch ${settings.helpCategories?.leveling !== false ? 'active' : ''}" onclick="this.classList.toggle('active')" id="helpLevelToggle"></div>
+            </div>
+            <div class="form-group" style="display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <label class="form-label" style="margin: 0;">Yapay Zeka Komutları</label>
+                <small style="color: var(--text-muted); display: block;">görsel, analiz, çevir vb.</small>
+              </div>
+              <div class="toggle-switch ${settings.helpCategories?.ai !== false ? 'active' : ''}" onclick="this.classList.toggle('active')" id="helpAIToggle"></div>
+            </div>
+            
+            <div class="feature-card" style="background: var(--bg-tertiary); margin-top: 16px;">
+              <p style="margin-bottom: 8px;"><strong>Yardım Komutları:</strong></p>
+              <code>!yardım</code> - Tüm kategorileri listeler<br>
+              <code>!yardım mod</code> - Moderasyon komutları<br>
+              <code>!yardım ayar</code> - Ayar komutları<br>
+              <code>!yardım ekonomi</code> - Ekonomi komutları<br>
+              <code>!yardım seviye</code> - Seviye komutları<br>
+              <code>!yardım ai</code> - Yapay zeka komutları
+            </div>
+          `;
+          footerContent = `
+            <button class="btn btn-outline" onclick="disableFeature('help')">Devre Dışı Bırak</button>
+            <button class="btn btn-primary" onclick="saveHelpSettings()">Kaydet</button>
+          `;
+          break;
           
         default:
           bodyContent = `
@@ -1612,6 +1674,22 @@
       const newSettings = {
         inviteChannel: document.getElementById('inviteChannel').value,
         modules: { ...modules, invitetracker: true }
+      };
+      
+      await saveSettings(newSettings);
+    }
+    
+    async function saveHelpSettings() {
+      const newSettings = {
+        prefix: document.getElementById('helpPrefix').value || '!',
+        helpCategories: {
+          moderation: document.getElementById('helpModToggle').classList.contains('active'),
+          fun: document.getElementById('helpFunToggle').classList.contains('active'),
+          economy: document.getElementById('helpEconomyToggle').classList.contains('active'),
+          leveling: document.getElementById('helpLevelToggle').classList.contains('active'),
+          ai: document.getElementById('helpAIToggle').classList.contains('active')
+        },
+        modules: { ...modules, help: true }
       };
       
       await saveSettings(newSettings);
