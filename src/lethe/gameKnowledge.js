@@ -209,6 +209,51 @@ ${achievements.map(a => `- ${a.emoji} **${a.name}**: ${a.description} → ${a.re
    - Günlük streak'i koru
    - Boss'ları yen
 
+### OYUNCU ETKİLEŞİM SİSTEMLERİ (FAZ 4)
+
+**Takas Sistemi:**
+- \`!takas @kullanıcı hayvan:<id> para:<miktar>\` - Takas teklifi gönder
+- \`!takas @kullanıcı hayvan:<id> için:hayvan:<id>\` - Hayvan takası teklif et
+- \`!takas liste\` - Bekleyen takasları görüntüle
+- \`!takas kabul <id>\` - Teklifi kabul et
+- \`!takas reddet <id>\` - Teklifi reddet
+- Teklifler 24 saat geçerlidir
+- Takımdaki hayvanlar takas edilemez
+
+**Hediye Sistemi:**
+- \`!hediye @kullanıcı <miktar>\` - Altın hediye et
+- \`!hediye @kullanıcı hayvan:<id>\` - Hayvan hediye et
+- \`!hediye geçmiş\` - Hediye geçmişini görüntüle
+- Aynı kişiye 1 saat bekleme süresi
+- Minimum 10 altın, maksimum 100,000 altın
+
+**Arkadaş Sistemi:**
+- \`!arkadas ekle @kullanıcı\` - Arkadaşlık isteği gönder
+- \`!arkadas sil @kullanıcı\` - Arkadaş listesinden çıkar
+- \`!arkadas liste\` - Arkadaş listeni gör
+- \`!arkadas istekler\` - Gelen istekleri gör
+- \`!arkadas kabul <id>\` - İsteği kabul et
+- Arkadaşların profillerini ve istatistiklerini görebilirsin
+
+**Co-op Raid Sistemi:**
+- \`!raid başlat <boss>\` - Sunucuda raid başlat
+- \`!raid katıl\` - Aktif raid'e katıl
+- \`!raid saldır\` - Boss'a saldır
+- \`!raid durum\` - Raid durumunu gör
+- \`!raid bosslar\` - Raid boss listesi
+- Maximum 5 oyuncu katılabilir
+- Hasara göre ödül dağılımı
+- Normal boss'un 2 katı ödül
+
+**Gelişmiş Sıralama:**
+- \`!siralama coins\` - Altın sıralaması
+- \`!siralama level\` - Seviye sıralaması
+- \`!siralama hunts\` - Av sayısı sıralaması
+- \`!siralama battles\` - Savaş zaferleri
+- \`!siralama pvp\` - PvP zaferleri
+- \`!siralama animals\` - Hayvan sayısı
+- Global sıralama - Tüm sunuculardan oyuncular
+
 ### HAYVAN LİSTESİ (ÖNEMLİ OLANLAR)
 
 **En Güçlü Common:** ${animals.filter(a => a.rarity === 'common').sort((a,b) => b.baseStr - a.baseStr)[0]?.name}
@@ -237,7 +282,9 @@ function isLetheGameQuestion(message) {
     '!a ', '!p ', '!k ', '!t ', '!s ', '!b ', '!d ', '!m ', '!e ', '!pr ',
     'nasıl avlarım', 'nasıl oynarım', 'nasıl başlarım', 'ne yapmalıyım',
     'hangi hayvan', 'en güçlü', 'en iyi', 'strateji', 'taktik', 'ipucu',
-    'başarım', 'achievement', 'level', 'seviye', 'xp', 'deneyim'
+    'başarım', 'achievement', 'level', 'seviye', 'xp', 'deneyim',
+    'takas', 'trade', 'hediye', 'gift', 'arkadaş', 'friend', 'raid', 'coop',
+    'sıralama', 'leaderboard', 'lider', 'top'
   ];
   
   const lowerMessage = message.toLowerCase();

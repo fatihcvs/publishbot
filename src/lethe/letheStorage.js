@@ -3,9 +3,10 @@ const {
   letheAnimals, userAnimals, letheWeapons, letheArmors, letheAccessories,
   letheConsumables, letheBaits, letheCrates, letheBosses, userLetheInventory,
   userLetheProfile, letheAchievements, userLetheAchievements, letheBattles,
-  letheQuests, userLetheQuests, letheDaily, letheWork, letheEvolutionGems, letheAbilities
+  letheQuests, userLetheQuests, letheDaily, letheWork, letheEvolutionGems, letheAbilities,
+  letheTrades, letheGifts, letheFriends, letheRaids, letheLeaderboard
 } = require('../../shared/schema');
-const { eq, sql, and, lt, gte } = require('drizzle-orm');
+const { eq, sql, and, lt, gte, or, desc, asc } = require('drizzle-orm');
 const seedData = require('./seedData');
 
 // VIP Server Configuration - ThePublisher
@@ -1810,6 +1811,609 @@ async function getAnimalDetails(userId, animalId) {
   };
 }
 
+// ==================== PHASE 4: PLAYER INTERACTION SYSTEMS ====================
+
+// === TRADING SYSTEM ===
+async function createTrade(senderId, receiverId, offer) {
+  const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+  
+  const [trade] = await db.insert(letheTrades).values({
+    senderId,
+    receiverId,
+    senderAnimalId: offer.senderAnimalId || null,
+    receiverAnimalId: offer.receiverAnimalId || null,
+    senderCoins: offer.senderCoins || 0,
+    receiverCoins: offer.receiverCoins || 0,
+    senderItemType: offer.senderItemType || null,
+    senderItemId: offer.senderItemId || null,
+    receiverItemType: offer.receiverItemType || null,
+    receiverItemId: offer.receiverItemId || null,
+    status: 'pending',
+    expiresAt
+  }).returning();
+  
+  return trade;
+}
+
+async function getPendingTrades(userId) {
+  const trades = await db.select().from(letheTrades)
+    .where(and(
+      or(eq(letheTrades.senderId, userId), eq(letheTrades.receiverId, userId)),
+      eq(letheTrades.status, 'pending')
+    ))
+    .orderBy(desc(letheTrades.createdAt));
+  
+  return trades;
+}
+
+async function getTrade(tradeId) {
+  const [trade] = await db.select().from(letheTrades)
+    .where(eq(letheTrades.id, tradeId))
+    .limit(1);
+  return trade;
+}
+
+async function acceptTrade(tradeId) {
+  const trade = await getTrade(tradeId);
+  if (!trade || trade.status !== 'pending') {
+    return { success: false, error: 'Takas bulunamadı veya geçersiz' };
+  }
+  
+  // Check expiry
+  if (new Date(trade.expiresAt) < new Date()) {
+    await db.update(letheTrades)
+      .set({ status: 'expired' })
+      .where(eq(letheTrades.id, tradeId));
+    return { success: false, error: 'Takas süresi dolmuş' };
+  }
+  
+  // Verify both parties have the items/coins
+  const senderProfile = await getOrCreateProfile(trade.senderId);
+  const receiverProfile = await getOrCreateProfile(trade.receiverId);
+  
+  // Check coins
+  if (trade.senderCoins > 0 && senderProfile.coins < trade.senderCoins) {
+    return { success: false, error: 'Gönderen yeterli altına sahip değil' };
+  }
+  if (trade.receiverCoins > 0 && receiverProfile.coins < trade.receiverCoins) {
+    return { success: false, error: 'Alıcı yeterli altına sahip değil' };
+  }
+  
+  // Check animals ownership
+  if (trade.senderAnimalId) {
+    const [animal] = await db.select().from(userAnimals)
+      .where(and(eq(userAnimals.id, trade.senderAnimalId), eq(userAnimals.userId, trade.senderId)));
+    if (!animal) return { success: false, error: 'Gönderen hayvan sahibi değil' };
+  }
+  if (trade.receiverAnimalId) {
+    const [animal] = await db.select().from(userAnimals)
+      .where(and(eq(userAnimals.id, trade.receiverAnimalId), eq(userAnimals.userId, trade.receiverId)));
+    if (!animal) return { success: false, error: 'Alıcı hayvan sahibi değil' };
+  }
+  
+  // Perform the trade
+  // Transfer coins
+  if (trade.senderCoins > 0) {
+    await addCoins(trade.senderId, -trade.senderCoins);
+    await addCoins(trade.receiverId, trade.senderCoins);
+  }
+  if (trade.receiverCoins > 0) {
+    await addCoins(trade.receiverId, -trade.receiverCoins);
+    await addCoins(trade.senderId, trade.receiverCoins);
+  }
+  
+  // Transfer animals
+  if (trade.senderAnimalId) {
+    await db.update(userAnimals)
+      .set({ userId: trade.receiverId, inTeam: false, teamSlot: null })
+      .where(eq(userAnimals.id, trade.senderAnimalId));
+  }
+  if (trade.receiverAnimalId) {
+    await db.update(userAnimals)
+      .set({ userId: trade.senderId, inTeam: false, teamSlot: null })
+      .where(eq(userAnimals.id, trade.receiverAnimalId));
+  }
+  
+  // Update trade status
+  await db.update(letheTrades)
+    .set({ status: 'accepted' })
+    .where(eq(letheTrades.id, tradeId));
+  
+  return { success: true, trade };
+}
+
+async function rejectTrade(tradeId) {
+  await db.update(letheTrades)
+    .set({ status: 'rejected' })
+    .where(eq(letheTrades.id, tradeId));
+  return { success: true };
+}
+
+async function cancelTrade(tradeId, userId) {
+  const trade = await getTrade(tradeId);
+  if (!trade) return { success: false, error: 'Takas bulunamadı' };
+  if (trade.senderId !== userId) return { success: false, error: 'Bu takası iptal etme yetkiniz yok' };
+  
+  await db.update(letheTrades)
+    .set({ status: 'cancelled' })
+    .where(eq(letheTrades.id, tradeId));
+  return { success: true };
+}
+
+// === GIFT SYSTEM ===
+const giftCooldown = 60 * 60 * 1000; // 1 hour cooldown between gifts to same person
+const giftCache = new Map();
+
+function canSendGift(senderId, receiverId) {
+  const key = `${senderId}-${receiverId}`;
+  const lastGift = giftCache.get(key);
+  if (lastGift && Date.now() - lastGift < giftCooldown) {
+    return { canSend: false, remaining: Math.ceil((giftCooldown - (Date.now() - lastGift)) / 60000) };
+  }
+  return { canSend: true };
+}
+
+async function sendGift(senderId, receiverId, giftType, amount, animalId = null, message = null) {
+  // Check cooldown
+  const cooldownCheck = canSendGift(senderId, receiverId);
+  if (!cooldownCheck.canSend) {
+    return { success: false, error: `Bu kişiye ${cooldownCheck.remaining} dakika sonra hediye gönderebilirsiniz` };
+  }
+  
+  const senderProfile = await getOrCreateProfile(senderId);
+  
+  if (giftType === 'coins') {
+    if (senderProfile.coins < amount) {
+      return { success: false, error: 'Yeterli altınınız yok' };
+    }
+    
+    // Transfer coins
+    await addCoins(senderId, -amount);
+    await addCoins(receiverId, amount);
+    
+    // Log gift
+    await db.insert(letheGifts).values({
+      senderId,
+      receiverId,
+      giftType: 'coins',
+      coins: amount,
+      message
+    });
+    
+    giftCache.set(`${senderId}-${receiverId}`, Date.now());
+    return { success: true, type: 'coins', amount };
+  }
+  
+  if (giftType === 'animal' && animalId) {
+    // Check ownership
+    const [animal] = await db.select().from(userAnimals)
+      .where(and(eq(userAnimals.id, animalId), eq(userAnimals.userId, senderId)));
+    
+    if (!animal) {
+      return { success: false, error: 'Bu hayvana sahip değilsiniz' };
+    }
+    
+    // Get animal info for response
+    const [animalInfo] = await db.select().from(letheAnimals)
+      .where(eq(letheAnimals.animalId, animal.animalId));
+    
+    // Transfer animal
+    await db.update(userAnimals)
+      .set({ userId: receiverId, inTeam: false, teamSlot: null })
+      .where(eq(userAnimals.id, animalId));
+    
+    // Log gift
+    await db.insert(letheGifts).values({
+      senderId,
+      receiverId,
+      giftType: 'animal',
+      animalId,
+      message
+    });
+    
+    giftCache.set(`${senderId}-${receiverId}`, Date.now());
+    return { success: true, type: 'animal', animal: animalInfo };
+  }
+  
+  return { success: false, error: 'Geçersiz hediye türü' };
+}
+
+async function getGiftHistory(userId, limit = 20) {
+  const sent = await db.select().from(letheGifts)
+    .where(eq(letheGifts.senderId, userId))
+    .orderBy(desc(letheGifts.createdAt))
+    .limit(limit);
+  
+  const received = await db.select().from(letheGifts)
+    .where(eq(letheGifts.receiverId, userId))
+    .orderBy(desc(letheGifts.createdAt))
+    .limit(limit);
+  
+  return { sent, received };
+}
+
+// === FRIEND SYSTEM ===
+async function sendFriendRequest(userId, friendId) {
+  if (userId === friendId) {
+    return { success: false, error: 'Kendinizi arkadaş olarak ekleyemezsiniz' };
+  }
+  
+  // Check if already friends or pending
+  const existing = await db.select().from(letheFriends)
+    .where(or(
+      and(eq(letheFriends.userId, userId), eq(letheFriends.friendId, friendId)),
+      and(eq(letheFriends.userId, friendId), eq(letheFriends.friendId, userId))
+    ));
+  
+  if (existing.length > 0) {
+    const status = existing[0].status;
+    if (status === 'accepted') return { success: false, error: 'Zaten arkadaşsınız' };
+    if (status === 'pending') return { success: false, error: 'Bekleyen istek var' };
+    if (status === 'blocked') return { success: false, error: 'Bu kullanıcıyla etkileşim kuramazsınız' };
+  }
+  
+  await db.insert(letheFriends).values({
+    userId,
+    friendId,
+    status: 'pending'
+  });
+  
+  return { success: true };
+}
+
+async function acceptFriendRequest(userId, requestId) {
+  const [request] = await db.select().from(letheFriends)
+    .where(and(eq(letheFriends.id, requestId), eq(letheFriends.friendId, userId)));
+  
+  if (!request || request.status !== 'pending') {
+    return { success: false, error: 'İstek bulunamadı' };
+  }
+  
+  await db.update(letheFriends)
+    .set({ status: 'accepted' })
+    .where(eq(letheFriends.id, requestId));
+  
+  return { success: true, friendId: request.userId };
+}
+
+async function rejectFriendRequest(userId, requestId) {
+  await db.delete(letheFriends)
+    .where(and(eq(letheFriends.id, requestId), eq(letheFriends.friendId, userId)));
+  return { success: true };
+}
+
+async function removeFriend(userId, friendId) {
+  await db.delete(letheFriends)
+    .where(or(
+      and(eq(letheFriends.userId, userId), eq(letheFriends.friendId, friendId)),
+      and(eq(letheFriends.userId, friendId), eq(letheFriends.friendId, userId))
+    ));
+  return { success: true };
+}
+
+async function getFriends(userId) {
+  const friends = await db.select().from(letheFriends)
+    .where(and(
+      or(eq(letheFriends.userId, userId), eq(letheFriends.friendId, userId)),
+      eq(letheFriends.status, 'accepted')
+    ));
+  
+  return friends.map(f => f.userId === userId ? f.friendId : f.userId);
+}
+
+async function getPendingFriendRequests(userId) {
+  const requests = await db.select().from(letheFriends)
+    .where(and(eq(letheFriends.friendId, userId), eq(letheFriends.status, 'pending')));
+  return requests;
+}
+
+async function areFriends(userId1, userId2) {
+  const [friendship] = await db.select().from(letheFriends)
+    .where(and(
+      or(
+        and(eq(letheFriends.userId, userId1), eq(letheFriends.friendId, userId2)),
+        and(eq(letheFriends.userId, userId2), eq(letheFriends.friendId, userId1))
+      ),
+      eq(letheFriends.status, 'accepted')
+    ));
+  return !!friendship;
+}
+
+// === CO-OP RAID SYSTEM ===
+async function createRaid(guildId, hostId, bossId) {
+  const boss = seedData.bosses.find(b => b.bossId === bossId);
+  if (!boss) return { success: false, error: 'Boss bulunamadı' };
+  
+  // Check if there's already an active raid in this guild
+  const [existing] = await db.select().from(letheRaids)
+    .where(and(
+      eq(letheRaids.guildId, guildId),
+      or(eq(letheRaids.status, 'recruiting'), eq(letheRaids.status, 'active'))
+    ));
+  
+  if (existing) {
+    return { success: false, error: 'Bu sunucuda zaten aktif bir raid var', existingRaid: existing };
+  }
+  
+  // Check host has full team
+  const hostTeam = await getTeam(hostId);
+  if (hostTeam.length < 3) {
+    return { success: false, error: 'Raid başlatmak için 3/3 takım gerekli' };
+  }
+  
+  const bossHp = boss.hp * 3; // Scale up for raid
+  const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes to recruit
+  const startsAt = new Date(Date.now() + 3 * 60 * 1000); // Starts in 3 minutes
+  
+  const [raid] = await db.insert(letheRaids).values({
+    guildId,
+    bossId,
+    hostId,
+    participants: [{ userId: hostId, damage: 0, joined: true }],
+    bossHp,
+    currentHp: bossHp,
+    status: 'recruiting',
+    maxParticipants: 5,
+    startsAt,
+    expiresAt
+  }).returning();
+  
+  return { success: true, raid, boss };
+}
+
+async function joinRaid(raidId, userId) {
+  const [raid] = await db.select().from(letheRaids)
+    .where(eq(letheRaids.id, raidId));
+  
+  if (!raid) return { success: false, error: 'Raid bulunamadı' };
+  if (raid.status !== 'recruiting') return { success: false, error: 'Bu raid artık katılıma açık değil' };
+  
+  const participants = raid.participants || [];
+  if (participants.find(p => p.userId === userId)) {
+    return { success: false, error: 'Zaten bu raide katıldınız' };
+  }
+  if (participants.length >= raid.maxParticipants) {
+    return { success: false, error: 'Raid dolu' };
+  }
+  
+  // Check user has full team
+  const team = await getTeam(userId);
+  if (team.length < 3) {
+    return { success: false, error: 'Raid\'e katılmak için 3/3 takım gerekli' };
+  }
+  
+  participants.push({ userId, damage: 0, joined: true });
+  
+  await db.update(letheRaids)
+    .set({ participants })
+    .where(eq(letheRaids.id, raidId));
+  
+  return { success: true, participantCount: participants.length };
+}
+
+async function attackRaid(raidId, userId) {
+  const [raid] = await db.select().from(letheRaids)
+    .where(eq(letheRaids.id, raidId));
+  
+  if (!raid) return { success: false, error: 'Raid bulunamadı' };
+  if (raid.status !== 'active') return { success: false, error: 'Raid aktif değil' };
+  
+  const participants = raid.participants || [];
+  const participant = participants.find(p => p.userId === userId);
+  if (!participant) return { success: false, error: 'Bu raide katılmadınız' };
+  
+  // Get user's team and calculate damage
+  const team = await getTeamWithEquipment(userId);
+  let totalDamage = 0;
+  const damageBreakdown = [];
+  
+  for (const animal of team) {
+    const baseDamage = animal.attack + (animal.bonusAttack || 0);
+    const critChance = 0.15;
+    const isCrit = Math.random() < critChance;
+    const damage = isCrit ? Math.floor(baseDamage * 1.5) : baseDamage;
+    totalDamage += damage;
+    damageBreakdown.push({
+      name: animal.animalInfo?.name || animal.animalId,
+      damage,
+      isCrit
+    });
+  }
+  
+  // Apply damage
+  const newHp = Math.max(0, raid.currentHp - totalDamage);
+  participant.damage = (participant.damage || 0) + totalDamage;
+  
+  // Update raid
+  if (newHp <= 0) {
+    // Raid completed!
+    const boss = seedData.bosses.find(b => b.bossId === raid.bossId);
+    const rewards = {
+      coins: boss.rewards.coins * 2,
+      xp: boss.rewards.xp * 2
+    };
+    
+    // Distribute rewards
+    for (const p of participants) {
+      const damageShare = p.damage / (raid.bossHp - newHp);
+      const playerCoins = Math.floor(rewards.coins * damageShare) + 100; // Minimum 100
+      const playerXp = Math.floor(rewards.xp * damageShare) + 50;
+      
+      await addCoins(p.userId, playerCoins);
+      p.reward = { coins: playerCoins, xp: playerXp };
+    }
+    
+    await db.update(letheRaids)
+      .set({ 
+        currentHp: 0, 
+        status: 'completed', 
+        participants,
+        rewards 
+      })
+      .where(eq(letheRaids.id, raidId));
+    
+    return { 
+      success: true, 
+      completed: true, 
+      damage: totalDamage, 
+      damageBreakdown,
+      participants,
+      rewards
+    };
+  }
+  
+  await db.update(letheRaids)
+    .set({ currentHp: newHp, participants })
+    .where(eq(letheRaids.id, raidId));
+  
+  return { 
+    success: true, 
+    completed: false, 
+    damage: totalDamage, 
+    damageBreakdown,
+    remainingHp: newHp,
+    bossHp: raid.bossHp
+  };
+}
+
+async function getActiveRaid(guildId) {
+  const [raid] = await db.select().from(letheRaids)
+    .where(and(
+      eq(letheRaids.guildId, guildId),
+      or(eq(letheRaids.status, 'recruiting'), eq(letheRaids.status, 'active'))
+    ));
+  return raid;
+}
+
+async function startRaid(raidId) {
+  await db.update(letheRaids)
+    .set({ status: 'active' })
+    .where(eq(letheRaids.id, raidId));
+}
+
+// === LEADERBOARD SYSTEM ===
+async function getLeaderboard(category, limit = 10) {
+  let query;
+  
+  switch(category) {
+    case 'coins':
+      query = db.select({
+        userId: userLetheProfile.visitorId,
+        value: userLetheProfile.coins
+      }).from(userLetheProfile)
+        .orderBy(desc(userLetheProfile.coins))
+        .limit(limit);
+      break;
+    
+    case 'level':
+      query = db.select({
+        userId: userLetheProfile.visitorId,
+        value: userLetheProfile.level
+      }).from(userLetheProfile)
+        .orderBy(desc(userLetheProfile.level))
+        .limit(limit);
+      break;
+    
+    case 'hunts':
+      query = db.select({
+        userId: userLetheProfile.visitorId,
+        value: userLetheProfile.totalHunts
+      }).from(userLetheProfile)
+        .orderBy(desc(userLetheProfile.totalHunts))
+        .limit(limit);
+      break;
+    
+    case 'battles':
+      query = db.select({
+        userId: userLetheProfile.visitorId,
+        value: userLetheProfile.battlesWon
+      }).from(userLetheProfile)
+        .orderBy(desc(userLetheProfile.battlesWon))
+        .limit(limit);
+      break;
+    
+    case 'pvp':
+      query = db.select({
+        userId: userLetheProfile.visitorId,
+        value: userLetheProfile.pvpWins
+      }).from(userLetheProfile)
+        .orderBy(desc(userLetheProfile.pvpWins))
+        .limit(limit);
+      break;
+    
+    case 'animals':
+      // Count animals per user
+      query = db.select({
+        userId: userAnimals.userId,
+        value: sql`COUNT(*)`.as('value')
+      }).from(userAnimals)
+        .groupBy(userAnimals.userId)
+        .orderBy(desc(sql`COUNT(*)`))
+        .limit(limit);
+      break;
+    
+    default:
+      query = db.select({
+        userId: userLetheProfile.visitorId,
+        value: userLetheProfile.coins
+      }).from(userLetheProfile)
+        .orderBy(desc(userLetheProfile.coins))
+        .limit(limit);
+  }
+  
+  const results = await query;
+  return results.map((r, i) => ({
+    rank: i + 1,
+    userId: r.userId,
+    value: Number(r.value) || 0
+  }));
+}
+
+async function getUserRank(userId, category) {
+  const profile = await getOrCreateProfile(userId);
+  let value = 0;
+  
+  switch(category) {
+    case 'coins': value = profile.coins; break;
+    case 'level': value = profile.level; break;
+    case 'hunts': value = profile.totalHunts; break;
+    case 'battles': value = profile.battlesWon; break;
+    case 'pvp': value = profile.pvpWins; break;
+    default: value = profile.coins;
+  }
+  
+  // Get count of users with higher value
+  let rankQuery;
+  switch(category) {
+    case 'coins':
+      rankQuery = db.select({ count: sql`COUNT(*)` }).from(userLetheProfile)
+        .where(sql`${userLetheProfile.coins} > ${value}`);
+      break;
+    case 'level':
+      rankQuery = db.select({ count: sql`COUNT(*)` }).from(userLetheProfile)
+        .where(sql`${userLetheProfile.level} > ${value}`);
+      break;
+    case 'hunts':
+      rankQuery = db.select({ count: sql`COUNT(*)` }).from(userLetheProfile)
+        .where(sql`${userLetheProfile.totalHunts} > ${value}`);
+      break;
+    case 'battles':
+      rankQuery = db.select({ count: sql`COUNT(*)` }).from(userLetheProfile)
+        .where(sql`${userLetheProfile.battlesWon} > ${value}`);
+      break;
+    case 'pvp':
+      rankQuery = db.select({ count: sql`COUNT(*)` }).from(userLetheProfile)
+        .where(sql`${userLetheProfile.pvpWins} > ${value}`);
+      break;
+    default:
+      rankQuery = db.select({ count: sql`COUNT(*)` }).from(userLetheProfile)
+        .where(sql`${userLetheProfile.coins} > ${value}`);
+  }
+  
+  const [result] = await rankQuery;
+  return { rank: Number(result.count) + 1, value };
+}
+
 module.exports = {
   seedDatabase,
   huntAnimal,
@@ -1878,5 +2482,33 @@ module.exports = {
   canSendDailyDm,
   markDmSent,
   getVipPromoMessage,
-  VIP_CONFIG
+  VIP_CONFIG,
+  // Phase 4: Trading System
+  createTrade,
+  getPendingTrades,
+  getTrade,
+  acceptTrade,
+  rejectTrade,
+  cancelTrade,
+  // Phase 4: Gift System
+  sendGift,
+  getGiftHistory,
+  canSendGift,
+  // Phase 4: Friend System
+  sendFriendRequest,
+  acceptFriendRequest,
+  rejectFriendRequest,
+  removeFriend,
+  getFriends,
+  getPendingFriendRequests,
+  areFriends,
+  // Phase 4: Raid System
+  createRaid,
+  joinRaid,
+  attackRaid,
+  getActiveRaid,
+  startRaid,
+  // Phase 4: Leaderboard System
+  getLeaderboard,
+  getUserRank
 };

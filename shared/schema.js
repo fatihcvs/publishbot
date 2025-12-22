@@ -611,6 +611,74 @@ const letheAbilities = pgTable('lethe_abilities', {
   cooldown: integer('cooldown').default(0) // For active abilities, turns
 });
 
+// Lethe Game - Phase 4: Trades (Takas Sistemi)
+const letheTrades = pgTable('lethe_trades', {
+  id: serial('id').primaryKey(),
+  senderId: text('sender_id').notNull(),
+  receiverId: text('receiver_id').notNull(),
+  senderAnimalId: integer('sender_animal_id'), // userAnimals id
+  receiverAnimalId: integer('receiver_animal_id'), // userAnimals id
+  senderCoins: integer('sender_coins').default(0),
+  receiverCoins: integer('receiver_coins').default(0),
+  senderItemType: text('sender_item_type'), // 'weapon', 'armor', 'accessory'
+  senderItemId: text('sender_item_id'),
+  receiverItemType: text('receiver_item_type'),
+  receiverItemId: text('receiver_item_id'),
+  status: text('status').default('pending'), // 'pending', 'accepted', 'rejected', 'expired'
+  expiresAt: timestamp('expires_at'),
+  createdAt: timestamp('created_at').defaultNow()
+});
+
+// Lethe Game - Phase 4: Gift History (Hediye Geçmişi)
+const letheGifts = pgTable('lethe_gifts', {
+  id: serial('id').primaryKey(),
+  senderId: text('sender_id').notNull(),
+  receiverId: text('receiver_id').notNull(),
+  giftType: text('gift_type').notNull(), // 'coins', 'animal', 'item'
+  animalId: integer('animal_id'), // userAnimals id
+  itemType: text('item_type'),
+  itemId: text('item_id'),
+  coins: integer('coins').default(0),
+  message: text('message'),
+  createdAt: timestamp('created_at').defaultNow()
+});
+
+// Lethe Game - Phase 4: Friends (Arkadaş Sistemi)
+const letheFriends = pgTable('lethe_friends', {
+  id: serial('id').primaryKey(),
+  userId: text('user_id').notNull(),
+  friendId: text('friend_id').notNull(),
+  status: text('status').default('pending'), // 'pending', 'accepted', 'blocked'
+  createdAt: timestamp('created_at').defaultNow()
+});
+
+// Lethe Game - Phase 4: Raids (Co-op Boss Raids)
+const letheRaids = pgTable('lethe_raids', {
+  id: serial('id').primaryKey(),
+  guildId: text('guild_id').notNull(),
+  bossId: text('boss_id').notNull(),
+  hostId: text('host_id').notNull(),
+  participants: jsonb('participants').default([]), // [{userId, damage, animals}]
+  bossHp: integer('boss_hp').notNull(),
+  currentHp: integer('current_hp').notNull(),
+  status: text('status').default('recruiting'), // 'recruiting', 'active', 'completed', 'failed'
+  rewards: jsonb('rewards').default({}),
+  maxParticipants: integer('max_participants').default(5),
+  startsAt: timestamp('starts_at'),
+  expiresAt: timestamp('expires_at'),
+  createdAt: timestamp('created_at').defaultNow()
+});
+
+// Lethe Game - Phase 4: Leaderboard Cache
+const letheLeaderboard = pgTable('lethe_leaderboard', {
+  id: serial('id').primaryKey(),
+  category: text('category').notNull(), // 'coins', 'level', 'animals', 'battles', 'hunts', 'pvp'
+  userId: text('user_id').notNull(),
+  value: integer('value').default(0),
+  rank: integer('rank'),
+  updatedAt: timestamp('updated_at').defaultNow()
+});
+
 module.exports = {
   guilds,
   warnings,
@@ -662,5 +730,10 @@ module.exports = {
   letheDaily,
   letheWork,
   letheEvolutionGems,
-  letheAbilities
+  letheAbilities,
+  letheTrades,
+  letheGifts,
+  letheFriends,
+  letheRaids,
+  letheLeaderboard
 };

@@ -119,6 +119,37 @@ Güçlü ve tam donanımlı Discord moderasyon botu + Web Dashboard.
 **Diğer:**
 - `!sat <id>` / `!hayvansat` - Hayvan sat
 
+**Oyuncu Etkileşim Sistemi (Faz 4):**
+
+*Takas Sistemi:*
+- `!takas @kullanıcı hayvan:<id> para:<miktar>` - Takas teklifi gönder
+- `!takas liste` - Bekleyen takasları görüntüle
+- `!takas kabul/reddet <id>` - Teklifi kabul et veya reddet
+- 24 saat geçerlilik süresi
+
+*Hediye Sistemi:*
+- `!hediye @kullanıcı <miktar>` - Altın hediye et
+- `!hediye @kullanıcı hayvan:<id>` - Hayvan hediye et
+- `!hediye geçmiş` - Hediye geçmişini görüntüle
+- 1 saat bekleme süresi (aynı kişiye)
+
+*Arkadaş Sistemi:*
+- `!arkadas ekle/sil @kullanıcı` - Arkadaş ekle/çıkar
+- `!arkadas liste` - Arkadaş listesi
+- `!arkadas istekler` - Gelen istekler
+- `!arkadas kabul/reddet <id>` - İstek kabul/reddet
+
+*Co-op Raid Sistemi:*
+- `!raid başlat <boss>` - Sunucuda raid başlat
+- `!raid katıl` - Aktif raid'e katıl
+- `!raid saldır` - Boss'a saldır
+- `!raid durum` - Raid durumunu gör
+- 5 oyuncu kapasitesi, hasara göre ödül
+
+*Gelişmiş Sıralama:*
+- `!siralama coins/level/hunts/battles/pvp/animals` - Kategorili global sıralama
+- Kısa: `!lb`, `!top`, `!lider`
+
 **Kanal Kontrolü:**
 - `!oyunkanal ekle #kanal` - Oyun kanalı ekle
 - `!oyunkanal sil #kanal` - Oyun kanalı kaldır
