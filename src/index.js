@@ -34,6 +34,19 @@ client.invites = new Collection();
 
 const PREFIX = '!';
 
+// Prevent duplicate command processing
+const processedMessages = new Set();
+const MESSAGE_CACHE_TIMEOUT = 5000; // 5 seconds
+
+function isMessageProcessed(messageId) {
+  if (processedMessages.has(messageId)) {
+    return true;
+  }
+  processedMessages.add(messageId);
+  setTimeout(() => processedMessages.delete(messageId), MESSAGE_CACHE_TIMEOUT);
+  return false;
+}
+
 function loadCommands(dir, prefix = '') {
   const items = fs.readdirSync(dir);
   for (const item of items) {
@@ -426,6 +439,12 @@ client.on(Events.InviteDelete, async (invite) => {
 
 client.on(Events.MessageCreate, async (message) => {
   if (message.author.bot || !message.guild) return;
+  
+  // Prevent duplicate command processing
+  if (message.content.startsWith(PREFIX) && isMessageProcessed(message.id)) {
+    console.log(`Duplicate message detected: ${message.id}`);
+    return;
+  }
   
   const afk = await storage.getAfk(message.guild.id, message.author.id);
   if (afk) {
