@@ -182,19 +182,33 @@ Bu belge, Lethe Game'in gelecekteki özelliklerini ve geliştirme planını içe
 
 ---
 
-## Faz 6: Etkinlik Sistemi (Planlandı)
+## Faz 6: Etkinlik Sistemi ✅ TAMAMLANDI
 
-### Özel Etkinlikler
-- [ ] Hafta sonu 2x XP etkinlikleri
-- [ ] Özel hayvan avlama etkinlikleri
-- [ ] Boss Rush etkinlikleri
-- [ ] Topluluk hedefleri
+### Tekrarlayan Etkinlikler ✅
+- [x] Hafta Sonu XP (Cumartesi-Pazar) - 2x XP kazanımı
+- [x] Hafta Sonu Altın (Cumartesi-Pazar) - 1.5x altın kazanımı
+- [x] Cuma Nadir Günü - 2x nadir hayvan şansı
+- [x] Çarşamba Savaşı - Savaşlarda bonus XP
+- [x] Otomatik etkinlik zamanlaması ve yönetimi
 
-### Etkinlik Ödülleri
-- [ ] Sınırlı süreli hayvanlar
-- [ ] Özel ekipmanlar
-- [ ] Etkinlik rozetleri
-- [ ] Kozmetik eşyalar
+### Topluluk Hedefleri ✅
+- [x] Topluluk Avı - X hayvan yakalama hedefi
+- [x] Savaş Festivali - X savaş kazanma hedefi
+- [x] Boss Mücadelesi - X boss öldürme hedefi
+- [x] Haftalık otomatik yenileme
+- [x] Katkı takibi ve sıralama
+
+### Bonus Sistemi ✅
+- [x] Etkinlik bonusları VIP bonuslarıyla çarpılır
+- [x] XP, altın ve nadir hayvan çarpanları
+- [x] Topluluk hedefi tamamlama ödülleri
+- [x] Katkıya göre ekstra ödüller
+
+### Etkinlik Komutları ✅
+- [x] `!etkinlik` / `!event` - Aktif etkinlikleri görüntüle
+- [x] `!etkinlik hedefler` - Topluluk hedeflerini görüntüle
+- [x] `!etkinlik ödüller` - Etkinlik ödüllerini görüntüle
+- [x] `!etkinlik katkı` - Kendi katkını görüntüle
 
 ---
 
@@ -278,6 +292,7 @@ Bu belge, Lethe Game'in gelecekteki özelliklerini ve geliştirme planını içe
 | v1.3 | 17 Aralık 2024 | Pet evrimi (evrim taşları, eğitim, 18 yetenek) |
 | v2.0 | 22 Aralık 2024 | Faz 4: Oyuncu Etkileşim Sistemleri (Takas, Hediye, Arkadaş, Raid, Sıralama) |
 | v2.1 | 22 Aralık 2024 | Faz 5: Sezonluk Hayvan Sistemi (48 yeni hayvan, 4 sezon) |
+| v2.2 | 22 Aralık 2024 | Faz 6: Etkinlik Sistemi (Hafta sonu bonusları, topluluk hedefleri) |
 
 ---
 

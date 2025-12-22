@@ -4,10 +4,12 @@ const {
   letheConsumables, letheBaits, letheCrates, letheBosses, userLetheInventory,
   userLetheProfile, letheAchievements, userLetheAchievements, letheBattles,
   letheQuests, userLetheQuests, letheDaily, letheWork, letheEvolutionGems, letheAbilities,
-  letheTrades, letheGifts, letheFriends, letheRaids, letheLeaderboard
+  letheTrades, letheGifts, letheFriends, letheRaids, letheLeaderboard,
+  letheEvents, letheCommunityGoals, letheEventParticipation
 } = require('../../shared/schema');
 const { eq, sql, and, lt, gte, or, desc, asc } = require('drizzle-orm');
 const seedData = require('./seedData');
+const { eventSystem } = require('./eventSystem');
 
 // VIP Server Configuration - ThePublisher
 const VIP_CONFIG = {
@@ -156,6 +158,14 @@ async function seedDatabase() {
   } catch (error) {
     console.error('Error seeding Lethe Game data:', error);
   }
+  
+  try {
+    const schema = require('../../shared/schema');
+    await eventSystem.initialize(db, schema);
+    console.log('Event system initialized');
+  } catch (error) {
+    console.error('Error initializing event system:', error.message);
+  }
 }
 
 async function getOrCreateProfile(userId) {
@@ -198,6 +208,21 @@ async function addBattleReward(userId, xpAmount, moneyAmount, won, isBoss = fals
     finalMoney = Math.floor(moneyAmount * vipBonuses.coinMultiplier);
   }
   
+  // Apply event bonuses
+  const eventXpMultiplier = eventSystem.getXPMultiplier();
+  const eventGoldMultiplier = eventSystem.getGoldMultiplier();
+  let eventXpBonus = 0;
+  let eventMoneyBonus = 0;
+  
+  if (eventXpMultiplier > 1) {
+    eventXpBonus = Math.floor(finalXp * (eventXpMultiplier - 1));
+    finalXp = Math.floor(finalXp * eventXpMultiplier);
+  }
+  if (eventGoldMultiplier > 1) {
+    eventMoneyBonus = Math.floor(finalMoney * (eventGoldMultiplier - 1));
+    finalMoney = Math.floor(finalMoney * eventGoldMultiplier);
+  }
+  
   const updateData = {
     totalBattles: sql`${userLetheProfile.totalBattles} + 1`,
     xp: sql`${userLetheProfile.xp} + ${finalXp}`
@@ -209,7 +234,14 @@ async function addBattleReward(userId, xpAmount, moneyAmount, won, isBoss = fals
   
   if (isBoss && won) {
     updateData.bossesKilled = sql`${userLetheProfile.bossesKilled} + 1`;
+    // Contribute to community goal for boss kills
+    await eventSystem.contributeToCommunityGoal('boss_kills', 1);
+    await eventSystem.recordParticipation(userId, 'boss_kills', 1);
   }
+  
+  // Contribute to community battle goal
+  await eventSystem.contributeToCommunityGoal('battles', 1);
+  await eventSystem.recordParticipation(userId, 'battles', 1);
   
   await db.update(userLetheProfile)
     .set(updateData)
@@ -221,7 +253,14 @@ async function addBattleReward(userId, xpAmount, moneyAmount, won, isBoss = fals
 
   await checkLevelUp(userId);
   
-  return { xpBonus, moneyBonus, isVip };
+  return { 
+    xpBonus: xpBonus + eventXpBonus, 
+    moneyBonus: moneyBonus + eventMoneyBonus, 
+    isVip,
+    eventXpBonus,
+    eventMoneyBonus,
+    hasEventBonus: eventXpMultiplier > 1 || eventGoldMultiplier > 1
+  };
 }
 
 async function checkLevelUp(userId) {
@@ -345,6 +384,29 @@ async function huntAnimal(userId, guildId = null) {
     adjustedRarityChances.mythic += boost * 0.08;
     adjustedRarityChances.hidden += boost * 0.02;
   }
+  
+  // Apply event rare boost
+  const eventRareMultiplier = eventSystem.getRareMultiplier();
+  if (eventRareMultiplier > 1) {
+    const eventBoost = (eventRareMultiplier - 1) * 0.10;
+    adjustedRarityChances.common -= eventBoost;
+    adjustedRarityChances.rare += eventBoost * 0.3;
+    adjustedRarityChances.epic += eventBoost * 0.3;
+    adjustedRarityChances.legendary += eventBoost * 0.2;
+    adjustedRarityChances.mythic += eventBoost * 0.15;
+    adjustedRarityChances.hidden += eventBoost * 0.05;
+  }
+  
+  // Ensure common chance doesn't go negative and normalize probabilities
+  if (adjustedRarityChances.common < 0.30) {
+    adjustedRarityChances.common = 0.30;
+  }
+  
+  // Normalize to sum to 1
+  const total = Object.values(adjustedRarityChances).reduce((sum, val) => sum + val, 0);
+  for (const rarity in adjustedRarityChances) {
+    adjustedRarityChances[rarity] = adjustedRarityChances[rarity] / total;
+  }
 
   for (const [rarity, chance] of Object.entries(adjustedRarityChances)) {
     cumulative += chance;
@@ -398,8 +460,17 @@ async function huntAnimal(userId, guildId = null) {
 
   // Apply VIP XP bonus
   let xpReward = caughtAnimal.xpReward;
+  let eventXpBonus = 0;
+  
   if (isVip && vipBonuses) {
     xpReward = Math.floor(xpReward * vipBonuses.xpMultiplier);
+  }
+  
+  // Apply event XP bonus
+  const eventXpMultiplier = eventSystem.getXPMultiplier();
+  if (eventXpMultiplier > 1) {
+    eventXpBonus = Math.floor(xpReward * (eventXpMultiplier - 1));
+    xpReward = Math.floor(xpReward * eventXpMultiplier);
   }
 
   await db.update(userLetheProfile)
@@ -409,6 +480,10 @@ async function huntAnimal(userId, guildId = null) {
       lastHunt: new Date()
     })
     .where(eq(userLetheProfile.visitorId, userId));
+  
+  // Contribute to community hunt goal
+  await eventSystem.contributeToCommunityGoal('hunts', 1);
+  await eventSystem.recordParticipation(userId, 'hunts', 1);
 
   return { 
     success: true, 
@@ -417,7 +492,10 @@ async function huntAnimal(userId, guildId = null) {
     isSeasonal,
     currentSeason,
     seasonInfo: isSeasonal ? seedData.getSeasonInfo(currentSeason) : null,
-    xpBonus: isVip ? Math.floor(caughtAnimal.xpReward * (vipBonuses.xpMultiplier - 1)) : 0
+    xpBonus: isVip ? Math.floor(caughtAnimal.xpReward * (vipBonuses.xpMultiplier - 1)) : 0,
+    eventXpBonus,
+    hasEventBonus: eventXpMultiplier > 1 || eventRareMultiplier > 1,
+    eventRareBoost: eventRareMultiplier > 1
   };
 }
 

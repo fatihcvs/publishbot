@@ -326,6 +326,7 @@
         <div class="stat-badge" style="background: rgba(20, 184, 166, 0.3);"><i class="fas fa-users"></i> Arkadaş</div>
         <div class="stat-badge" style="background: rgba(220, 38, 38, 0.3);"><i class="fas fa-skull-crossbones"></i> Co-op Raid</div>
         <div class="stat-badge" style="background: rgba(135, 206, 250, 0.3);"><i class="fas fa-snowflake"></i> Sezonluk Sistem</div>
+        <div class="stat-badge" style="background: rgba(250, 204, 21, 0.3);"><i class="fas fa-calendar-star"></i> Etkinlik Sistemi</div>
       </div>
     </div>
   </section>
@@ -352,8 +353,9 @@
           <a href="#ekonomi">15. Ekonomi</a>
           <a href="#gorevler">16. Görev Sistemi</a>
           <a href="#evrim">17. Evrim Sistemi</a>
-          <a href="#vip">18. VIP Sunucu</a>
-          <a href="#ipuclari">19. Pro İpuçları</a>
+          <a href="#etkinlik">18. Etkinlik Sistemi</a>
+          <a href="#vip">19. VIP Sunucu</a>
+          <a href="#ipuclari">20. Pro İpuçları</a>
         </div>
       </div>
 
@@ -1235,9 +1237,72 @@
           </div>
         </section>
 
+        <!-- Etkinlik Sistemi -->
+        <section class="section" id="etkinlik">
+          <h2 class="section-title"><i class="fas fa-calendar-star"></i> 18. Etkinlik Sistemi</h2>
+          
+          <p class="text-secondary mb-4">Otomatik tekrarlayan etkinlikler ve topluluk hedefleri! Bonus XP, altın ve nadir hayvan şansı kazan.</p>
+          
+          <h4 class="mb-3">Etkinlik Komutları</h4>
+          <div class="command-grid mb-4">
+            <div class="command-item"><code>!etkinlik</code> / <code>!event</code><p>Aktif etkinlikleri görüntüle</p></div>
+            <div class="command-item"><code>!etkinlik hedefler</code><p>Topluluk hedeflerini gör</p></div>
+            <div class="command-item"><code>!etkinlik ödüller</code><p>Etkinlik ödüllerini gör</p></div>
+            <div class="command-item"><code>!etkinlik katkı</code><p>Senin katkını görüntüle</p></div>
+          </div>
+
+          <h4 class="mb-3">Tekrarlayan Etkinlikler</h4>
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <div class="card-custom" style="border-color: #fbbf24;">
+                <h5 style="color: #fbbf24;"><i class="fas fa-star me-2"></i>Hafta Sonu XP</h5>
+                <p class="small text-secondary mb-1">Cumartesi - Pazar</p>
+                <span class="badge" style="background: #fbbf24; color: #000;">2x XP Kazanımı</span>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="card-custom" style="border-color: #10b981;">
+                <h5 style="color: #10b981;"><i class="fas fa-coins me-2"></i>Hafta Sonu Altın</h5>
+                <p class="small text-secondary mb-1">Cumartesi - Pazar</p>
+                <span class="badge" style="background: #10b981;">1.5x Altın Kazanımı</span>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="card-custom" style="border-color: #8b5cf6;">
+                <h5 style="color: #8b5cf6;"><i class="fas fa-gem me-2"></i>Cuma Nadir Günü</h5>
+                <p class="small text-secondary mb-1">Her Cuma</p>
+                <span class="badge" style="background: #8b5cf6;">2x Nadir Hayvan Şansı</span>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="card-custom" style="border-color: #ef4444;">
+                <h5 style="color: #ef4444;"><i class="fas fa-sword me-2"></i>Çarşamba Savaşı</h5>
+                <p class="small text-secondary mb-1">Her Çarşamba</p>
+                <span class="badge" style="background: #ef4444;">Savaş Bonus XP</span>
+              </div>
+            </div>
+          </div>
+
+          <h4 class="mb-3">Topluluk Hedefleri</h4>
+          <div class="info-box mb-4">
+            <h5><i class="fas fa-users me-2"></i>Birlikte Kazanın!</h5>
+            <p class="mb-2">Tüm sunuculardaki oyuncular birlikte hedefe ulaşır. Hedef tamamlandığında katılımcılar ödül kazanır!</p>
+            <ul class="mb-0 small">
+              <li><strong>Topluluk Avı:</strong> Birlikte X hayvan yakalayın</li>
+              <li><strong>Savaş Festivali:</strong> Birlikte X savaş kazanın</li>
+              <li><strong>Boss Mücadelesi:</strong> Birlikte X boss öldürün</li>
+            </ul>
+          </div>
+
+          <div class="tip-box">
+            <h5><i class="fas fa-lightbulb me-2"></i>Bonus Çarpanları</h5>
+            <p class="mb-0">Etkinlik bonusları VIP bonuslarıyla <strong>çarpılır</strong>! Örnek: VIP %25 XP + Etkinlik 2x XP = Toplamda <strong>2.5x XP</strong> kazanırsın!</p>
+          </div>
+        </section>
+
         <!-- VIP Sunucu -->
         <section class="section" id="vip">
-          <h2 class="section-title"><i class="fas fa-crown"></i> 18. VIP Sunucu Avantajları</h2>
+          <h2 class="section-title"><i class="fas fa-crown"></i> 19. VIP Sunucu Avantajları</h2>
           
           <div class="card-custom" style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(236, 72, 153, 0.1)); border: 2px solid var(--accent-purple);">
             <h4 class="mb-3"><i class="fas fa-star text-warning me-2"></i>ThePublisher Sunucusu</h4>
@@ -1256,7 +1321,7 @@
 
         <!-- Pro İpuçları -->
         <section class="section" id="ipuclari">
-          <h2 class="section-title"><i class="fas fa-lightbulb"></i> 19. Pro İpuçları</h2>
+          <h2 class="section-title"><i class="fas fa-lightbulb"></i> 20. Pro İpuçları</h2>
           
           <div class="row g-3">
             <div class="col-md-6">

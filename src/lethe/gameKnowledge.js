@@ -164,6 +164,37 @@ ${crates.map(c => `- ${c.emoji} **${c.name}**: ${c.minRarity}-${c.maxRarity} hay
 - Koleksiyon Tamamla - 50 farklı hayvan
 - Savaş Lordu - 25 savaş kazan
 
+### ETKİNLİK SİSTEMİ (FAZ 6)
+
+Otomatik tekrarlayan etkinlikler ve topluluk hedefleri!
+
+**Etkinlik Komutları:**
+- \`!etkinlik\` veya \`!event\` - Aktif etkinlikleri ve topluluk hedeflerini görüntüle
+- \`!etkinlik hedefler\` - Sadece topluluk hedeflerini görüntüle
+- \`!etkinlik ödüller\` - Etkinlik ödüllerini görüntüle
+- \`!etkinlik katkı\` - Senin katkını gör
+
+**Tekrarlayan Etkinlikler:**
+- 🎉 **Hafta Sonu XP** (Cumartesi-Pazar) - 2x XP kazanımı!
+- 💰 **Hafta Sonu Altın** (Cumartesi-Pazar) - 1.5x altın kazanımı!
+- 🎯 **Cuma Nadir Günü** (Cuma) - 2x nadir hayvan şansı!
+- ⚔️ **Çarşamba Savaşı** (Çarşamba) - Savaşlarda bonus XP!
+
+**Topluluk Hedefleri:**
+- Tüm sunuculardaki oyuncular birlikte hedefe katkı sağlar
+- Hedef tamamlandığında katılımcılar ödül alır
+- Katkı oranına göre bonus ödüller
+- Haftalık otomatik yenilenen hedefler
+
+**Hedef Türleri:**
+- 🐾 Topluluk Avı - X hayvan yakala
+- ⚔️ Savaş Festivali - X savaş kazan
+- 💀 Boss Mücadelesi - X boss öldür
+
+**Bonus Sistemi:**
+- Etkinlik bonusları VIP bonuslarıyla çarpılır
+- Örnek: VIP %25 XP + Etkinlik 2x XP = Toplamda 2.5x XP!
+
 ### VIP SUNUCU BONUSLARI
 
 ThePublisher sunucusunda (ID: 291436861082042378) oynayanlara özel:
@@ -318,7 +349,8 @@ function isLetheGameQuestion(message) {
     'hangi hayvan', 'en güçlü', 'en iyi', 'strateji', 'taktik', 'ipucu',
     'başarım', 'achievement', 'level', 'seviye', 'xp', 'deneyim',
     'takas', 'trade', 'hediye', 'gift', 'arkadaş', 'friend', 'raid', 'coop',
-    'sıralama', 'leaderboard', 'lider', 'top'
+    'sıralama', 'leaderboard', 'lider', 'top',
+    'etkinlik', 'event', 'topluluk', 'hedef', 'community', 'goal', 'bonus', 'hafta sonu', 'weekend'
   ];
   
   const lowerMessage = message.toLowerCase();

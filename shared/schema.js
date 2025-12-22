@@ -681,6 +681,50 @@ const letheLeaderboard = pgTable('lethe_leaderboard', {
   updatedAt: timestamp('updated_at').defaultNow()
 });
 
+const letheEvents = pgTable('lethe_events', {
+  id: serial('id').primaryKey(),
+  eventId: text('event_id').notNull().unique(),
+  name: text('name').notNull(),
+  description: text('description'),
+  type: text('type').notNull(), // 'xp_boost', 'rare_boost', 'gold_boost', 'boss_rush', 'special_hunt', 'community'
+  multiplier: integer('multiplier').default(100), // Percentage (100 = normal, 200 = 2x)
+  bonusData: jsonb('bonus_data').default({}), // Extra event data (special animals, etc)
+  startTime: timestamp('start_time').notNull(),
+  endTime: timestamp('end_time').notNull(),
+  isActive: boolean('is_active').default(true),
+  isRecurring: boolean('is_recurring').default(false), // Weekend events etc
+  recurringPattern: text('recurring_pattern'), // 'weekend', 'daily', 'monthly'
+  createdAt: timestamp('created_at').defaultNow()
+});
+
+const letheCommunityGoals = pgTable('lethe_community_goals', {
+  id: serial('id').primaryKey(),
+  goalId: text('goal_id').notNull().unique(),
+  name: text('name').notNull(),
+  description: text('description'),
+  targetType: text('target_type').notNull(), // 'hunts', 'battles', 'boss_kills', 'trades', 'gold_spent'
+  targetValue: integer('target_value').notNull(),
+  currentValue: integer('current_value').default(0),
+  rewardCoins: integer('reward_coins').default(0),
+  rewardGems: integer('reward_gems').default(0),
+  rewardAnimalId: text('reward_animal_id'), // Special animal reward
+  startTime: timestamp('start_time').notNull(),
+  endTime: timestamp('end_time').notNull(),
+  isCompleted: boolean('is_completed').default(false),
+  completedAt: timestamp('completed_at'),
+  createdAt: timestamp('created_at').defaultNow()
+});
+
+const letheEventParticipation = pgTable('lethe_event_participation', {
+  id: serial('id').primaryKey(),
+  eventId: text('event_id').notNull(),
+  goalId: text('goal_id'),
+  userId: text('user_id').notNull(),
+  contribution: integer('contribution').default(0),
+  rewardClaimed: boolean('reward_claimed').default(false),
+  participatedAt: timestamp('participated_at').defaultNow()
+});
+
 module.exports = {
   guilds,
   warnings,
@@ -737,5 +781,8 @@ module.exports = {
   letheGifts,
   letheFriends,
   letheRaids,
-  letheLeaderboard
+  letheLeaderboard,
+  letheEvents,
+  letheCommunityGoals,
+  letheEventParticipation
 };

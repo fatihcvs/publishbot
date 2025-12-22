@@ -168,7 +168,19 @@ Güçlü ve tam donanımlı Discord moderasyon botu + Web Dashboard.
 - Sezonluk hayvanlar sadece kendi sezonlarında yakalanabilir
 - Yakaladığın sezonluk hayvanlar kalıcı olarak koleksiyonunda kalır
 
-**103 Normal Hayvan + 48 Sezonluk Hayvan, 5 Boss, 15 Görev, 18 Yetenek, Evrim ve Ekipman Sistemi**
+**Etkinlik Sistemi (Faz 6):**
+- `!etkinlik` / `!event` - Aktif etkinlikleri ve topluluk hedeflerini görüntüle
+- `!etkinlik hedefler` - Sadece topluluk hedeflerini görüntüle
+- `!etkinlik ödüller` - Etkinlik ödüllerini görüntüle
+- `!etkinlik katkı` - Senin katkını gör
+- 🎉 **Hafta Sonu XP** (Cumartesi-Pazar) - 2x XP kazanımı
+- 💰 **Hafta Sonu Altın** (Cumartesi-Pazar) - 1.5x altın kazanımı
+- 🎯 **Cuma Nadir Günü** - 2x nadir hayvan şansı
+- ⚔️ **Çarşamba Savaşı** - Savaşlarda bonus XP
+- Topluluk hedefleri ile birlikte ödül kazanma
+- Etkinlik bonusları VIP bonuslarıyla çarpılır
+
+**103 Normal Hayvan + 48 Sezonluk Hayvan, 5 Boss, 15 Görev, 18 Yetenek, Evrim, Ekipman ve Etkinlik Sistemi**
 
 ### Doğum Günü Sistemi
 - `!doğumgünü ayarla <gün> <ay>` - Doğum gününü kaydetme
