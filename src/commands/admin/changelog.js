@@ -169,8 +169,8 @@ module.exports = {
   
   async execute(message, args, client) {
     if (args[0] === 'gönder' || args[0] === 'send') {
-      if (message.author.id !== '291283224498888704') {
-        return message.reply('❌ Bu komutu sadece bot sahibi kullanabilir!');
+      if (message.author.id !== '259442832576741377') {
+        return message.reply('❌ Bu komutu kullanma yetkiniz yok!');
       }
       
       const confirmEmbed = new EmbedBuilder()
