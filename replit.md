@@ -158,7 +158,17 @@ Güçlü ve tam donanımlı Discord moderasyon botu + Web Dashboard.
 
 **Nadirlik Seviyeleri:** Common (58%), Uncommon (25%), Rare (10%), Epic (5%), Legendary (1.5%), Mythic (0.4%), Hidden (0.1%)
 
-**103 Hayvan, 5 Boss, 15 Görev, 18 Yetenek, Evrim ve Ekipman Sistemi**
+**Sezonluk Hayvan Sistemi (Faz 5):**
+- `!sezon` / `!season` - Aktif sezonu ve o sezonun hayvanlarını gösterir
+- `!sezon tüm` / `!sezon hepsi` - Tüm sezonların hayvanlarını gösterir
+- 🌸 **Bahar** - Mart, Nisan, Mayıs (12 hayvan)
+- ☀️ **Yaz** - Haziran, Temmuz, Ağustos (12 hayvan)
+- 🍂 **Sonbahar** - Eylül, Ekim, Kasım (12 hayvan)
+- ❄️ **Kış** - Aralık, Ocak, Şubat (12 hayvan)
+- Sezonluk hayvanlar sadece kendi sezonlarında yakalanabilir
+- Yakaladığın sezonluk hayvanlar kalıcı olarak koleksiyonunda kalır
+
+**103 Normal Hayvan + 48 Sezonluk Hayvan, 5 Boss, 15 Görev, 18 Yetenek, Evrim ve Ekipman Sistemi**
 
 ### Doğum Günü Sistemi
 - `!doğumgünü ayarla <gün> <ay>` - Doğum gününü kaydetme
