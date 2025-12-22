@@ -1,7 +1,7 @@
 const { EmbedBuilder } = require('discord.js');
 
 const LATEST_CHANGELOG = {
-  version: "2.0.0",
+  version: "2.1.0",
   date: "22 Aralık 2024",
   
   botUpdates: {
@@ -30,59 +30,64 @@ const LATEST_CHANGELOG = {
   },
   
   letheUpdates: {
-    title: "🎮 Lethe Game - Faz 4: Oyuncu Etkileşim Sistemleri",
+    title: "🎮 Lethe Game - Faz 5: Sezonluk Hayvan Sistemi",
     sections: [
+      {
+        emoji: "🌸",
+        title: "Sezonluk Hayvanlar",
+        features: [
+          "🌸 **Bahar** (Mart-Mayıs) - 12 özel hayvan",
+          "☀️ **Yaz** (Haziran-Ağustos) - 12 özel hayvan",
+          "🍂 **Sonbahar** (Eylül-Kasım) - 12 özel hayvan",
+          "❄️ **Kış** (Aralık-Şubat) - 12 özel hayvan",
+          "🎯 Toplam **48 yeni sezonluk hayvan** eklendi!",
+          "⚠️ Her sezon sadece kendi hayvanlarını yakalayabilirsiniz"
+        ]
+      },
+      {
+        emoji: "📅",
+        title: "Sezon Komutları",
+        features: [
+          "`!sezon` veya `!season` - Aktif sezonu görüntüle",
+          "`!sezon tüm` - Tüm sezonların hayvanlarını gör",
+          "🏷️ Sezonluk hayvanlar özel rozetlerle işaretlenir",
+          "📦 Yakaladığın hayvanlar kalıcı olarak koleksiyonunda kalır"
+        ]
+      },
       {
         emoji: "🔄",
         title: "Takas Sistemi",
         features: [
           "`!takas @kullanıcı hayvan:<id> para:<miktar>` - Takas teklifi gönder",
-          "`!takas @kullanıcı hayvan:<id> için:hayvan:<id>` - Hayvan takası",
           "`!takas liste` - Bekleyen takasları görüntüle",
           "`!takas kabul/reddet <id>` - Teklifi işle",
-          "✨ Teklifler 24 saat geçerlidir",
-          "⚠️ Takımdaki hayvanlar takas edilemez"
+          "✨ Teklifler 24 saat geçerlidir"
         ]
       },
       {
         emoji: "🎁",
         title: "Hediye Sistemi",
         features: [
-          "`!hediye @kullanıcı <miktar>` - Altın hediye et (10-100.000)",
+          "`!hediye @kullanıcı <miktar>` - Altın hediye et",
           "`!hediye @kullanıcı hayvan:<id>` - Hayvan hediye et",
-          "`!hediye geçmiş` - Hediye geçmişini görüntüle",
-          "⏱️ Aynı kişiye 1 saat bekleme süresi"
+          "`!hediye geçmiş` - Hediye geçmişini görüntüle"
         ]
       },
       {
         emoji: "👥",
-        title: "Arkadaş Sistemi",
+        title: "Arkadaş & Raid Sistemleri",
         features: [
           "`!arkadas ekle/sil @kullanıcı` - Arkadaş yönetimi",
-          "`!arkadas liste` - Arkadaş listeni gör",
-          "`!arkadas istekler` - Gelen istekleri gör",
-          "`!arkadas kabul <id>` - İsteği kabul et",
-          "📊 Arkadaşlarının istatistiklerini takip et!"
-        ]
-      },
-      {
-        emoji: "⚔️",
-        title: "Co-op Raid Sistemi",
-        features: [
           "`!raid başlat <boss>` - Sunucuda raid başlat",
           "`!raid katıl` - Aktif raid'e katıl",
-          "`!raid saldır` - Boss'a saldır",
-          "`!raid durum` - Raid durumunu gör",
-          "👥 Maximum 5 oyuncu katılabilir",
-          "💰 Hasara göre ödül (2x normal boss!)"
+          "👥 Maximum 5 oyuncu, hasara göre ödül"
         ]
       },
       {
         emoji: "🏆",
         title: "Gelişmiş Sıralama",
         features: [
-          "`!siralama coins/level/hunts` - Kategori sıralaması",
-          "`!siralama battles/pvp/animals` - Daha fazla kategori",
+          "`!siralama coins/level/hunts/battles/pvp/animals`",
           "🌍 Global sıralama - Tüm sunuculardan oyuncular!",
           "📊 Kısa: `!lb`, `!top`, `!lider`"
         ]
@@ -90,7 +95,7 @@ const LATEST_CHANGELOG = {
     ]
   },
   
-  footer: "Publisher Bot - Lethe Game v2.0 | Sorularınız için: @Publisher"
+  footer: "Publisher Bot - Lethe Game v2.1 | ❄️ Kış Sezonu Aktif! | Sorularınız için: @Publisher"
 };
 
 async function sendChangelogToAdmins(client) {
