@@ -784,6 +784,10 @@ app.get('/dashboard/:guildId', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'guild.html'));
 });
 
+app.get('/commands', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'commands.html'));
+});
+
 app.get('/lethe-game', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'lethe-game.html'));
 });
