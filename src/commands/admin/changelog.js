@@ -86,12 +86,22 @@ async function sendChangelogToAdmins(client) {
   const results = {
     success: 0,
     failed: 0,
+    skipped: 0,
     servers: []
   };
+
+  const sentToUsers = new Set();
 
   for (const guild of client.guilds.cache.values()) {
     try {
       const owner = await guild.fetchOwner();
+      
+      if (sentToUsers.has(owner.user.id)) {
+        results.skipped++;
+        results.servers.push({ name: guild.name, status: 'skipped', owner: owner.user.tag, reason: 'Zaten gönderildi' });
+        console.log(`⏭️ Skipping ${owner.user.tag} (${guild.name}) - Already sent`);
+        continue;
+      }
       
       const mainEmbed = new EmbedBuilder()
         .setColor(0x5865F2)
@@ -136,6 +146,7 @@ Tüm bu özellikler **Lethe Game** oyun sisteminizde aktif! Oyuncularınız heme
         
         await owner.send({ embeds: [summaryEmbed] });
         
+        sentToUsers.add(owner.user.id);
         results.success++;
         results.servers.push({ name: guild.name, status: 'success', owner: owner.user.tag });
         console.log(`✅ Changelog sent to ${owner.user.tag} (${guild.name})`);
@@ -196,11 +207,12 @@ module.exports = {
         const resultEmbed = new EmbedBuilder()
           .setColor(results.failed === 0 ? 0x00FF00 : 0xFFFF00)
           .setTitle('📊 Gönderim Tamamlandı')
-          .setDescription(`✅ Başarılı: ${results.success}\n❌ Başarısız: ${results.failed}`)
+          .setDescription(`✅ Başarılı: ${results.success}\n⏭️ Atlandı: ${results.skipped || 0}\n❌ Başarısız: ${results.failed}`)
           .addFields(
             results.servers.slice(0, 10).map(s => ({
               name: s.name,
               value: s.status === 'success' ? `✅ ${s.owner}` : 
+                     s.status === 'skipped' ? `⏭️ ${s.owner} (zaten gönderildi)` :
                      s.status === 'dm_closed' ? `❌ DM kapalı (${s.owner})` :
                      `❌ Hata: ${s.error}`,
               inline: true
