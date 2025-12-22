@@ -158,27 +158,41 @@ class LogSystem {
       }
     } catch (error) {}
 
+    const channelEmoji = this.getChannelEmoji(newChannel.type);
     const oldInfo = this.getChannelDetailsForUpdate(oldChannel);
     const newInfo = this.getChannelDetailsForUpdate(newChannel, oldChannel);
     
     const embed = new EmbedBuilder()
       .setColor('#FEE75C')
       .setTitle('Kanal Güncellendi')
-      .setDescription(`**#${newChannel.name}** güncellendi${executor ? ` <@${executor.id}> tarafından` : ''}`)
+      .setDescription(`#${channelEmoji} **${newChannel.name}** güncellendi${executor ? ` <@${executor.id}> tarafından` : ''}`)
       .addFields(
         { name: 'Eski Kanal', value: oldInfo.join('\n'), inline: true },
         { name: 'Yeni Kanal', value: newInfo.join('\n'), inline: true }
       )
-      .setFooter({ text: `${newChannel.guild.name} • ${newChannel.id}` })
+      .setFooter({ text: `${executor?.tag || 'Sistem'} • ${newChannel.id} • bugün saat ${new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}` })
       .setTimestamp();
 
     await this.log(newChannel.guild.id, 'channelUpdate', embed);
   }
   
+  getChannelEmoji(type) {
+    const emojis = {
+      0: '💬',   // Text
+      2: '🔊',   // Voice
+      4: '📁',   // Category
+      5: '📢',   // Announcement
+      13: '🎭',  // Stage
+      15: '📋'   // Forum
+    };
+    return emojis[type] || '📝';
+  }
+  
   getChannelDetails(channel) {
+    const emoji = this.getChannelEmoji(channel.type);
     const info = [
       `Tür: ${this.getChannelType(channel.type)}`,
-      `İsim: #${channel.name}`
+      `İsim: ${emoji} ${channel.name}`
     ];
     
     if (channel.topic) info.push(`Konu: ${channel.topic.slice(0, 50)}`);
@@ -194,17 +208,14 @@ class LogSystem {
   
   getChannelDetailsForUpdate(channel, oldChannel = null) {
     const info = [];
+    const emoji = this.getChannelEmoji(channel.type);
     const check = (old, cur, label, value) => {
       const changed = oldChannel && old !== cur;
-      return `${changed ? '✅' : ''} ${label}: ${value}`;
+      return `${changed ? '✅ ' : ''}${label}: **${value}**`;
     };
     
-    info.push(check(oldChannel?.name, channel.name, 'İsim', `#${channel.name}`));
+    info.push(check(oldChannel?.name, channel.name, 'İsim', `${emoji} ${channel.name}`));
     
-    if (channel.topic !== undefined || oldChannel?.topic !== undefined) {
-      const topicValue = channel.topic ? channel.topic.slice(0, 50) : 'Yok';
-      info.push(check(oldChannel?.topic, channel.topic, 'Konu', topicValue));
-    }
     if (channel.bitrate !== undefined) {
       info.push(check(oldChannel?.bitrate, channel.bitrate, 'Bit Rate', `${channel.bitrate / 1000}kbps`));
     }
@@ -212,7 +223,7 @@ class LogSystem {
       info.push(check(oldChannel?.rateLimitPerUser, channel.rateLimitPerUser, 'Slow Mode', `${channel.rateLimitPerUser} saniye`));
     }
     if (channel.userLimit !== undefined) {
-      info.push(check(oldChannel?.userLimit, channel.userLimit, 'Kullanıcı Limiti', channel.userLimit || 'Sınırsız'));
+      info.push(check(oldChannel?.userLimit, channel.userLimit, 'Kullanıcı Limiti', channel.userLimit === 0 ? 'Sınırsız' : channel.userLimit));
     }
     if (channel.videoQualityMode !== undefined) {
       info.push(check(oldChannel?.videoQualityMode, channel.videoQualityMode, 'Video Kalitesi', channel.videoQualityMode === 1 ? 'Otomatik' : 'Full'));
@@ -222,6 +233,10 @@ class LogSystem {
     }
     if (channel.nsfw !== undefined) {
       info.push(check(oldChannel?.nsfw, channel.nsfw, 'NSFW', channel.nsfw ? 'Evet' : 'Hayır'));
+    }
+    if (channel.topic !== undefined || oldChannel?.topic !== undefined) {
+      const topicValue = channel.topic ? channel.topic.slice(0, 30) : 'Yok';
+      info.push(check(oldChannel?.topic, channel.topic, 'Konu', topicValue));
     }
     
     return info;
@@ -241,21 +256,21 @@ class LogSystem {
     } catch (error) {}
 
     const roleInfo = [
-      `Name: ${role.name}`,
-      `Color: ${role.hexColor}`,
-      `Show in List: ${role.hoist ? 'On' : 'Off'}`,
-      `Mentionable: ${role.mentionable ? 'On' : 'Off'}`
+      `İsim: **${role.name}**`,
+      `Renk: **${role.hexColor}**`,
+      `Listede Göster: **${role.hoist ? 'Açık' : 'Kapalı'}**`,
+      `Etiketlenebilir: **${role.mentionable ? 'Açık' : 'Kapalı'}**`
     ];
 
     const embed = new EmbedBuilder()
-      .setColor('#57F287')
-      .setTitle('Role Created')
-      .setDescription(`**${role.name}** was created${executor ? ` by <@${executor.id}>` : ''}`)
+      .setColor(role.hexColor || '#57F287')
+      .setTitle('Rol Oluşturuldu')
+      .setDescription(`🎭 **${role.name}** oluşturuldu${executor ? ` <@${executor.id}> tarafından` : ''}`)
       .addFields(
-        { name: 'Role Info', value: roleInfo.join('\n'), inline: true },
-        { name: 'Role ID', value: `\`${role.id}\``, inline: true }
+        { name: 'Rol Bilgileri', value: roleInfo.join('\n'), inline: true },
+        { name: 'Rol ID', value: `\`${role.id}\``, inline: true }
       )
-      .setFooter({ text: `${role.guild.name} • ${role.guild.id}` })
+      .setFooter({ text: `${executor?.tag || 'Sistem'} • ${role.id} • bugün saat ${new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}` })
       .setTimestamp();
 
     await this.log(role.guild.id, 'roleCreate', embed);
@@ -275,27 +290,26 @@ class LogSystem {
     } catch (error) {}
 
     const roleInfo = [
-      `Name: ${role.name}`,
-      `Color: ${role.hexColor}`,
-      `Had ${role.members?.size || 0} members`
+      `İsim: **${role.name}**`,
+      `Renk: **${role.hexColor}**`,
+      `Üye Sayısı: **${role.members?.size || 0}**`
     ];
 
     const embed = new EmbedBuilder()
       .setColor('#ED4245')
-      .setTitle('Role Deleted')
-      .setDescription(`**${role.name}** was deleted${executor ? ` by <@${executor.id}>` : ''}`)
+      .setTitle('Rol Silindi')
+      .setDescription(`🎭 **${role.name}** silindi${executor ? ` <@${executor.id}> tarafından` : ''}`)
       .addFields(
-        { name: 'Role Info', value: roleInfo.join('\n'), inline: true },
-        { name: 'Role ID', value: `\`${role.id}\``, inline: true }
+        { name: 'Rol Bilgileri', value: roleInfo.join('\n'), inline: true },
+        { name: 'Rol ID', value: `\`${role.id}\``, inline: true }
       )
-      .setFooter({ text: `${role.guild.name} • ${role.guild.id}` })
+      .setFooter({ text: `${executor?.tag || 'Sistem'} • ${role.id} • bugün saat ${new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}` })
       .setTimestamp();
 
     await this.log(role.guild.id, 'roleDelete', embed);
   }
 
   async roleUpdate(oldRole, newRole) {
-    // Check if any tracked properties changed
     const hasChanges = 
       oldRole.name !== newRole.name ||
       oldRole.hexColor !== newRole.hexColor ||
@@ -306,7 +320,6 @@ class LogSystem {
     
     if (!hasChanges) return;
 
-    // Try to get who updated the role from audit logs
     let executor = null;
     try {
       const auditLogs = await newRole.guild.fetchAuditLogs({
@@ -317,49 +330,44 @@ class LogSystem {
       if (logEntry && logEntry.target.id === newRole.id && Date.now() - logEntry.createdTimestamp < 5000) {
         executor = logEntry.executor;
       }
-    } catch (error) {
-      // Audit log access might be restricted
-    }
+    } catch (error) {}
 
-    // Build old role info
     const oldRoleInfo = [
-      `Name: ${oldRole.name}`,
-      `icon: ${oldRole.icon ? 'Yes' : 'None'}`,
-      `Color: ${oldRole.hexColor}`,
-      `Show in List: ${oldRole.hoist ? 'On' : 'Off'}`,
-      `Mentionable: ${oldRole.mentionable ? 'On' : 'Off'}`
+      `İsim: **${oldRole.name}**`,
+      `İkon: **${oldRole.icon ? 'Var' : 'Yok'}**`,
+      `Renk: **${oldRole.hexColor}**`,
+      `Listede Göster: **${oldRole.hoist ? 'Açık' : 'Kapalı'}**`,
+      `Etiketlenebilir: **${oldRole.mentionable ? 'Açık' : 'Kapalı'}**`
     ];
 
-    // Build new role info with checkmarks for changes
     const newRoleInfo = [
-      `${oldRole.name !== newRole.name ? '✅' : ''} Name: ${newRole.name}`,
-      `${oldRole.icon !== newRole.icon ? '✅' : ''} icon: ${newRole.icon ? 'Yes' : 'None'}`,
-      `${oldRole.hexColor !== newRole.hexColor ? '🔄' : ''} Color: ${newRole.hexColor}`,
-      `${oldRole.hoist !== newRole.hoist ? '✅' : ''} Show in List: ${newRole.hoist ? 'On' : 'Off'}`,
-      `${oldRole.mentionable !== newRole.mentionable ? '✅' : ''} Mentionable: ${newRole.mentionable ? 'On' : 'Off'}`
+      `${oldRole.name !== newRole.name ? '✅ ' : ''}İsim: **${newRole.name}**`,
+      `${oldRole.icon !== newRole.icon ? '✅ ' : ''}İkon: **${newRole.icon ? 'Var' : 'Yok'}**`,
+      `${oldRole.hexColor !== newRole.hexColor ? '✅ ' : ''}Renk: **${newRole.hexColor}**`,
+      `${oldRole.hoist !== newRole.hoist ? '✅ ' : ''}Listede Göster: **${newRole.hoist ? 'Açık' : 'Kapalı'}**`,
+      `${oldRole.mentionable !== newRole.mentionable ? '✅ ' : ''}Etiketlenebilir: **${newRole.mentionable ? 'Açık' : 'Kapalı'}**`
     ];
 
     const embed = new EmbedBuilder()
-      .setColor(newRole.hexColor || '#ffaa00')
-      .setTitle('Role Updated')
-      .setDescription(`**${newRole.name}** was updated${executor ? ` by <@${executor.id}>` : ''}`)
+      .setColor(newRole.hexColor || '#FEE75C')
+      .setTitle('Rol Güncellendi')
+      .setDescription(`🎭 **${newRole.name}** güncellendi${executor ? ` <@${executor.id}> tarafından` : ''}`)
       .addFields(
-        { name: 'Old Role', value: oldRoleInfo.join('\n'), inline: true },
-        { name: 'New Role', value: newRoleInfo.join('\n'), inline: true }
+        { name: 'Eski Rol', value: oldRoleInfo.join('\n'), inline: true },
+        { name: 'Yeni Rol', value: newRoleInfo.join('\n'), inline: true }
       )
-      .setFooter({ text: `${newRole.guild.name} • ${newRole.id}` })
+      .setFooter({ text: `${executor?.tag || 'Sistem'} • ${newRole.id} • bugün saat ${new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}` })
       .setTimestamp();
 
-    // Add permission changes if any
     if (oldRole.permissions.bitfield !== newRole.permissions.bitfield) {
       const addedPerms = newRole.permissions.toArray().filter(p => !oldRole.permissions.has(p));
       const removedPerms = oldRole.permissions.toArray().filter(p => oldRole.permissions.has(p) && !newRole.permissions.has(p));
       
       if (addedPerms.length > 0 || removedPerms.length > 0) {
         let permChanges = '';
-        if (addedPerms.length > 0) permChanges += `➕ ${addedPerms.slice(0, 5).join(', ')}${addedPerms.length > 5 ? ` +${addedPerms.length - 5} more` : ''}\n`;
-        if (removedPerms.length > 0) permChanges += `➖ ${removedPerms.slice(0, 5).join(', ')}${removedPerms.length > 5 ? ` +${removedPerms.length - 5} more` : ''}`;
-        embed.addFields({ name: 'Permission Changes', value: permChanges || 'None' });
+        if (addedPerms.length > 0) permChanges += `➕ ${addedPerms.slice(0, 5).join(', ')}${addedPerms.length > 5 ? ` +${addedPerms.length - 5} daha` : ''}\n`;
+        if (removedPerms.length > 0) permChanges += `➖ ${removedPerms.slice(0, 5).join(', ')}${removedPerms.length > 5 ? ` +${removedPerms.length - 5} daha` : ''}`;
+        embed.addFields({ name: 'İzin Değişiklikleri', value: permChanges || 'Yok' });
       }
     }
 
