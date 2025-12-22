@@ -107,7 +107,7 @@ module.exports = {
         if (equipStr) {
           teamDescription += `┗ **Ekipman:** ${equipStr}\n`;
         } else {
-          teamDescription += `┗ *Ekipman yok* - \`!kuşan ${user.id} <kategori> <eşya>\`\n`;
+          teamDescription += `┗ *Ekipman yok* - \`!kuşan ${user.id} <eşya_id>\`\n`;
         }
         
         teamDescription += '\n';
@@ -125,7 +125,7 @@ module.exports = {
       );
     }
 
-    embed.setFooter({ text: `${team.length}/3 slot dolu | !kuşan <hayvan_id> <kategori> <eşya_id>` });
+    embed.setFooter({ text: `${team.length}/3 slot dolu | !kuşan <hayvan_id> <eşya_id>` });
 
     await message.reply({ embeds: [embed] });
   }

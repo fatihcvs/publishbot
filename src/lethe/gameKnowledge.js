@@ -40,7 +40,7 @@ Lethe Game, Publisher Bot'un global hayvan koleksiyon ve savaş oyunudur. Oyuncu
 - \`!m\` veya \`!mağaza [kategori]\` - Mağazayı görüntüle
 - \`!al <kategori> <id>\` - Eşya satın al
 - \`!e\` veya \`!envanter\` - Envanteri görüntüle
-- \`!ku <hayvan_id> <eşya_id>\` veya \`!kuşan\` - Eşya kuşan
+- \`!kuşan <hayvan_id> <eşya_id>\` veya \`!ku\` - Eşya kuşan
 - \`!sd\` veya \`!sandık [aç <id>]\` - Sandık aç
 
 **Evrim Sistemi:**

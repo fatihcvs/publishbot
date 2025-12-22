@@ -129,7 +129,7 @@ module.exports = {
       }
     }
 
-    embed.setFooter({ text: 'Kuşanmak: !kusan <kategori> <id> | Sandık açmak: !sandık aç <id>' });
+    embed.setFooter({ text: 'Kuşanmak: !kuşan <hayvan_id> <eşya_id> | Sandık açmak: !sandık aç <id>' });
 
     await message.reply({ embeds: [embed] });
   }
