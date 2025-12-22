@@ -117,6 +117,66 @@ const animals = [
   { animalId: 'vip_spirit', name: 'VIP Ruh', emoji: '👻', rarity: 'legendary', baseHp: 350, baseStr: 45, baseDef: 35, baseSpd: 50, sellPrice: 5000, xpReward: 1000, isVipExclusive: true }
 ];
 
+// Seasonal Animals - Only catchable during their specific season
+// Season: spring (Mar-May), summer (Jun-Aug), fall (Sep-Nov), winter (Dec-Feb)
+const seasonalAnimals = [
+  // SPRING ANIMALS (March, April, May) - Bahar Hayvanları
+  { animalId: 'spring_bunny', name: 'Bahar Tavşanı', emoji: '🐇', rarity: 'common', baseHp: 70, baseStr: 7, baseDef: 7, baseSpd: 18, sellPrice: 10, xpReward: 2, season: 'spring' },
+  { animalId: 'blossom_bird', name: 'Çiçek Kuşu', emoji: '🌸', rarity: 'common', baseHp: 55, baseStr: 6, baseDef: 5, baseSpd: 20, sellPrice: 10, xpReward: 2, season: 'spring' },
+  { animalId: 'pollen_bee', name: 'Polen Arısı', emoji: '🐝', rarity: 'common', baseHp: 40, baseStr: 10, baseDef: 4, baseSpd: 22, sellPrice: 10, xpReward: 2, season: 'spring' },
+  { animalId: 'rain_frog', name: 'Yağmur Kurbağası', emoji: '🐸', rarity: 'uncommon', baseHp: 75, baseStr: 9, baseDef: 8, baseSpd: 15, sellPrice: 35, xpReward: 8, season: 'spring' },
+  { animalId: 'cherry_fox', name: 'Kiraz Tilkisi', emoji: '🦊', rarity: 'uncommon', baseHp: 90, baseStr: 12, baseDef: 10, baseSpd: 16, sellPrice: 35, xpReward: 8, season: 'spring' },
+  { animalId: 'meadow_deer', name: 'Çayır Geyiği', emoji: '🦌', rarity: 'rare', baseHp: 120, baseStr: 14, baseDef: 13, baseSpd: 18, sellPrice: 150, xpReward: 35, season: 'spring' },
+  { animalId: 'rainbow_butterfly', name: 'Gökkuşağı Kelebeği', emoji: '🦋', rarity: 'rare', baseHp: 50, baseStr: 8, baseDef: 6, baseSpd: 25, sellPrice: 150, xpReward: 35, season: 'spring' },
+  { animalId: 'flower_spirit', name: 'Çiçek Ruhu', emoji: '🌺', rarity: 'epic', baseHp: 160, baseStr: 22, baseDef: 20, baseSpd: 24, sellPrice: 700, xpReward: 150, season: 'spring' },
+  { animalId: 'sakura_dragon', name: 'Sakura Ejderhası', emoji: '🐉', rarity: 'epic', baseHp: 220, baseStr: 30, baseDef: 25, baseSpd: 20, sellPrice: 700, xpReward: 150, season: 'spring' },
+  { animalId: 'rebirth_phoenix', name: 'Yeniden Doğuş Ankası', emoji: '🐦‍🔥', rarity: 'legendary', baseHp: 320, baseStr: 42, baseDef: 32, baseSpd: 30, sellPrice: 3000, xpReward: 600, season: 'spring' },
+  { animalId: 'nature_titan', name: 'Doğa Titanı', emoji: '🌳', rarity: 'mythic', baseHp: 550, baseStr: 58, baseDef: 55, baseSpd: 35, sellPrice: 12000, xpReward: 2500, season: 'spring' },
+  { animalId: 'spring_goddess', name: 'Bahar Tanrıçası', emoji: '🌷', rarity: 'hidden', baseHp: 820, baseStr: 82, baseDef: 75, baseSpd: 68, sellPrice: 120000, xpReward: 12000, season: 'spring' },
+
+  // SUMMER ANIMALS (June, July, August) - Yaz Hayvanları
+  { animalId: 'sun_lizard', name: 'Güneş Kertenkelesi', emoji: '🦎', rarity: 'common', baseHp: 75, baseStr: 9, baseDef: 8, baseSpd: 16, sellPrice: 10, xpReward: 2, season: 'summer' },
+  { animalId: 'beach_crab', name: 'Plaj Yengeci', emoji: '🦀', rarity: 'common', baseHp: 65, baseStr: 8, baseDef: 12, baseSpd: 10, sellPrice: 10, xpReward: 2, season: 'summer' },
+  { animalId: 'coral_fish', name: 'Mercan Balığı', emoji: '🐠', rarity: 'common', baseHp: 50, baseStr: 6, baseDef: 6, baseSpd: 18, sellPrice: 10, xpReward: 2, season: 'summer' },
+  { animalId: 'tropical_parrot', name: 'Tropikal Papağan', emoji: '🦜', rarity: 'uncommon', baseHp: 70, baseStr: 10, baseDef: 7, baseSpd: 17, sellPrice: 35, xpReward: 8, season: 'summer' },
+  { animalId: 'sand_turtle', name: 'Kum Kaplumbağası', emoji: '🐢', rarity: 'uncommon', baseHp: 120, baseStr: 8, baseDef: 22, baseSpd: 4, sellPrice: 35, xpReward: 8, season: 'summer' },
+  { animalId: 'palm_monkey', name: 'Palmiye Maymunu', emoji: '🐵', rarity: 'rare', baseHp: 100, baseStr: 14, baseDef: 10, baseSpd: 18, sellPrice: 150, xpReward: 35, season: 'summer' },
+  { animalId: 'wave_dolphin', name: 'Dalga Yunusu', emoji: '🐬', rarity: 'rare', baseHp: 110, baseStr: 15, baseDef: 12, baseSpd: 22, sellPrice: 150, xpReward: 35, season: 'summer' },
+  { animalId: 'volcano_salamander', name: 'Volkan Semenderi', emoji: '🔥', rarity: 'epic', baseHp: 180, baseStr: 28, baseDef: 22, baseSpd: 18, sellPrice: 700, xpReward: 150, season: 'summer' },
+  { animalId: 'desert_scorpion', name: 'Çöl Akrebi', emoji: '🦂', rarity: 'epic', baseHp: 150, baseStr: 32, baseDef: 20, baseSpd: 16, sellPrice: 700, xpReward: 150, season: 'summer' },
+  { animalId: 'solar_eagle', name: 'Güneş Kartalı', emoji: '🦅', rarity: 'legendary', baseHp: 300, baseStr: 45, baseDef: 28, baseSpd: 38, sellPrice: 3000, xpReward: 600, season: 'summer' },
+  { animalId: 'fire_lord', name: 'Ateş Lordu', emoji: '🔥', rarity: 'mythic', baseHp: 580, baseStr: 65, baseDef: 48, baseSpd: 42, sellPrice: 12000, xpReward: 2500, season: 'summer' },
+  { animalId: 'summer_emperor', name: 'Yaz İmparatoru', emoji: '☀️', rarity: 'hidden', baseHp: 850, baseStr: 88, baseDef: 72, baseSpd: 70, sellPrice: 120000, xpReward: 12000, season: 'summer' },
+
+  // FALL ANIMALS (September, October, November) - Sonbahar Hayvanları
+  { animalId: 'maple_squirrel', name: 'Akçaağaç Sincabı', emoji: '🐿️', rarity: 'common', baseHp: 60, baseStr: 7, baseDef: 6, baseSpd: 18, sellPrice: 10, xpReward: 2, season: 'fall' },
+  { animalId: 'harvest_mouse', name: 'Hasat Faresi', emoji: '🐭', rarity: 'common', baseHp: 45, baseStr: 5, baseDef: 5, baseSpd: 20, sellPrice: 10, xpReward: 2, season: 'fall' },
+  { animalId: 'pumpkin_cat', name: 'Balkabağı Kedisi', emoji: '🎃', rarity: 'common', baseHp: 75, baseStr: 9, baseDef: 8, baseSpd: 14, sellPrice: 10, xpReward: 2, season: 'fall' },
+  { animalId: 'autumn_owl', name: 'Sonbahar Baykuşu', emoji: '🦉', rarity: 'uncommon', baseHp: 85, baseStr: 11, baseDef: 9, baseSpd: 14, sellPrice: 35, xpReward: 8, season: 'fall' },
+  { animalId: 'forest_hedgehog', name: 'Orman Kirpisi', emoji: '🦔', rarity: 'uncommon', baseHp: 75, baseStr: 9, baseDef: 18, baseSpd: 10, sellPrice: 35, xpReward: 8, season: 'fall' },
+  { animalId: 'golden_fox', name: 'Altın Tilki', emoji: '🦊', rarity: 'rare', baseHp: 100, baseStr: 15, baseDef: 12, baseSpd: 18, sellPrice: 150, xpReward: 35, season: 'fall' },
+  { animalId: 'scarecrow_crow', name: 'Korkuluk Kargası', emoji: '🐦‍⬛', rarity: 'rare', baseHp: 80, baseStr: 13, baseDef: 10, baseSpd: 16, sellPrice: 150, xpReward: 35, season: 'fall' },
+  { animalId: 'harvest_golem', name: 'Hasat Golemi', emoji: '🤖', rarity: 'epic', baseHp: 250, baseStr: 24, baseDef: 30, baseSpd: 8, sellPrice: 700, xpReward: 150, season: 'fall' },
+  { animalId: 'ghost_wolf', name: 'Hayalet Kurt', emoji: '🐺', rarity: 'epic', baseHp: 190, baseStr: 28, baseDef: 20, baseSpd: 22, sellPrice: 700, xpReward: 150, season: 'fall' },
+  { animalId: 'moon_stag', name: 'Ay Geyiği', emoji: '🌙', rarity: 'legendary', baseHp: 340, baseStr: 40, baseDef: 35, baseSpd: 32, sellPrice: 3000, xpReward: 600, season: 'fall' },
+  { animalId: 'twilight_dragon', name: 'Alacakaranlık Ejderhası', emoji: '🐲', rarity: 'mythic', baseHp: 600, baseStr: 62, baseDef: 52, baseSpd: 40, sellPrice: 12000, xpReward: 2500, season: 'fall' },
+  { animalId: 'autumn_sovereign', name: 'Sonbahar Hükümdarı', emoji: '🍂', rarity: 'hidden', baseHp: 880, baseStr: 85, baseDef: 78, baseSpd: 65, sellPrice: 120000, xpReward: 12000, season: 'fall' },
+
+  // WINTER ANIMALS (December, January, February) - Kış Hayvanları
+  { animalId: 'snow_rabbit', name: 'Kar Tavşanı', emoji: '🐇', rarity: 'common', baseHp: 65, baseStr: 6, baseDef: 8, baseSpd: 17, sellPrice: 10, xpReward: 2, season: 'winter' },
+  { animalId: 'ice_penguin', name: 'Buz Pengueni', emoji: '🐧', rarity: 'common', baseHp: 80, baseStr: 8, baseDef: 10, baseSpd: 12, sellPrice: 10, xpReward: 2, season: 'winter' },
+  { animalId: 'frost_owl', name: 'Ayaz Baykuşu', emoji: '🦉', rarity: 'common', baseHp: 70, baseStr: 9, baseDef: 7, baseSpd: 14, sellPrice: 10, xpReward: 2, season: 'winter' },
+  { animalId: 'arctic_fox', name: 'Kutup Tilkisi', emoji: '🦊', rarity: 'uncommon', baseHp: 85, baseStr: 12, baseDef: 10, baseSpd: 16, sellPrice: 35, xpReward: 8, season: 'winter' },
+  { animalId: 'snow_leopard', name: 'Kar Leoparı', emoji: '🐆', rarity: 'uncommon', baseHp: 110, baseStr: 16, baseDef: 12, baseSpd: 18, sellPrice: 35, xpReward: 8, season: 'winter' },
+  { animalId: 'glacier_seal', name: 'Buzul Foku', emoji: '🦭', rarity: 'rare', baseHp: 130, baseStr: 12, baseDef: 18, baseSpd: 10, sellPrice: 150, xpReward: 35, season: 'winter' },
+  { animalId: 'blizzard_wolf', name: 'Tipi Kurdu', emoji: '🐺', rarity: 'rare', baseHp: 120, baseStr: 18, baseDef: 14, baseSpd: 16, sellPrice: 150, xpReward: 35, season: 'winter' },
+  { animalId: 'ice_golem', name: 'Buz Golemi', emoji: '🧊', rarity: 'epic', baseHp: 280, baseStr: 22, baseDef: 35, baseSpd: 6, sellPrice: 700, xpReward: 150, season: 'winter' },
+  { animalId: 'frost_wyrm', name: 'Ayaz Solucanı', emoji: '🐍', rarity: 'epic', baseHp: 200, baseStr: 30, baseDef: 24, baseSpd: 14, sellPrice: 700, xpReward: 150, season: 'winter' },
+  { animalId: 'northern_aurora', name: 'Kuzey Aurorası', emoji: '🌌', rarity: 'legendary', baseHp: 360, baseStr: 38, baseDef: 40, baseSpd: 28, sellPrice: 3000, xpReward: 600, season: 'winter' },
+  { animalId: 'ice_titan', name: 'Buz Titanı', emoji: '❄️', rarity: 'mythic', baseHp: 620, baseStr: 56, baseDef: 60, baseSpd: 30, sellPrice: 12000, xpReward: 2500, season: 'winter' },
+  { animalId: 'winter_monarch', name: 'Kış Kralı', emoji: '👑', rarity: 'hidden', baseHp: 900, baseStr: 80, baseDef: 85, baseSpd: 58, sellPrice: 120000, xpReward: 12000, season: 'winter' }
+];
+
 const weapons = [
   { weaponId: 'wooden_sword', name: 'Tahta Kılıç', emoji: '🗡️', type: 'physical', damage: 10, specialEffect: null, specialValue: null, price: 100, rarity: 'common' },
   { weaponId: 'iron_sword', name: 'Demir Kılıç', emoji: '⚔️', type: 'physical', damage: 25, specialEffect: null, specialValue: null, price: 500, rarity: 'common' },
@@ -197,8 +257,41 @@ const achievements = [
   { achievementId: 'dragon_slayer', name: 'Ejderha Avcısı', description: 'Bir boss öldür', emoji: '🐉', requirement: 'bosses_killed', requirementValue: 1, rewardMoney: 0 }
 ];
 
+// Season utility functions
+function getCurrentSeason() {
+  const month = new Date().getMonth() + 1; // 1-12
+  if (month >= 3 && month <= 5) return 'spring';
+  if (month >= 6 && month <= 8) return 'summer';
+  if (month >= 9 && month <= 11) return 'fall';
+  return 'winter'; // Dec, Jan, Feb
+}
+
+function getSeasonInfo(season) {
+  const seasons = {
+    spring: { name: 'Bahar', emoji: '🌸', months: 'Mart - Mayıs', color: '#90EE90' },
+    summer: { name: 'Yaz', emoji: '☀️', months: 'Haziran - Ağustos', color: '#FFD700' },
+    fall: { name: 'Sonbahar', emoji: '🍂', months: 'Eylül - Kasım', color: '#D2691E' },
+    winter: { name: 'Kış', emoji: '❄️', months: 'Aralık - Şubat', color: '#87CEEB' }
+  };
+  return seasons[season] || seasons.winter;
+}
+
+function getSeasonalAnimalsForCurrentSeason() {
+  const currentSeason = getCurrentSeason();
+  return seasonalAnimals.filter(a => a.season === currentSeason);
+}
+
+function getAllAnimalsIncludingSeasonal(includeCurrentSeasonOnly = true) {
+  if (includeCurrentSeasonOnly) {
+    const currentSeasonAnimals = getSeasonalAnimalsForCurrentSeason();
+    return [...animals, ...currentSeasonAnimals];
+  }
+  return [...animals, ...seasonalAnimals];
+}
+
 module.exports = {
   animals,
+  seasonalAnimals,
   weapons,
   armors,
   accessories,
@@ -206,5 +299,9 @@ module.exports = {
   baits,
   crates,
   bosses,
-  achievements
+  achievements,
+  getCurrentSeason,
+  getSeasonInfo,
+  getSeasonalAnimalsForCurrentSeason,
+  getAllAnimalsIncludingSeasonal
 };
