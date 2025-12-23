@@ -82,7 +82,7 @@ let socialNotificationSystem;
 client.once(Events.ClientReady, async () => {
   console.log(`Publisher online! ${client.user.tag} olarak giriş yapıldı.`);
   console.log(`${client.guilds.cache.size} sunucuda aktif.`);
-  client.user.setActivity('!yardım | Publisher', { type: 3 });
+  client.user.setActivity('!yardım publisherbot.org', { type: 3 });
   
   for (const guild of client.guilds.cache.values()) {
     try {
