@@ -76,9 +76,11 @@ module.exports = {
       .setDescription('Raid\'de savaşabileceğiniz boss\'lar:');
     
     for (const boss of bosses) {
+      const rewardCoins = boss.rewardMoney || 0;
+      const rewardXp = boss.rewardXp || Math.floor(rewardCoins / 10);
       embed.addFields({
         name: `${boss.emoji} ${boss.name}`,
-        value: `❤️ ${boss.hp * 3} HP (Raid)\n⚔️ ${boss.attack} ATK | 🛡️ ${boss.defense} DEF\n💰 ${boss.rewards.coins * 2} | ✨ ${boss.rewards.xp * 2} XP\n\`!raid başlat ${boss.bossId}\``,
+        value: `❤️ ${boss.hp * 3} HP (Raid)\n⚔️ ${boss.str || 0} STR | 🛡️ ${boss.def || 0} DEF\n💰 ${rewardCoins * 2} | ✨ ${rewardXp * 2} XP\n\`!raid başlat ${boss.bossId}\``,
         inline: true
       });
     }
@@ -120,7 +122,7 @@ module.exports = {
         { name: '❤️ HP', value: `${raid.bossHp}`, inline: true },
         { name: '👥 Katılımcılar', value: `1/${raid.maxParticipants}`, inline: true },
         { name: '⏰ Başlama', value: '3 dakika içinde', inline: true },
-        { name: '🎁 Ödüller', value: `💰 ${boss.rewards.coins * 2} | ✨ ${boss.rewards.xp * 2} XP`, inline: true }
+        { name: '🎁 Ödüller', value: `💰 ${(boss.rewardMoney || 0) * 2} | ✨ ${(boss.rewardXp || Math.floor((boss.rewardMoney || 0) / 10)) * 2} XP`, inline: true }
       )
       .setFooter({ text: 'Katılımcılar hasara göre ödül alır!' });
     
