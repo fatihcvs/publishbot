@@ -877,6 +877,35 @@ app.post('/api/admin/import-data', async (req, res) => {
   }
 });
 
+app.post('/api/admin/merge-guilds', async (req, res) => {
+  const { secret } = req.body;
+  
+  const IMPORT_SECRET = process.env.IMPORT_SECRET;
+  if (!IMPORT_SECRET) {
+    return res.status(503).json({ error: 'Import not configured - IMPORT_SECRET not set' });
+  }
+  if (secret !== IMPORT_SECRET) {
+    return res.status(403).json({ error: 'Invalid secret' });
+  }
+  
+  try {
+    const { mergeGuilds } = require('../../scripts/mergeGuilds');
+    const { Pool } = require('pg');
+    
+    const pool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+    });
+    
+    const result = await mergeGuilds(pool);
+    await pool.end();
+    
+    res.json(result);
+  } catch (error) {
+    console.error('Merge guilds error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 const PORT = 5000;
 
 function startServer() {
