@@ -2316,18 +2316,18 @@ async function attackRaid(raidId, userId) {
   if (!participant) return { success: false, error: 'Bu raide katılmadınız' };
   
   // Get user's team and calculate damage
-  const team = await getTeamWithEquipment(userId);
+  const teamData = await getTeamWithEquipment(userId);
   let totalDamage = 0;
   const damageBreakdown = [];
   
-  for (const animal of team) {
-    const baseDamage = animal.attack + (animal.bonusAttack || 0);
+  for (const member of teamData.team) {
+    const baseDamage = (member.effectiveStats?.str || member.userAnimal?.str || 10);
     const critChance = 0.15;
     const isCrit = Math.random() < critChance;
     const damage = isCrit ? Math.floor(baseDamage * 1.5) : baseDamage;
     totalDamage += damage;
     damageBreakdown.push({
-      name: animal.animalInfo?.name || animal.animalId,
+      name: member.animalInfo?.name || member.userAnimal?.animalId || 'Hayvan',
       damage,
       isCrit
     });

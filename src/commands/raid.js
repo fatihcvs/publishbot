@@ -182,17 +182,20 @@ module.exports = {
   },
   
   async attackRaid(message, userId, guildId) {
-    const raid = await letheStorage.getActiveRaid(guildId);
-    
-    if (!raid) {
-      return message.reply('❌ Bu sunucuda aktif raid yok!');
-    }
-    
-    if (raid.status === 'recruiting') {
-      return message.reply('❌ Raid henüz başlamadı! Bekleyin veya daha fazla oyuncu katılsın.');
-    }
-    
-    const result = await letheStorage.attackRaid(raid.id, userId);
+    try {
+      const raid = await letheStorage.getActiveRaid(guildId);
+      
+      if (!raid) {
+        return message.reply('❌ Bu sunucuda aktif raid yok!');
+      }
+      
+      if (raid.status === 'recruiting') {
+        return message.reply('❌ Raid henüz başlamadı! Bekleyin veya daha fazla oyuncu katılsın.');
+      }
+      
+      console.log('Attacking raid:', raid.id, 'User:', userId, 'Status:', raid.status);
+      const result = await letheStorage.attackRaid(raid.id, userId);
+      console.log('Attack result:', JSON.stringify(result));
     
     if (!result.success) {
       return message.reply(`❌ ${result.error}`);
@@ -236,6 +239,10 @@ module.exports = {
       .setFooter({ text: 'Saldırmaya devam edin: !raid saldır' });
     
     return message.reply({ embeds: [embed] });
+    } catch (error) {
+      console.error('Raid attack error:', error);
+      return message.reply('❌ Saldırı sırasında bir hata oluştu!');
+    }
   },
   
   async showRaidStatus(message, guildId, client) {
