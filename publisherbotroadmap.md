@@ -201,15 +201,15 @@ Bu dosya, Publisher Discord botunun temel özelliklerinin gelişimi için planla
 
 ## Öncelik Sırası
 
-1. **Yüksek Öncelik:**
+1. **Yüksek Öncelik (Aktif Geliştirme):**
+   - Dashboard İyileştirmeleri (Faz 6) ⬅️ ŞU AN
    - Gelişmiş Uyarı Sistemi
    - Raid Koruması
-   - Seviye Sistemi İyileştirmeleri
 
 2. **Orta Öncelik:**
+   - Seviye Sistemi İyileştirmeleri
    - Ekonomi Sistemi
    - Gelişmiş AutoMod
-   - Dashboard İyileştirmeleri
 
 3. **Düşük Öncelik:**
    - Müzik Özellikleri

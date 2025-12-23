@@ -165,11 +165,20 @@
     
     <main class="main-content">
       <header class="top-bar">
-        <h1 class="top-bar-title" id="pageTitle">Özellikler</h1>
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <button class="mobile-menu-toggle" onclick="toggleSidebar()">
+            <i class="fas fa-bars"></i>
+          </button>
+          <h1 class="top-bar-title" id="pageTitle">Kontrol Paneli</h1>
+        </div>
         <div class="top-bar-actions">
+          <button class="theme-toggle" onclick="toggleTheme()">
+            <i class="fas fa-moon"></i>
+            <span>Tema</span>
+          </button>
           <a href="#" class="premium-button">
             <i class="fas fa-crown"></i>
-            Premium'a Yükselt
+            <span>Premium</span>
           </a>
           <div class="user-menu" id="userMenu">
             <img src="" alt="" class="user-avatar" id="userAvatar">
@@ -185,14 +194,37 @@
         </div>
         
         <div id="featuresPage" style="display: none;">
+          <div class="stats-grid" id="statsGrid">
+            <div class="stat-card">
+              <div class="stat-icon"><i class="fas fa-users"></i></div>
+              <div class="stat-value" id="statMembers">-</div>
+              <div class="stat-label">Toplam Uye</div>
+            </div>
+            <div class="stat-card green">
+              <div class="stat-icon"><i class="fas fa-user-check"></i></div>
+              <div class="stat-value" id="statOnline">-</div>
+              <div class="stat-label">Cevrimici</div>
+            </div>
+            <div class="stat-card purple">
+              <div class="stat-icon"><i class="fas fa-hashtag"></i></div>
+              <div class="stat-value" id="statChannels">-</div>
+              <div class="stat-label">Kanal</div>
+            </div>
+            <div class="stat-card orange">
+              <div class="stat-icon"><i class="fas fa-toggle-on"></i></div>
+              <div class="stat-value" id="statModules">-</div>
+              <div class="stat-label">Aktif Modul</div>
+            </div>
+          </div>
+          
           <div class="tabs-container">
-            <button class="tab-btn active" data-tab="all">Tüm Özellikler</button>
+            <button class="tab-btn active" data-tab="all">Tum Ozellikler</button>
             <button class="tab-btn" data-tab="basic">Temel</button>
-            <button class="tab-btn" data-tab="popular">Popüler Özellikler</button>
-            <button class="tab-btn" data-tab="management">Sunucu Yönetimi</button>
-            <button class="tab-btn" data-tab="tools">Araçlar</button>
+            <button class="tab-btn" data-tab="popular">Populer Ozellikler</button>
+            <button class="tab-btn" data-tab="management">Sunucu Yonetimi</button>
+            <button class="tab-btn" data-tab="tools">Araclar</button>
             <button class="tab-btn" data-tab="social">Sosyal Medya</button>
-            <button class="tab-btn" data-tab="games">Oyun & Eğlence</button>
+            <button class="tab-btn" data-tab="games">Oyun & Eglence</button>
           </div>
           
           <div id="basicSection">
@@ -261,16 +293,72 @@
     </div>
   </div>
   
-  <div class="toast" id="toast">
-    <i class="fas fa-check-circle"></i>
-    <span id="toastMessage">Başarılı!</span>
-  </div>
+  <div class="toast-container"></div>
   
   <script>
     const guildId = window.location.pathname.split('/').pop();
     let guildData = null;
     let settings = {};
     let modules = {};
+    
+    function toggleTheme() {
+      const html = document.documentElement;
+      const currentTheme = html.getAttribute('data-theme');
+      const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+      html.setAttribute('data-theme', newTheme);
+      localStorage.setItem('theme', newTheme);
+      
+      const icon = document.querySelector('.theme-toggle i');
+      icon.className = newTheme === 'light' ? 'fas fa-sun' : 'fas fa-moon';
+    }
+    
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+    }
+    
+    function loadSavedTheme() {
+      const savedTheme = localStorage.getItem('theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+      const icon = document.querySelector('.theme-toggle i');
+      if (icon) {
+        icon.className = savedTheme === 'light' ? 'fas fa-sun' : 'fas fa-moon';
+      }
+    }
+    
+    function updateStats() {
+      if (!guildData) return;
+      
+      document.getElementById('statMembers').textContent = guildData.memberCount || '-';
+      const channelCount = Array.isArray(guildData.channels) ? guildData.channels.length : Object.keys(guildData.channels || {}).length;
+      document.getElementById('statChannels').textContent = channelCount || '-';
+      
+      const activeModules = Object.values(modules).filter(v => v === true).length;
+      document.getElementById('statModules').textContent = activeModules;
+      
+      const onlineCount = guildData.presenceCount || Math.floor((guildData.memberCount || 0) * 0.3);
+      document.getElementById('statOnline').textContent = onlineCount;
+    }
+    
+    function showToast(message, type = 'success') {
+      const container = document.querySelector('.toast-container');
+      if (!container) return;
+      
+      const toast = document.createElement('div');
+      toast.className = `toast-item ${type}`;
+      toast.innerHTML = `
+        <i class="toast-icon fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-times-circle' : 'fa-info-circle'}"></i>
+        <div class="toast-content">
+          <div class="toast-title">${type === 'success' ? 'Basarili' : type === 'error' ? 'Hata' : 'Bilgi'}</div>
+          <div class="toast-message">${message}</div>
+        </div>
+        <button class="toast-close" onclick="this.parentElement.remove()"><i class="fas fa-times"></i></button>
+      `;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.classList.add('fade-out');
+        setTimeout(() => toast.remove(), 300);
+      }, 5000);
+    }
     
     // Helper to check if log type is enabled (handles both old and new formats)
     function isLogEnabled(logConfig, type) {
@@ -355,6 +443,8 @@
         document.getElementById('loadingContainer').style.display = 'none';
         document.getElementById('featuresPage').style.display = 'block';
         
+        loadSavedTheme();
+        updateStats();
         renderFeatures();
         setupEventListeners();
         populateSettingsSelects();

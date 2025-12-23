@@ -18,15 +18,19 @@
         <span class="bot-name" style="font-size: 20px; font-weight: 600;">Publisher</span>
       </div>
       <div style="display: flex; align-items: center; gap: 16px;">
+        <button class="theme-toggle" onclick="toggleTheme()">
+          <i class="fas fa-moon"></i>
+          <span>Tema</span>
+        </button>
         <a href="#" class="premium-button">
           <i class="fas fa-crown"></i>
-          Premium'a Yükselt
+          <span>Premium</span>
         </a>
         <div class="user-menu" id="userMenu">
           <img src="" alt="" class="user-avatar" id="userAvatar">
           <span id="username" style="color: var(--text-primary);"></span>
           <a href="/auth/logout" class="btn btn-outline" style="padding: 6px 12px; font-size: 12px;">
-            <i class="fas fa-sign-out-alt"></i> Çıkış
+            <i class="fas fa-sign-out-alt"></i> Cikis
           </a>
         </div>
       </div>
@@ -57,6 +61,26 @@
   </div>
   
   <script>
+    function toggleTheme() {
+      const html = document.documentElement;
+      const currentTheme = html.getAttribute('data-theme');
+      const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+      html.setAttribute('data-theme', newTheme);
+      localStorage.setItem('theme', newTheme);
+      
+      const icon = document.querySelector('.theme-toggle i');
+      icon.className = newTheme === 'light' ? 'fas fa-sun' : 'fas fa-moon';
+    }
+    
+    function loadSavedTheme() {
+      const savedTheme = localStorage.getItem('theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+      const icon = document.querySelector('.theme-toggle i');
+      if (icon) {
+        icon.className = savedTheme === 'light' ? 'fas fa-sun' : 'fas fa-moon';
+      }
+    }
+    
     async function init() {
       try {
         const userRes = await fetch('/api/user');
@@ -70,6 +94,7 @@
           ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`
           : 'https://cdn.discordapp.com/embed/avatars/0.png';
         
+        loadSavedTheme();
         await loadGuilds();
         await loadInviteUrl();
       } catch (error) {
