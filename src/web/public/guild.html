@@ -483,11 +483,14 @@
         const isActive = modules[feature.id] === true;
         const iconClass = feature.iconType === 'fab' ? 'fab' : 'fas';
         
+        const badges = [];
+        if (feature.premium) badges.push('<span class="feature-badge premium"><i class="fas fa-crown"></i> Premium</span>');
+        if (feature.new) badges.push('<span class="feature-badge new"><i class="fas fa-sparkles"></i> Yeni</span>');
+        if (isActive) badges.push('<span class="feature-badge active"><i class="fas fa-check"></i> Aktif</span>');
+        
         return `
           <div class="feature-card ${isActive ? 'active' : ''} ${feature.premium ? 'premium' : ''}" data-feature="${feature.id}">
-            ${feature.premium ? '<span class="feature-badge premium"><i class="fas fa-crown"></i> Premium</span>' : ''}
-            ${feature.new ? '<span class="feature-badge new"><i class="fas fa-sparkles"></i> Yeni</span>' : ''}
-            ${isActive ? '<span class="feature-badge active"><i class="fas fa-check"></i> Aktif</span>' : ''}
+            ${badges.length > 0 ? '<div class="feature-badges">' + badges.join('') + '</div>' : ''}
             <div class="feature-header">
               <div class="feature-icon ${feature.color}">
                 <i class="${iconClass} ${feature.icon}"></i>
@@ -2051,25 +2054,13 @@
           showToast('Ayarlar kaydedildi!', 'success');
           closeModal();
           renderFeatures();
+          updateStats();
         } else {
           showToast('Ayarlar kaydedilemedi', 'error');
         }
       } catch (error) {
         showToast('Bir hata oluştu', 'error');
       }
-    }
-    
-    function showToast(message, type = 'success') {
-      const toast = document.getElementById('toast');
-      const icon = toast.querySelector('i');
-      
-      toast.className = 'toast show ' + type;
-      icon.className = type === 'success' ? 'fas fa-check-circle' : 'fas fa-exclamation-circle';
-      document.getElementById('toastMessage').textContent = message;
-      
-      setTimeout(() => {
-        toast.classList.remove('show');
-      }, 3000);
     }
     
     document.getElementById('modalOverlay').addEventListener('click', (e) => {

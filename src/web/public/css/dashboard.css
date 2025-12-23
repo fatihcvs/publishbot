@@ -398,14 +398,22 @@ body::before {
 .feature-icon.orange { background: rgba(245, 175, 25, 0.2); color: #f5af19; }
 .feature-icon.pink { background: rgba(233, 30, 99, 0.2); color: #e91e63; }
 
-.feature-badge {
+.feature-badges {
   position: absolute;
   top: 12px;
   right: 12px;
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.feature-badge {
   padding: 4px 10px;
   border-radius: 12px;
   font-size: 11px;
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .feature-badge.premium {
