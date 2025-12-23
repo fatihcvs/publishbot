@@ -7,51 +7,71 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
     :root {
-      --bg-primary: #0d1117;
-      --bg-secondary: #161b22;
-      --bg-tertiary: #21262d;
-      --accent-blue: #58a6ff;
-      --accent-purple: #8b5cf6;
-      --accent-pink: #ec4899;
-      --accent-green: #10b981;
-      --accent-orange: #f59e0b;
-      --accent-red: #ef4444;
-      --accent-cyan: #06b6d4;
-      --accent-yellow: #eab308;
-      --text-primary: #f0f6fc;
-      --text-secondary: #8b949e;
-      --border-color: #30363d;
+      --bg-primary: #0a0a0f;
+      --bg-secondary: #12121a;
+      --bg-tertiary: #1a1a24;
+      --bg-glass: rgba(18, 18, 26, 0.7);
+      --accent-blue: #60a5fa;
+      --accent-purple: #a78bfa;
+      --accent-pink: #f472b6;
+      --accent-green: #34d399;
+      --accent-orange: #fbbf24;
+      --accent-cyan: #22d3ee;
+      --accent-red: #f87171;
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --border-color: rgba(255, 255, 255, 0.08);
+      --glow-purple: rgba(167, 139, 250, 0.4);
     }
-    * { box-sizing: border-box; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       background: var(--bg-primary);
       color: var(--text-primary);
-      font-family: 'Segoe UI', system-ui, sans-serif;
+      font-family: 'Inter', system-ui, sans-serif;
       min-height: 100vh;
       padding-top: 80px;
     }
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: 
+        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(120, 80, 200, 0.12), transparent),
+        radial-gradient(ellipse 60% 40% at 80% 60%, rgba(60, 100, 200, 0.08), transparent);
+      pointer-events: none;
+      z-index: -1;
+    }
     .navbar {
-      background: rgba(13, 17, 23, 0.95) !important;
+      background: var(--bg-glass) !important;
       backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
       border-bottom: 1px solid var(--border-color);
       padding: 1rem 0;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
     }
     .navbar-brand {
       font-size: 1.5rem;
-      font-weight: 700;
-      background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple), var(--accent-pink));
+      background-size: 200% auto;
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
     .nav-link {
       color: var(--text-secondary) !important;
       font-weight: 500;
-      transition: color 0.3s;
+      transition: all 0.3s;
+      padding: 8px 16px !important;
     }
     .nav-link:hover, .nav-link.active { color: var(--text-primary) !important; }
     .btn-discord {
-      background: #5865F2;
+      background: linear-gradient(135deg, #5865F2 0%, #7289da 100%);
       color: white;
       padding: 10px 24px;
       border-radius: 10px;
@@ -61,9 +81,11 @@
       align-items: center;
       gap: 8px;
       transition: all 0.3s;
+      text-decoration: none;
     }
     .btn-discord:hover {
-      background: #4752c4;
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(88, 101, 242, 0.3);
       color: white;
     }
     .page-header {
@@ -71,22 +93,12 @@
       padding: 60px 0 40px;
       position: relative;
     }
-    .page-header::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 600px;
-      height: 400px;
-      background: radial-gradient(circle, rgba(139, 92, 246, 0.15) 0%, transparent 70%);
-      pointer-events: none;
-    }
     .page-header h1 {
       font-size: 3rem;
       font-weight: 800;
       margin-bottom: 1rem;
       background: linear-gradient(135deg, #fff, var(--accent-blue), var(--accent-purple));
+      background-size: 200% auto;
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
@@ -96,6 +108,59 @@
       max-width: 600px;
       margin: 0 auto;
     }
+    .game-banner {
+      background: linear-gradient(135deg, rgba(244, 114, 182, 0.15), rgba(167, 139, 250, 0.15));
+      border: 1px solid rgba(244, 114, 182, 0.3);
+      border-radius: 16px;
+      padding: 24px 32px;
+      margin: 30px auto;
+      max-width: 700px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    .game-banner-content {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .game-banner-icon {
+      width: 50px;
+      height: 50px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--accent-pink), var(--accent-purple));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      color: white;
+    }
+    .game-banner h4 {
+      margin: 0 0 4px;
+      font-weight: 700;
+    }
+    .game-banner p {
+      margin: 0;
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+    .btn-game {
+      background: linear-gradient(135deg, var(--accent-pink), var(--accent-purple));
+      color: white;
+      padding: 12px 24px;
+      border-radius: 10px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.3s;
+      white-space: nowrap;
+    }
+    .btn-game:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(244, 114, 182, 0.3);
+      color: white;
+    }
     .search-box {
       max-width: 500px;
       margin: 30px auto 0;
@@ -103,10 +168,11 @@
     }
     .search-box input {
       width: 100%;
-      background: var(--bg-secondary);
+      background: var(--bg-glass);
+      backdrop-filter: blur(10px);
       border: 1px solid var(--border-color);
-      border-radius: 12px;
-      padding: 14px 20px 14px 50px;
+      border-radius: 14px;
+      padding: 16px 20px 16px 50px;
       color: var(--text-primary);
       font-size: 1rem;
       transition: all 0.3s;
@@ -114,7 +180,7 @@
     .search-box input:focus {
       outline: none;
       border-color: var(--accent-purple);
-      box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
+      box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.2);
     }
     .search-box input::placeholder { color: var(--text-secondary); }
     .search-box i {
@@ -132,7 +198,8 @@
       top: 100px;
     }
     .category-nav {
-      background: var(--bg-secondary);
+      background: var(--bg-glass);
+      backdrop-filter: blur(10px);
       border: 1px solid var(--border-color);
       border-radius: 16px;
       padding: 20px;
@@ -161,9 +228,9 @@
       color: var(--text-primary);
     }
     .category-link.active {
-      background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(88, 166, 255, 0.2));
+      background: linear-gradient(135deg, rgba(167, 139, 250, 0.2), rgba(96, 165, 250, 0.2));
       color: var(--text-primary);
-      border: 1px solid rgba(139, 92, 246, 0.3);
+      border: 1px solid rgba(167, 139, 250, 0.3);
     }
     .category-link i { width: 20px; text-align: center; }
     .category-link .count {
@@ -175,36 +242,37 @@
     }
     .category-section {
       margin-bottom: 50px;
+      scroll-margin-top: 100px;
     }
     .category-header {
       display: flex;
       align-items: center;
-      gap: 15px;
-      margin-bottom: 25px;
-      padding-bottom: 15px;
+      gap: 16px;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
       border-bottom: 1px solid var(--border-color);
     }
     .category-icon {
-      width: 50px;
-      height: 50px;
+      width: 48px;
+      height: 48px;
       border-radius: 12px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.3rem;
+      font-size: 1.25rem;
     }
-    .category-icon.moderation { background: rgba(239, 68, 68, 0.15); color: var(--accent-red); }
-    .category-icon.automod { background: rgba(139, 92, 246, 0.15); color: var(--accent-purple); }
-    .category-icon.settings { background: rgba(88, 166, 255, 0.15); color: var(--accent-blue); }
-    .category-icon.roles { background: rgba(236, 72, 153, 0.15); color: var(--accent-pink); }
-    .category-icon.fun { background: rgba(16, 185, 129, 0.15); color: var(--accent-green); }
-    .category-icon.utility { background: rgba(6, 182, 212, 0.15); color: var(--accent-cyan); }
-    .category-icon.info { background: rgba(245, 158, 11, 0.15); color: var(--accent-orange); }
-    .category-icon.ai { background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(236, 72, 153, 0.15)); color: var(--accent-purple); }
-    .category-icon.social { background: rgba(234, 179, 8, 0.15); color: var(--accent-yellow); }
-    .category-icon.schedule { background: rgba(6, 182, 212, 0.15); color: var(--accent-cyan); }
+    .category-icon.moderation { background: rgba(96, 165, 250, 0.15); color: var(--accent-blue); }
+    .category-icon.automod { background: rgba(167, 139, 250, 0.15); color: var(--accent-purple); }
+    .category-icon.settings { background: rgba(52, 211, 153, 0.15); color: var(--accent-green); }
+    .category-icon.roles { background: rgba(251, 191, 36, 0.15); color: var(--accent-orange); }
+    .category-icon.fun { background: rgba(244, 114, 182, 0.15); color: var(--accent-pink); }
+    .category-icon.utility { background: rgba(34, 211, 238, 0.15); color: var(--accent-cyan); }
+    .category-icon.social { background: rgba(248, 113, 113, 0.15); color: var(--accent-red); }
+    .category-icon.schedule { background: rgba(251, 191, 36, 0.15); color: var(--accent-orange); }
+    .category-icon.info { background: rgba(96, 165, 250, 0.15); color: var(--accent-blue); }
+    .category-icon.ai { background: rgba(167, 139, 250, 0.15); color: var(--accent-purple); }
     .category-header h3 {
-      font-size: 1.5rem;
+      font-size: 1.3rem;
       font-weight: 700;
       margin: 0;
     }
@@ -213,7 +281,8 @@
       font-size: 0.9rem;
     }
     .command-card {
-      background: var(--bg-secondary);
+      background: var(--bg-glass);
+      backdrop-filter: blur(10px);
       border: 1px solid var(--border-color);
       border-radius: 14px;
       padding: 20px 24px;
@@ -221,64 +290,51 @@
       transition: all 0.3s;
     }
     .command-card:hover {
-      border-color: var(--accent-purple);
+      border-color: rgba(167, 139, 250, 0.3);
       transform: translateX(5px);
-      box-shadow: 0 5px 20px rgba(139, 92, 246, 0.1);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
     }
     .command-header {
       display: flex;
-      align-items: flex-start;
+      align-items: center;
       justify-content: space-between;
-      gap: 15px;
+      flex-wrap: wrap;
+      gap: 10px;
     }
     .command-name {
-      font-family: 'Fira Code', 'Consolas', monospace;
-      font-size: 1.05rem;
-      font-weight: 600;
+      font-family: 'JetBrains Mono', 'Fira Code', monospace;
       color: var(--accent-blue);
-      word-break: break-word;
-    }
-    .command-aliases {
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-    }
-    .command-alias {
-      background: var(--bg-tertiary);
-      color: var(--text-secondary);
-      padding: 3px 10px;
-      border-radius: 6px;
-      font-size: 0.75rem;
-      font-family: monospace;
+      font-weight: 600;
+      font-size: 0.95rem;
     }
     .command-desc {
       color: var(--text-secondary);
       margin: 10px 0 0;
-      font-size: 0.95rem;
-      line-height: 1.5;
+      font-size: 0.9rem;
+      line-height: 1.6;
     }
     .command-usage {
-      margin-top: 12px;
-      padding: 12px 16px;
       background: var(--bg-tertiary);
       border-radius: 8px;
-      font-family: 'Fira Code', monospace;
+      padding: 10px 14px;
+      margin-top: 12px;
+      font-family: 'JetBrains Mono', 'Fira Code', monospace;
       font-size: 0.85rem;
       color: var(--accent-green);
     }
     .command-permissions {
-      margin-top: 10px;
+      margin-top: 12px;
       display: flex;
       gap: 8px;
       flex-wrap: wrap;
     }
     .permission-badge {
-      background: rgba(239, 68, 68, 0.15);
+      background: rgba(248, 113, 113, 0.15);
       color: var(--accent-red);
       padding: 4px 10px;
       border-radius: 6px;
       font-size: 0.75rem;
-      font-weight: 500;
+      font-weight: 600;
     }
     .no-results {
       text-align: center;
@@ -286,28 +342,61 @@
       color: var(--text-secondary);
     }
     .no-results i {
-      font-size: 4rem;
+      font-size: 3rem;
       margin-bottom: 20px;
       opacity: 0.5;
+    }
+    .no-results h4 {
+      margin-bottom: 10px;
+      color: var(--text-primary);
     }
     footer {
       background: var(--bg-secondary);
       border-top: 1px solid var(--border-color);
-      padding: 30px 0;
-      text-align: center;
+      padding: 50px 0;
     }
-    footer p {
+    .footer-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+    .footer-brand {
+      font-size: 1.25rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .footer-links {
+      display: flex;
+      gap: 24px;
+    }
+    .footer-links a {
       color: var(--text-secondary);
-      margin: 0;
+      text-decoration: none;
+      transition: color 0.3s;
+    }
+    .footer-links a:hover { color: var(--accent-purple); }
+    .footer-copy {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
     }
     @media (max-width: 991px) {
       .category-sidebar { display: none; }
+    }
+    @media (max-width: 768px) {
       .page-header h1 { font-size: 2rem; }
+      .game-banner { flex-direction: column; text-align: center; }
+      .game-banner-content { flex-direction: column; }
+      .footer-content { flex-direction: column; text-align: center; }
+      .footer-links { justify-content: center; }
     }
   </style>
 </head>
 <body>
-  <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
+  <nav class="navbar navbar-expand-lg navbar-dark">
     <div class="container">
       <a class="navbar-brand" href="/">
         <i class="fas fa-robot me-2"></i>Publisher
@@ -332,8 +421,22 @@
 
   <section class="page-header">
     <div class="container">
-      <h1><i class="fas fa-terminal me-3"></i>Komutlar</h1>
-      <p>Publisher Bot'un tum komutlari kategorilere gore duzenlenmis sekilde</p>
+      <h1>Bot Komutlari</h1>
+      <p>Publisher Bot'un tum moderasyon, ayar ve yardimci komutlari</p>
+      
+      <div class="game-banner">
+        <div class="game-banner-content">
+          <div class="game-banner-icon"><i class="fas fa-paw"></i></div>
+          <div>
+            <h4>Lethe Game Komutlari</h4>
+            <p>151+ hayvanli koleksiyon oyunu komutlari icin</p>
+          </div>
+        </div>
+        <a href="/lethe-game" class="btn-game">
+          <i class="fas fa-gamepad me-2"></i>Oyun Sayfasi
+        </a>
+      </div>
+      
       <div class="search-box">
         <i class="fas fa-search"></i>
         <input type="text" id="search-input" placeholder="Komut ara...">
@@ -369,14 +472,14 @@
                 <span class="count">4</span>
               </a>
               <a href="#fun" class="category-link">
-                <i class="fas fa-gamepad"></i>
+                <i class="fas fa-star"></i>
                 Eglence
-                <span class="count">6</span>
+                <span class="count">5</span>
               </a>
               <a href="#utility" class="category-link">
                 <i class="fas fa-tools"></i>
                 Araclar
-                <span class="count">5</span>
+                <span class="count">4</span>
               </a>
               <a href="#social" class="category-link">
                 <i class="fas fa-share-alt"></i>
@@ -624,7 +727,7 @@
                 <div class="command-header">
                   <span class="command-name">!dogumgunu mesaj [mesaj]</span>
                 </div>
-                <p class="command-desc">Dogum gunu kutlama mesajini ozellestirir.</p>
+                <p class="command-desc">Dogum gunu kutlama mesajini ayarlar. {user} degiskeni kullanilabilir.</p>
                 <div class="command-permissions">
                   <span class="permission-badge">Manage Guild</span>
                 </div>
@@ -636,14 +739,14 @@
                 <div class="category-icon roles"><i class="fas fa-user-tag"></i></div>
                 <div>
                   <h3>Rol Yonetimi</h3>
-                  <span>Rol ekleme ve cikarma komutlari</span>
+                  <span>Rol ekleme, cikarma ve tepki rolleri</span>
                 </div>
               </div>
               <div class="command-card">
                 <div class="command-header">
                   <span class="command-name">!rolekle @kullanici @rol</span>
                 </div>
-                <p class="command-desc">Kullaniciya rol ekler.</p>
+                <p class="command-desc">Kullaniciya belirtilen rolu ekler.</p>
                 <div class="command-permissions">
                   <span class="permission-badge">Manage Roles</span>
                 </div>
@@ -652,7 +755,7 @@
                 <div class="command-header">
                   <span class="command-name">!rolcikar @kullanici @rol</span>
                 </div>
-                <p class="command-desc">Kullanicidan rol cikarir.</p>
+                <p class="command-desc">Kullanicidan belirtilen rolu cikarir.</p>
                 <div class="command-permissions">
                   <span class="permission-badge">Manage Roles</span>
                 </div>
@@ -667,8 +770,8 @@
                 <div class="command-header">
                   <span class="command-name">!tepkirol</span>
                 </div>
-                <p class="command-desc">Tepki rol sistemini yonetir.</p>
-                <div class="command-usage">!tepkirol #kanal mesaj_id :emoji: @rol</div>
+                <p class="command-desc">Tepki rol mesaji olusturur veya yonetir.</p>
+                <div class="command-usage">!tepkirol olustur | !tepkirol ekle :emoji: @rol</div>
                 <div class="command-permissions">
                   <span class="permission-badge">Manage Roles</span>
                 </div>
@@ -677,10 +780,10 @@
 
             <div class="category-section" id="fun">
               <div class="category-header">
-                <div class="category-icon fun"><i class="fas fa-gamepad"></i></div>
+                <div class="category-icon fun"><i class="fas fa-star"></i></div>
                 <div>
                   <h3>Eglence</h3>
-                  <span>Eglenceli ve sosyal komutlar</span>
+                  <span>Cekilisler, anketler ve daha fazlasi</span>
                 </div>
               </div>
               <div class="command-card">
@@ -695,36 +798,37 @@
               </div>
               <div class="command-card">
                 <div class="command-header">
-                  <span class="command-name">!anket "Soru" "Secenek1" "Secenek2"...</span>
+                  <span class="command-name">!cekilis bitir [mesaj_id]</span>
                 </div>
-                <p class="command-desc">Anket olusturur (en fazla 10 secenek).</p>
-                <div class="command-usage">!anket "En iyi renk?" "Mavi" "Kirmizi" "Yesil"</div>
+                <p class="command-desc">Devam eden cekilisi erken bitirir.</p>
+                <div class="command-permissions">
+                  <span class="permission-badge">Manage Guild</span>
+                </div>
               </div>
               <div class="command-card">
                 <div class="command-header">
-                  <span class="command-name">!afk [sebep]</span>
+                  <span class="command-name">!cekilis tekrar [mesaj_id]</span>
                 </div>
-                <p class="command-desc">AFK modunu aktif eder. Etiketlendiginde otomatik bildirim gider.</p>
+                <p class="command-desc">Biten cekilisten yeni kazanan secer.</p>
+                <div class="command-permissions">
+                  <span class="permission-badge">Manage Guild</span>
+                </div>
               </div>
               <div class="command-card">
                 <div class="command-header">
-                  <span class="command-name">!dogumgunu ayarla [gun] [ay]</span>
+                  <span class="command-name">!anket "Soru" "Secenek1" "Secenek2" ...</span>
                 </div>
-                <p class="command-desc">Dogum gununuzu kaydedin.</p>
-                <div class="command-usage">!dogumgunu ayarla 15 6</div>
+                <p class="command-desc">Anket olusturur (10 secenege kadar).</p>
+                <div class="command-usage">!anket "En iyi programlama dili?" "Python" "JavaScript" "Rust"</div>
               </div>
               <div class="command-card">
                 <div class="command-header">
-                  <span class="command-name">!dogumgunu liste</span>
+                  <span class="command-name">!duyuru [#kanal] [mesaj]</span>
                 </div>
-                <p class="command-desc">Yaklasan dogum gunlerini listeler.</p>
-              </div>
-              <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!hatırlat [sure] [mesaj]</span>
+                <p class="command-desc">Belirtilen kanala duyuru mesaji gonderir.</p>
+                <div class="command-permissions">
+                  <span class="permission-badge">Manage Guild</span>
                 </div>
-                <p class="command-desc">Belirtilen sure sonra hatirlatma alirsiniz.</p>
-                <div class="command-usage">!hatırlat 30m Toplantiya katil</div>
               </div>
             </div>
 
@@ -733,33 +837,28 @@
                 <div class="category-icon utility"><i class="fas fa-tools"></i></div>
                 <div>
                   <h3>Araclar</h3>
-                  <span>Faydali arac komutlari</span>
+                  <span>Yardimci araclar ve ozel komutlar</span>
                 </div>
               </div>
               <div class="command-card">
                 <div class="command-header">
-                  <span class="command-name">!duyuru [#kanal] [mesaj]</span>
+                  <span class="command-name">!hatirlat [sure] [mesaj]</span>
                 </div>
-                <p class="command-desc">Belirtilen kanala duyuru gonderir.</p>
-                <div class="command-permissions">
-                  <span class="permission-badge">Manage Messages</span>
-                </div>
+                <p class="command-desc">Belirtilen sure sonra hatirlatic olusturur.</p>
+                <div class="command-usage">!hatirlat 30dk Toplantiya katil</div>
               </div>
               <div class="command-card">
                 <div class="command-header">
-                  <span class="command-name">!embed basit/gelismis/alan</span>
+                  <span class="command-name">!afk [sebep]</span>
                 </div>
-                <p class="command-desc">Ozellestirilmis embed mesaj olusturur.</p>
-                <div class="command-permissions">
-                  <span class="permission-badge">Manage Messages</span>
-                </div>
+                <p class="command-desc">AFK durumunu ayarlar. Birisi sizi etiketlediginde bilgilendirilir.</p>
               </div>
               <div class="command-card">
                 <div class="command-header">
                   <span class="command-name">!komutekle [komut] [yanit]</span>
                 </div>
-                <p class="command-desc">Ozel komut olusturur.</p>
-                <div class="command-usage">!komutekle merhaba Herkese merhaba!</div>
+                <p class="command-desc">Ozel komut ekler.</p>
+                <div class="command-usage">!komutekle kurallar Sunucu kurallari: ...</div>
                 <div class="command-permissions">
                   <span class="permission-badge">Manage Guild</span>
                 </div>
@@ -772,12 +871,6 @@
                 <div class="command-permissions">
                   <span class="permission-badge">Manage Guild</span>
                 </div>
-              </div>
-              <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!komutlar</span>
-                </div>
-                <p class="command-desc">Tum ozel komutlari listeler.</p>
               </div>
             </div>
 
@@ -793,7 +886,7 @@
                 <div class="command-header">
                   <span class="command-name">!sosyal ekle [platform] [kullanici] #kanal [mesaj]</span>
                 </div>
-                <p class="command-desc">Sosyal medya bildirimi ekler. Desteklenen platformlar: twitch, youtube, tiktok, twitter, instagram, rss</p>
+                <p class="command-desc">Sosyal medya bildirimi ekler. Platformlar: twitch, youtube, tiktok, twitter, instagram, rss</p>
                 <div class="command-usage">!sosyal ekle twitch ninja #bildirimler Yayin basladi!</div>
                 <div class="command-permissions">
                   <span class="permission-badge">Manage Guild</span>
@@ -933,7 +1026,7 @@
                 <div class="command-header">
                   <span class="command-name">@Publisher [mesaj]</span>
                 </div>
-                <p class="command-desc">Botu etiketleyerek sohbet edin. Coklu dil destegi!</p>
+                <p class="command-desc">Botu etiketleyerek sohbet edin. Coklu dil destegi ve Lethe Game rehberligi!</p>
                 <div class="command-usage">@Publisher Merhaba, nasilsin?</div>
               </div>
               <div class="command-card">
@@ -971,7 +1064,15 @@
 
   <footer>
     <div class="container">
-      <p>&copy; 2024 Publisher Bot. Tum haklari saklidir.</p>
+      <div class="footer-content">
+        <div class="footer-brand"><i class="fas fa-robot me-2"></i>Publisher Bot</div>
+        <div class="footer-links">
+          <a href="/">Ana Sayfa</a>
+          <a href="/lethe-game">Lethe Game</a>
+          <a href="/auth/discord">Dashboard</a>
+        </div>
+        <div class="footer-copy">&copy; 2025 Publisher Bot. Tum haklari saklidir.</div>
+      </div>
     </div>
   </footer>
 
