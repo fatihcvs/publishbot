@@ -2341,9 +2341,11 @@ async function attackRaid(raidId, userId) {
   if (newHp <= 0) {
     // Raid completed!
     const boss = seedData.bosses.find(b => b.bossId === raid.bossId);
+    const baseCoins = boss?.rewardMoney || 0;
+    const baseXp = boss?.rewardXp || Math.floor(baseCoins / 10);
     const rewards = {
-      coins: boss.rewards.coins * 2,
-      xp: boss.rewards.xp * 2
+      coins: baseCoins * 2,
+      xp: baseXp * 2
     };
     
     // Distribute rewards
