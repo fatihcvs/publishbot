@@ -279,6 +279,22 @@ Dashboard için gereken environment variables:
 └── package.json
 ```
 
+## Veritabanı Yönetimi
+
+**Development ve Production ayrı veritabanları kullanır:**
+- Development: Geliştirme ortamında yapılan testler
+- Production: Canlı oyuncu verileri (publisherbot.org)
+
+**Publish davranışı:**
+- Kod ve şema değişiklikleri production'a gider
+- Oyuncu verileri korunur (silinmez)
+- Yeni tablolar otomatik oluşturulur
+
+**Veri Aktarımı (Tek seferlik):**
+- `scripts/exportData.js` - Development'tan veri export
+- `POST /api/admin/import-data` - Production'a import (IMPORT_SECRET gerekli)
+- Import zaten veri olan tabloları atlar (güvenli)
+
 ## Teknolojiler
 
 - Node.js 20
