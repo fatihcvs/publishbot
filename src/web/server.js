@@ -844,6 +844,39 @@ app.get('/lethe-rehber', (req, res) => {
   res.redirect('/lethe-game');
 });
 
+// One-time data migration endpoint for production
+// This endpoint imports data from the export file to the production database
+// It only runs once and skips tables that already have data
+app.post('/api/admin/import-data', async (req, res) => {
+  const { secret } = req.body;
+  
+  // Require admin secret for security - MUST be set in environment
+  const IMPORT_SECRET = process.env.IMPORT_SECRET;
+  if (!IMPORT_SECRET) {
+    return res.status(503).json({ error: 'Import not configured - IMPORT_SECRET not set' });
+  }
+  if (secret !== IMPORT_SECRET) {
+    return res.status(403).json({ error: 'Invalid secret' });
+  }
+  
+  try {
+    const { runImport } = require('../../scripts/importToProduction');
+    const { Pool } = require('pg');
+    
+    const pool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+    });
+    
+    const result = await runImport(pool);
+    await pool.end();
+    
+    res.json(result);
+  } catch (error) {
+    console.error('Import error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 const PORT = 5000;
 
 function startServer() {
