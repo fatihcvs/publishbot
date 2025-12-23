@@ -30,24 +30,57 @@ app.use(passport.session());
 
 const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID;
 const DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET;
-const CALLBACK_URL = process.env.REPLIT_DEV_DOMAIN 
+
+// Allowed domains for OAuth callback (whitelist approach for security)
+const ALLOWED_DOMAINS = [
+  'publisherbot.org',
+  process.env.REPLIT_DEV_DOMAIN
+].filter(Boolean);
+
+// Get callback URL based on request host (secure whitelist check)
+function getCallbackURL(host) {
+  if (!host) {
+    return process.env.REPLIT_DEV_DOMAIN 
+      ? `https://${process.env.REPLIT_DEV_DOMAIN}/auth/discord/callback`
+      : 'http://localhost:5000/auth/discord/callback';
+  }
+  
+  // Check against whitelist using exact match or endsWith
+  for (const domain of ALLOWED_DOMAINS) {
+    if (host === domain || host.endsWith('.' + domain) || host === domain) {
+      return `https://${domain}/auth/discord/callback`;
+    }
+  }
+  
+  // Default to dev domain
+  if (process.env.REPLIT_DEV_DOMAIN) {
+    return `https://${process.env.REPLIT_DEV_DOMAIN}/auth/discord/callback`;
+  }
+  return 'http://localhost:5000/auth/discord/callback';
+}
+
+// Default callback for passport strategy initialization
+const DEFAULT_CALLBACK_URL = process.env.REPLIT_DEV_DOMAIN 
   ? `https://${process.env.REPLIT_DEV_DOMAIN}/auth/discord/callback`
   : 'http://localhost:5000/auth/discord/callback';
 
 let discordAuthEnabled = false;
 
 if (DISCORD_CLIENT_ID && DISCORD_CLIENT_SECRET) {
+  // Register a single strategy at startup with passReqToCallback for dynamic callback
   passport.use('discord', new DiscordStrategy({
     clientID: DISCORD_CLIENT_ID,
     clientSecret: DISCORD_CLIENT_SECRET,
-    callbackURL: CALLBACK_URL,
+    callbackURL: DEFAULT_CALLBACK_URL,
     scope: ['identify', 'guilds']
   }, (accessToken, refreshToken, profile, done) => {
     profile.accessToken = accessToken;
     return done(null, profile);
   }));
+  
   discordAuthEnabled = true;
-  console.log('Discord OAuth configured with callback:', CALLBACK_URL);
+  console.log('Discord OAuth configured');
+  console.log('Allowed domains:', ALLOWED_DOMAINS);
 } else {
   console.log('Discord OAuth not configured - missing DISCORD_CLIENT_ID or DISCORD_CLIENT_SECRET');
 }
@@ -119,14 +152,29 @@ app.get('/auth/discord', (req, res, next) => {
   if (!discordAuthEnabled) {
     return res.status(503).json({ error: 'Discord OAuth not configured' });
   }
-  passport.authenticate('discord')(req, res, next);
+  
+  // Determine callback URL based on request host
+  const host = req.get('host') || '';
+  const callbackURL = getCallbackURL(host);
+  
+  // Use callbackURL option to override per-request
+  passport.authenticate('discord', { callbackURL })(req, res, next);
 });
 
 app.get('/auth/discord/callback', (req, res, next) => {
   if (!discordAuthEnabled) {
     return res.redirect('/');
   }
-  passport.authenticate('discord', { failureRedirect: '/' })(req, res, () => {
+  
+  // Determine callback URL based on request host
+  const host = req.get('host') || '';
+  const callbackURL = getCallbackURL(host);
+  
+  // Use callbackURL option to override per-request
+  passport.authenticate('discord', { 
+    callbackURL,
+    failureRedirect: '/' 
+  })(req, res, () => {
     res.redirect('/dashboard');
   });
 });
