@@ -241,11 +241,18 @@ app.post('/api/guild/:guildId/settings', isAuthenticated, requireManagerAccess, 
   const { guildId } = req.params;
   const settings = req.body;
   
+  // Convert empty strings to null for role/channel IDs
+  if (settings.autoRole === '') settings.autoRole = null;
+  if (settings.muteRole === '') settings.muteRole = null;
+  if (settings.logChannel === '') settings.logChannel = null;
+  if (settings.welcomeChannel === '') settings.welcomeChannel = null;
+  if (settings.goodbyeChannel === '') settings.goodbyeChannel = null;
+  
   try {
     console.log('Updating settings for guild:', guildId);
-    console.log('logConfig being saved:', JSON.stringify(settings.logConfig));
+    console.log('autoRole being saved:', settings.autoRole);
     const result = await storage.upsertGuild(guildId, settings);
-    console.log('Upsert completed, logConfig in result:', JSON.stringify(result?.logConfig));
+    console.log('Upsert completed, autoRole in result:', result?.autoRole);
     res.json({ success: true });
   } catch (error) {
     console.error('Settings update error:', error.message, error);

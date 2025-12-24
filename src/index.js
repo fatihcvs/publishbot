@@ -111,7 +111,9 @@ client.once(Events.ClientReady, async () => {
 });
 
 client.on(Events.GuildMemberAdd, async (member) => {
+  console.log(`[MemberAdd] Yeni üye: ${member.user.tag} (${member.guild.name})`);
   const guildData = await storage.getGuild(member.guild.id);
+  console.log(`[MemberAdd] Guild data autoRole: "${guildData?.autoRole}" (type: ${typeof guildData?.autoRole})`);
   
   let inviterId = null;
   let usedInviteCode = null;
@@ -142,12 +144,26 @@ client.on(Events.GuildMemberAdd, async (member) => {
   if (guildData?.autoRole) {
     try {
       const role = member.guild.roles.cache.get(guildData.autoRole);
+      console.log(`[AutoRole] Role ID: ${guildData.autoRole}, Found role: ${role ? role.name : 'NOT FOUND'}`);
       if (role) {
-        await member.roles.add(role);
+        const botMember = member.guild.members.me;
+        const botHighestRole = botMember?.roles.highest;
+        console.log(`[AutoRole] Bot en yüksek rol: ${botHighestRole?.name} (pos: ${botHighestRole?.position}), Hedef rol: ${role.name} (pos: ${role.position})`);
+        
+        if (botHighestRole && botHighestRole.position > role.position) {
+          await member.roles.add(role);
+          console.log(`[AutoRole] Rol verildi: ${role.name} -> ${member.user.tag}`);
+        } else {
+          console.log(`[AutoRole] Bot'un rolü yeterince yüksek değil! Rol verilemedi.`);
+        }
+      } else {
+        console.log(`[AutoRole] Rol bulunamadı: ${guildData.autoRole}`);
       }
     } catch (error) {
       console.error('Oto-rol hatası:', error);
     }
+  } else {
+    console.log(`[AutoRole] autoRole ayarlanmamış veya boş`);
   }
   
   if (guildData?.welcomeChannel) {
