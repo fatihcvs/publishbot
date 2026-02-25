@@ -35,14 +35,63 @@ module.exports = {
     if (guildData?.modules && guildData.modules.economy === false) {
       return message.reply('❌ Lethe Game bu sunucuda devre dışı.');
     }
-    
+
     const letheChannels = guildData?.modules?.letheChannels || [];
     if (letheChannels.length > 0 && !letheChannels.includes(message.channel.id)) {
       return message.reply(`❌ Lethe Game komutları sadece belirlenen kanallarda çalışır! \`!oyunkanal liste\` ile kontrol et.`);
     }
-    
+
+    const subCommand = args[0] ? args[0].toLowerCase() : 'liste';
     const animals = await letheStorage.getUserAnimals(message.author.id);
 
+    // BİYOM KOLEKSİYON ALBÜMÜ
+    if (subCommand === 'albüm' || subCommand === 'album' || subCommand === 'setler' || subCommand === 'biyom') {
+      const allAnimals = await letheStorage.getAllAnimals(); // Gets all system animals
+      const userAnimalIds = new Set(animals.map(a => a.animalInfo.animalId));
+
+      const biomes = {
+        'forest': { name: 'Zümrüt Ormanı', emoji: '🌲', items: [] },
+        'desert': { name: 'Kızgın Çöl', emoji: '🏜️', items: [] },
+        'ocean': { name: 'Derin Okyanus', emoji: '🌊', items: [] },
+        'mountain': { name: 'Buzul Dağları', emoji: '⛰️', items: [] },
+        'volcano': { name: 'Ateş Dağı', emoji: '🌋', items: [] },
+        'void': { name: 'Boşluk (Void)', emoji: '🌌', items: [] }
+      };
+
+      // Group all system animals by region
+      allAnimals.forEach(a => {
+        if (a.regionId && biomes[a.regionId]) {
+          biomes[a.regionId].items.push(a.animalId);
+        }
+      });
+
+      let description = '📖 Biyom bazlı koleksiyon tamamlama durumun:\n\n';
+
+      for (const [key, biome] of Object.entries(biomes)) {
+        if (biome.items.length === 0) continue;
+        const totalInBiome = biome.items.length;
+        const unlockedInBiome = biome.items.filter(id => userAnimalIds.has(id)).length;
+        const progress = Math.round((unlockedInBiome / totalInBiome) * 100);
+
+        let status = 'Kilitli 🔒';
+        if (unlockedInBiome === totalInBiome) status = 'Tamanlandı ✅';
+        else if (unlockedInBiome > 0) status = 'Kasıyor ⏳';
+
+        description += `${biome.emoji} **${biome.name}**\n> Toplanan: **${unlockedInBiome}/${totalInBiome}** (%${progress}) | Durum: ${status}\n\n`;
+      }
+
+      description += '*Tüm bir biyomu topladığında başarımlardan (lbaşarım) ödülünü alabilirsin!*\n*Hayvanlarını normal liste halinde görmek için:* `!koleksiyon`';
+
+      const embed = new EmbedBuilder()
+        .setColor('#10b981')
+        .setTitle(`📖 ${message.author.username} - Koleksiyon Albümü`)
+        .setDescription(description)
+        .setThumbnail(message.author.displayAvatarURL({ dynamic: true }));
+
+      return message.reply({ embeds: [embed] });
+    }
+
+    // NORMAL LİSTE (Fallback)
     if (animals.length === 0) {
       return message.reply('🔍 Henüz hiç hayvan yakalamamışsın! `!avla` komutuyla başla.');
     }
@@ -164,7 +213,7 @@ module.exports = {
             .setStyle(ButtonStyle.Secondary)
             .setDisabled(true)
         );
-      msg.edit({ components: [disabledRow] }).catch(() => {});
+      msg.edit({ components: [disabledRow] }).catch(() => { });
     });
   }
 };

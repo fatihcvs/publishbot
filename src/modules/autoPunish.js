@@ -12,12 +12,12 @@ const defaultPunishments = {
 async function checkAutoPunishment(message, userId, storage, client) {
   const guildData = await storage.getGuild(message.guild.id);
   const config = guildData?.autoPunishments || defaultPunishments;
-  
+
   if (!config.enabled) return;
 
   const warningCount = await storage.getWarningCount(message.guild.id, userId);
   const member = await message.guild.members.fetch(userId).catch(() => null);
-  
+
   if (!member) return;
 
   for (const rule of config.rules.sort((a, b) => b.warnings - a.warnings)) {
@@ -30,7 +30,7 @@ async function checkAutoPunishment(message, userId, storage, client) {
 
 async function applyPunishment(guild, member, rule, warningCount, storage, client, guildData) {
   const reason = `Otomatik Ceza: ${warningCount} uyarıya ulaşıldı`;
-  
+
   try {
     switch (rule.action) {
       case 'mute':
@@ -56,10 +56,11 @@ async function applyPunishment(guild, member, rule, warningCount, storage, clien
 
     try {
       await member.send(`**${guild.name}** sunucusunda ${warningCount} uyarıya ulaştığınız için **${rule.action}** cezası aldınız.`);
-    } catch {}
+    } catch { }
 
-    if (guildData?.logChannel) {
-      const logChannel = guild.channels.cache.get(guildData.logChannel);
+    const targetLogChannel = guildData?.modLogChannel || guildData?.logChannel;
+    if (targetLogChannel) {
+      const logChannel = guild.channels.cache.get(targetLogChannel);
       if (logChannel) {
         const embed = new EmbedBuilder()
           .setColor('#ff0000')
@@ -71,7 +72,7 @@ async function applyPunishment(guild, member, rule, warningCount, storage, clien
             { name: 'Sebep', value: reason }
           )
           .setTimestamp();
-        
+
         await logChannel.send({ embeds: [embed] });
       }
     }

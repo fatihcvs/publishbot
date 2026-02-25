@@ -70,52 +70,53 @@ Bu dosya, Publisher Discord botunun temel özelliklerinin gelişimi için planla
 - [ ] Uyarı geçmişi detaylı görüntüleme
 - [ ] Moderatör notları
 
-### 1.2 Gelişmiş Log Sistemi
-- [ ] Ayrı log kanalları (mod-log, member-log, message-log)
-- [ ] Log filtreleme (sadece belirli olayları logla)
-- [ ] Embed formatında detaylı loglar
+### 1.2 Gelişmiş Log Sistemi ✅
+- [x] Ayrı log kanalları (mod-log, member-log, message-log)
+- [x] Log filtreleme (Türe göre kanallara ayırma)
+- [x] Embed formatında detaylı loglar
 - [ ] Log arşivleme
 
-### 1.3 Raid Koruması
-- [ ] Hızlı üye akışı tespiti
-- [ ] Otomatik sunucu kilitleme
-- [ ] Hesap yaşı kontrolü
-- [ ] Doğrulama sistemi (captcha)
+### 1.3 Raid Koruması ✅
+- [x] Hızlı üye akışı tespiti
+- [x] Otomatik sunucu kilitleme (Doğrulama Seviyesi Yükseltme)
+- [x] Hesap yaşı kontrolü
+- [x] Detaylı Uyarı ve Ceza logları
 
 ---
 
 ## Faz 2: Topluluk Özellikleri (Planlanan)
 
-### 2.1 Seviye Sistemi İyileştirmeleri
-- [ ] XP kartları (özel tasarım)
-- [ ] Seviye rolleri
-- [ ] Haftalık/Aylık XP sıralaması
-- [ ] XP çarpanları (belirli kanallarda daha fazla XP)
-- [ ] Sesli kanal XP'si
+### 2.1 Seviye Sistemi İyileştirmeleri ✅
+- [x] XP kartları (özel Canvas tasarım)
+- [x] Seviye rolleri (otomatik)
+- [x] Haftalık/Aylık XP sıralaması
+- [x] XP çarpanları (belirli kanallarda daha fazla XP)
+- [x] Sesli kanal XP'si
 
 ### 2.2 Ekonomi Sistemi
-- [ ] Sunucu parası
-- [ ] Günlük/Haftalık ödüller
-- [ ] Çalışma komutları
+- [x] Sunucu parası
+- [x] Günlük/Haftalık ödüller
+- [x] Çalışma komutları
+- [x] **6.2 Database Optimizasyonu:** N+1 sorgularının azaltılması.
 - [ ] Mağaza sistemi
 - [ ] Rol satın alma
 - [ ] Kumar oyunları (slot, blackjack, rulet)
 
-### 2.3 Profil Sistemi
-- [ ] Özel profil kartları
-- [ ] Rozetler ve başarılar
-- [ ] Biyografi
-- [ ] Sosyal medya bağlantıları
+### 2.3 Profil Sistemi ✅
+- [x] Özel profil kartları (Canvas ile resimli)
+- [ ] Rozetler ve başarılar (Lethe DB üzerinde kısmen var)
+- [x] Biyografi
+- [ ] Sosyal medya bağlantıları (Planlanıyor)
 
 ---
 
 ## Faz 3: Otomasyon İyileştirmeleri (Planlanan)
 
-### 3.1 Gelişmiş AutoMod
+### 3.1 Gelişmiş AutoMod ✅
+- [x] Özel kelime listeleri
+- [x] Kanal bazlı kurallar (Muafiyet)
+- [x] Rol muafiyetleri
 - [ ] Regex tabanlı filtreler
-- [ ] Özel kelime listeleri
-- [ ] Kanal bazlı kurallar
-- [ ] Rol muafiyetleri
 - [ ] AI destekli içerik moderasyonu
 
 ### 3.2 Gelişmiş Zamanlanmış Mesajlar
@@ -134,17 +135,18 @@ Bu dosya, Publisher Discord botunun temel özelliklerinin gelişimi için planla
 
 ## Faz 4: Etkileşim Özellikleri (Planlanan)
 
-### 4.1 Gelişmiş Anket Sistemi
-- [ ] Çoklu seçim anketleri
+### 4.1 Gelişmiş Anket Sistemi ✅
+- [x] Çoklu seçim anketleri
+- [x] Süre sınırlı anketler
+- [x] Otomatik sonuç açıklama
 - [ ] Anonim oylama
-- [ ] Süre sınırlı anketler
 - [ ] Rol bazlı oylama
 - [ ] Anket sonuçları grafiği
 
-### 4.2 Yarışma Sistemi
-- [ ] Bilgi yarışmaları
+### 4.2 Yarışma Sistemi ✅
+- [x] Bilgi yarışmaları (Minigame)
+- [x] Otomatik ödül dağıtımı (Ekonomi sistemiyle entegre)
 - [ ] Puan tabanlı yarışmalar
-- [ ] Otomatik ödül dağıtımı
 - [ ] Yarışma geçmişi
 
 ### 4.3 Etkinlik Yönetimi
@@ -157,10 +159,10 @@ Bu dosya, Publisher Discord botunun temel özelliklerinin gelişimi için planla
 
 ## Faz 5: Entegrasyon İyileştirmeleri (Planlanan)
 
-### 5.1 Sosyal Medya Genişletme
-- [ ] YouTube video bildirimleri (iyileştirme)
-- [ ] Twitch canlı yayın bildirimleri (iyileştirme)
-- [ ] Reddit post bildirimleri
+### 5.1 Sosyal Medya Genişletme ✅
+- [x] YouTube video bildirimleri (RSS)
+- [x] Reddit post bildirimleri (JSON)
+- [ ] Twitch canlı yayın bildirimleri
 - [ ] GitHub commit bildirimleri
 
 ### 5.2 Müzik Özellikleri
@@ -169,21 +171,21 @@ Bu dosya, Publisher Discord botunun temel özelliklerinin gelişimi için planla
 - [ ] Çalma listeleri
 - [ ] DJ modu
 
-### 5.3 API Entegrasyonları
-- [ ] Hava durumu
-- [ ] Döviz kurları
-- [ ] Oyun istatistikleri (Steam, LOL, Valorant)
-- [ ] Film/Dizi bilgileri
+### 5.3 API Entegrasyonları ✅
+- [x] Hava durumu (wttr.in)
+- [x] Döviz kurları (Truncgil Finans)
+- [x] Oyun istatistikleri (Steam Store API, Valorant/HenrikDev, LOL/Riot API)
+- [x] Film/Dizi bilgileri (OMDB + TVMaze fallback)
 
 ---
 
 ## Faz 6: Dashboard İyileştirmeleri (Planlanan)
 
 ### 6.1 Yeni Arayüz
-- [ ] Modern tasarım
-- [ ] Karanlık/Aydınlık tema
-- [ ] Mobil uyumlu tasarım
-- [ ] Gerçek zamanlı istatistikler
+- [x] Modern tasarım
+- [x] Karanlık/Aydınlık tema
+- [x] Mobil uyumlu tasarım
+- [x] Gerçek zamanlı istatistikler
 
 ### 6.2 Gelişmiş Yönetim
 - [ ] Toplu işlemler
@@ -191,9 +193,9 @@ Bu dosya, Publisher Discord botunun temel özelliklerinin gelişimi için planla
 - [ ] Yedekleme sistemi
 - [ ] Değişiklik geçmişi
 
-### 6.3 Analitik
-- [ ] Üye büyüme grafikleri
-- [ ] Mesaj istatistikleri
+### 6.3 Analitik ✅
+- [x] Üye büyüme grafikleri (Chart.js)
+- [x] Mesaj istatistikleri (Chart.js)
 - [ ] Komut kullanım analizi
 - [ ] Aktif saat analizi
 

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="tr">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,6 +9,7 @@
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
   <link href="/css/dashboard.css" rel="stylesheet">
 </head>
+
 <body>
   <div class="dashboard-container">
     <aside class="sidebar" id="sidebar">
@@ -17,7 +19,7 @@
         </div>
         <span class="bot-name">Publisher</span>
       </div>
-      
+
       <div class="guild-selector">
         <div class="guild-dropdown" id="guildDropdown">
           <div class="guild-icon-small" id="guildIconSmall"></div>
@@ -25,7 +27,7 @@
           <i class="fas fa-chevron-down" style="margin-left: auto;"></i>
         </div>
       </div>
-      
+
       <nav class="nav-section">
         <div class="nav-section-title">Genel</div>
         <a class="nav-item active" data-page="features">
@@ -36,12 +38,24 @@
           <i class="fas fa-trophy"></i>
           <span>Sıralama</span>
         </a>
+        <a class="nav-item" data-page="modcases">
+          <i class="fas fa-gavel"></i>
+          <span>Mod Vakaları</span>
+        </a>
         <a class="nav-item" data-page="settings">
           <i class="fas fa-cog"></i>
           <span>Ayarlar</span>
         </a>
+        <!-- Bot Owner only — shown via JS -->
+        <a class="nav-item" id="adminNavLink" href="/admin/apikeys"
+          style="display:none; background:linear-gradient(135deg,rgba(88,101,242,0.15),rgba(235,69,158,0.1)); border:1px solid rgba(88,101,242,0.25);">
+          <i class="fas fa-key" style="color:#eb459e;"></i>
+          <span
+            style="background:linear-gradient(90deg,#5865f2,#eb459e);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">API
+            Anahtarları</span>
+        </a>
       </nav>
-      
+
       <nav class="nav-section">
         <div class="nav-section-title">Temel</div>
         <a class="nav-item" data-feature="welcome">
@@ -65,7 +79,7 @@
           <span>Başarımlar</span>
         </a>
       </nav>
-      
+
       <nav class="nav-section">
         <div class="nav-section-title">Sunucu Yönetimi</div>
         <a class="nav-item" data-feature="automation">
@@ -84,8 +98,12 @@
           <i class="fas fa-ticket"></i>
           <span>Talep</span>
         </a>
+        <a class="nav-item" data-feature="antiraid">
+          <i class="fas fa-shield-virus"></i>
+          <span>Anti-Raid</span>
+        </a>
       </nav>
-      
+
       <nav class="nav-section">
         <div class="nav-section-title">Araçlar</div>
         <a class="nav-item" data-feature="embed">
@@ -113,7 +131,7 @@
           <span>Kayıt</span>
         </a>
       </nav>
-      
+
       <nav class="nav-section">
         <div class="nav-section-title">Sosyal Medya Bildirimleri</div>
         <a class="nav-item" data-feature="twitch">
@@ -145,7 +163,7 @@
           <span>RSS Bildirimleri</span>
         </a>
       </nav>
-      
+
       <nav class="nav-section">
         <div class="nav-section-title">Oyun & Eğlence</div>
         <a class="nav-item" data-feature="giveaway">
@@ -162,7 +180,7 @@
         </a>
       </nav>
     </aside>
-    
+
     <main class="main-content">
       <header class="top-bar">
         <div style="display: flex; align-items: center; gap: 12px;">
@@ -186,13 +204,13 @@
           </div>
         </div>
       </header>
-      
+
       <div class="content-area" id="contentArea">
         <div class="loading-container" id="loadingContainer">
           <div class="loading-spinner"></div>
           <p>Yükleniyor...</p>
         </div>
-        
+
         <div id="featuresPage" style="display: none;">
           <div class="stats-grid" id="statsGrid">
             <div class="stat-card">
@@ -216,7 +234,24 @@
               <div class="stat-label">Aktif Modul</div>
             </div>
           </div>
-          
+
+          <!-- Analytics Charts (Phase 6) -->
+          <div class="charts-container"
+            style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px;">
+            <div class="chart-box"
+              style="background: var(--bg-secondary); border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+              <h3 style="margin-top:0; font-size: 1.1rem; color: var(--text-primary); margin-bottom: 15px;">🚀 Üye
+                Büyüme Grafiği (Son 7 Gün)</h3>
+              <canvas id="growthChart" height="200"></canvas>
+            </div>
+            <div class="chart-box"
+              style="background: var(--bg-secondary); border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+              <h3 style="margin-top:0; font-size: 1.1rem; color: var(--text-primary); margin-bottom: 15px;">💬 Mesaj
+                Trafiği (Son 7 Gün)</h3>
+              <canvas id="messagesChart" height="200"></canvas>
+            </div>
+          </div>
+
           <div class="tabs-container">
             <button class="tab-btn active" data-tab="all">Tum Ozellikler</button>
             <button class="tab-btn" data-tab="basic">Temel</button>
@@ -226,38 +261,63 @@
             <button class="tab-btn" data-tab="social">Sosyal Medya</button>
             <button class="tab-btn" data-tab="games">Oyun & Eglence</button>
           </div>
-          
+
           <div id="basicSection">
             <h2 class="section-title">Temel</h2>
             <div class="features-grid" id="basicFeatures"></div>
           </div>
-          
+
           <div id="managementSection">
             <h2 class="section-title">Sunucu Yönetimi</h2>
             <div class="features-grid" id="managementFeatures"></div>
           </div>
-          
+
           <div id="toolsSection">
             <h2 class="section-title">Araçlar</h2>
             <div class="features-grid" id="toolsFeatures"></div>
           </div>
-          
+
           <div id="socialSection">
             <h2 class="section-title">Sosyal Medya Bildirimleri</h2>
             <div class="features-grid" id="socialFeatures"></div>
           </div>
-          
+
           <div id="gamesSection">
             <h2 class="section-title">Oyun & Eğlence</h2>
             <div class="features-grid" id="gamesFeatures"></div>
           </div>
         </div>
-        
+
         <div id="leaderboardPage" style="display: none;">
           <h2 class="section-title">Liderlik Tablosu</h2>
           <div id="leaderboardContent"></div>
         </div>
-        
+
+        <div id="modcasesPage" style="display: none;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2 class="section-title" style="margin: 0;">Moderasyon Vakaları</h2>
+            <div style="display: flex; gap: 8px;">
+              <select class="form-select" id="caseTypeFilter" onchange="loadModCases()"
+                style="width: auto; padding: 8px 12px;">
+                <option value="">Tüm Tipler</option>
+                <option value="ban">Ban</option>
+                <option value="kick">Kick</option>
+                <option value="mute">Mute</option>
+                <option value="warn">Warn</option>
+                <option value="unmute">Unmute</option>
+                <option value="unban">Unban</option>
+              </select>
+            </div>
+          </div>
+          <div id="modcasesContent">
+            <div
+              style="display: flex; flex-direction: column; align-items: center; padding: 40px; color: var(--text-muted);">
+              <div class="loading-spinner"></div>
+              <p style="margin-top: 12px;">Vakalar yükleniyor...</p>
+            </div>
+          </div>
+        </div>
+
         <div id="settingsPage" style="display: none;">
           <h2 class="section-title">Genel Ayarlar</h2>
           <div class="feature-card" style="max-width: 600px;">
@@ -281,7 +341,7 @@
       </div>
     </main>
   </div>
-  
+
   <div class="modal-overlay" id="modalOverlay">
     <div class="modal" id="modal">
       <div class="modal-header">
@@ -292,30 +352,47 @@
       <div class="modal-footer" id="modalFooter"></div>
     </div>
   </div>
-  
+
   <div class="toast-container"></div>
-  
+
   <script>
     const guildId = window.location.pathname.split('/').pop();
     let guildData = null;
     let settings = {};
     let modules = {};
-    
+
+    // ── Bot owner guard: reveal admin nav link for the owner only ────────────
+    const BOT_OWNER_ID = '259442832576741377';
+    (async () => {
+      try {
+        const userRes = await fetch('/api/user');
+        if (userRes.ok) {
+          const user = await userRes.json();
+          if (user.id === BOT_OWNER_ID) {
+            const link = document.getElementById('adminNavLink');
+            if (link) link.style.display = '';
+          }
+        }
+      } catch (_) { }
+    })();
+    // ─────────────────────────────────────────────────────────────────────────
+
+
     function toggleTheme() {
       const html = document.documentElement;
       const currentTheme = html.getAttribute('data-theme');
       const newTheme = currentTheme === 'light' ? 'dark' : 'light';
       html.setAttribute('data-theme', newTheme);
       localStorage.setItem('theme', newTheme);
-      
+
       const icon = document.querySelector('.theme-toggle i');
       icon.className = newTheme === 'light' ? 'fas fa-sun' : 'fas fa-moon';
     }
-    
+
     function toggleSidebar() {
       document.getElementById('sidebar').classList.toggle('open');
     }
-    
+
     function loadSavedTheme() {
       const savedTheme = localStorage.getItem('theme') || 'dark';
       document.documentElement.setAttribute('data-theme', savedTheme);
@@ -324,25 +401,25 @@
         icon.className = savedTheme === 'light' ? 'fas fa-sun' : 'fas fa-moon';
       }
     }
-    
+
     function updateStats() {
       if (!guildData) return;
-      
+
       document.getElementById('statMembers').textContent = guildData.memberCount || '-';
       const channelCount = Array.isArray(guildData.channels) ? guildData.channels.length : Object.keys(guildData.channels || {}).length;
       document.getElementById('statChannels').textContent = channelCount || '-';
-      
+
       const activeModules = Object.values(modules).filter(v => v === true).length;
       document.getElementById('statModules').textContent = activeModules;
-      
+
       const onlineCount = guildData.presenceCount || Math.floor((guildData.memberCount || 0) * 0.3);
       document.getElementById('statOnline').textContent = onlineCount;
     }
-    
+
     function showToast(message, type = 'success') {
       const container = document.querySelector('.toast-container');
       if (!container) return;
-      
+
       const toast = document.createElement('div');
       toast.className = `toast-item ${type}`;
       toast.innerHTML = `
@@ -359,7 +436,7 @@
         setTimeout(() => toast.remove(), 300);
       }, 5000);
     }
-    
+
     // Helper to check if log type is enabled (handles both old and new formats)
     function isLogEnabled(logConfig, type) {
       if (!logConfig) return false;
@@ -368,7 +445,7 @@
       if (value && typeof value === 'object' && value.enabled === true) return true;
       return false;
     }
-    
+
     const features = {
       basic: [
         { id: 'welcome', name: 'Hoşgeldin & Hoşçakal', description: 'Yeni üyelerinize otomatik bir karşılama mesajı gönderin ve onlara roller verin. Sunucudan ayrılan üyelere hoşçakal mesajı gönderin.', icon: 'fa-hand-wave', color: 'blue' },
@@ -382,7 +459,8 @@
         { id: 'automation', name: 'Otomasyon', description: 'Mesajlar, tepkiler ve rol değişiklikleri gibi sunucu olaylarına yanıt olarak bot eylemlerini otomatikleştirin.', icon: 'fa-robot', color: 'blue', premium: true },
         { id: 'customcommands', name: 'Özel Komutlar', description: 'Kendi metin komutlarınızı veya belirli roller veren komutlarınızı oluşturun.', icon: 'fa-terminal', color: 'purple' },
         { id: 'invitetracker', name: 'Davet Takibi', description: 'Üyelerinizin topluluğunuza kaç kişi getirdiğini takip edin ve onları bir sıralama sayfasında görüntüleyin.', icon: 'fa-user-plus', color: 'cyan' },
-        { id: 'tickets', name: 'Talep', description: 'Üyelerinizin destek, şikayet ve öneri için talep oluşturmasına izin verin.', icon: 'fa-ticket', color: 'green' }
+        { id: 'tickets', name: 'Talep', description: 'Üyelerinizin destek, şikayet ve öneri için talep oluşturmasına izin verin.', icon: 'fa-ticket', color: 'green' },
+        { id: 'antiraid', name: 'Anti-Raid', description: 'Sunucunuza yapılan toplu bot veya üye saldırılarını otomatik tespit edip engelleyin.', icon: 'fa-shield-virus', color: 'red', new: true }
       ],
       tools: [
         { id: 'embed', name: 'Gömülü Mesaj', description: 'Küçük resimler ve renklerle kurallarınız ile duyurularınız için güzel gömülü mesajları oluşturun.', icon: 'fa-code', color: 'purple', premium: true },
@@ -410,7 +488,7 @@
         { id: 'economy', name: 'Lethe Game', description: 'Hayvan avlama, pet toplama ve savaş sistemi ile eğlenceli bir koleksiyon oyunu!', icon: 'fa-gamepad', color: 'purple' }
       ]
     };
-    
+
     async function init() {
       try {
         const userRes = await fetch('/api/user');
@@ -419,10 +497,10 @@
           return;
         }
         const user = await userRes.json();
-        document.getElementById('userAvatar').src = user.avatar 
+        document.getElementById('userAvatar').src = user.avatar
           ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`
           : 'https://cdn.discordapp.com/embed/avatars/0.png';
-        
+
         const guildRes = await fetch(`/api/guild/${guildId}`);
         if (!guildRes.ok) {
           window.location.href = '/dashboard';
@@ -431,7 +509,7 @@
         guildData = await guildRes.json();
         settings = guildData.settings || {};
         modules = settings.modules || {};
-        
+
         document.getElementById('guildNameSmall').textContent = guildData.name;
         const iconEl = document.getElementById('guildIconSmall');
         if (guildData.icon) {
@@ -439,12 +517,13 @@
         } else {
           iconEl.textContent = guildData.name.charAt(0);
         }
-        
+
         document.getElementById('loadingContainer').style.display = 'none';
         document.getElementById('featuresPage').style.display = 'block';
-        
+
         loadSavedTheme();
         updateStats();
+        loadAnalytics(); // Load Chart.js analytics logic
         renderFeatures();
         setupEventListeners();
         populateSettingsSelects();
@@ -453,22 +532,22 @@
         showToast('Bir hata oluştu', 'error');
       }
     }
-    
+
     function populateSettingsSelects() {
-      const channelOptions = '<option value="">Kanal Seçin</option>' + 
+      const channelOptions = '<option value="">Kanal Seçin</option>' +
         guildData.channels.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
-      const roleOptions = '<option value="">Rol Seçin</option>' + 
+      const roleOptions = '<option value="">Rol Seçin</option>' +
         guildData.roles.map(r => `<option value="${r.id}">${r.name}</option>`).join('');
-      
+
       document.getElementById('settingsLogChannel').innerHTML = channelOptions;
       document.getElementById('settingsAutoRole').innerHTML = roleOptions;
       document.getElementById('settingsMuteRole').innerHTML = roleOptions;
-      
+
       if (settings.logChannel) document.getElementById('settingsLogChannel').value = settings.logChannel;
       if (settings.autoRole) document.getElementById('settingsAutoRole').value = settings.autoRole;
       if (settings.muteRole) document.getElementById('settingsMuteRole').value = settings.muteRole;
     }
-    
+
     function renderFeatures() {
       renderFeatureCards('basicFeatures', features.basic);
       renderFeatureCards('managementFeatures', features.management);
@@ -476,18 +555,18 @@
       renderFeatureCards('socialFeatures', features.social);
       renderFeatureCards('gamesFeatures', features.games);
     }
-    
+
     function renderFeatureCards(containerId, featureList) {
       const container = document.getElementById(containerId);
       container.innerHTML = featureList.map(feature => {
         const isActive = modules[feature.id] === true;
         const iconClass = feature.iconType === 'fab' ? 'fab' : 'fas';
-        
+
         const badges = [];
         if (feature.premium) badges.push('<span class="feature-badge premium"><i class="fas fa-crown"></i> Premium</span>');
         if (feature.new) badges.push('<span class="feature-badge new"><i class="fas fa-sparkles"></i> Yeni</span>');
         if (isActive) badges.push('<span class="feature-badge active"><i class="fas fa-check"></i> Aktif</span>');
-        
+
         return `
           <div class="feature-card ${isActive ? 'active' : ''} ${feature.premium ? 'premium' : ''}" data-feature="${feature.id}">
             ${badges.length > 0 ? '<div class="feature-badges">' + badges.join('') + '</div>' : ''}
@@ -501,17 +580,17 @@
             </div>
             <p class="feature-description">${feature.description}</p>
             <div class="feature-actions">
-              ${isActive 
-                ? `<button class="btn btn-success" onclick="event.stopPropagation(); toggleFeature('${feature.id}')"><i class="fas fa-check"></i> Aktif</button>
+              ${isActive
+            ? `<button class="btn btn-success" onclick="event.stopPropagation(); toggleFeature('${feature.id}')"><i class="fas fa-check"></i> Aktif</button>
                    <button class="btn btn-secondary" onclick="event.stopPropagation(); openFeatureSettings('${feature.id}')"><i class="fas fa-cog"></i> Ayarlar</button>`
-                : `<button class="btn btn-primary" onclick="enableFeature('${feature.id}')"><i class="fas fa-plus"></i> Etkinleştir</button>`
-              }
+            : `<button class="btn btn-primary" onclick="enableFeature('${feature.id}')"><i class="fas fa-plus"></i> Etkinleştir</button>`
+          }
             </div>
           </div>
         `;
       }).join('');
     }
-    
+
     function setupEventListeners() {
       document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -520,7 +599,7 @@
           filterFeatures(btn.dataset.tab);
         });
       });
-      
+
       document.querySelectorAll('.nav-item[data-page]').forEach(item => {
         item.addEventListener('click', () => {
           document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
@@ -528,7 +607,7 @@
           navigateTo(item.dataset.page);
         });
       });
-      
+
       document.querySelectorAll('.nav-item[data-feature]').forEach(item => {
         item.addEventListener('click', () => {
           document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
@@ -536,15 +615,15 @@
           openFeatureSettings(item.dataset.feature);
         });
       });
-      
+
       document.getElementById('guildDropdown').addEventListener('click', () => {
         window.location.href = '/dashboard';
       });
     }
-    
+
     function filterFeatures(tab) {
       const sections = ['basicSection', 'managementSection', 'toolsSection', 'socialSection', 'gamesSection'];
-      
+
       if (tab === 'all') {
         sections.forEach(s => document.getElementById(s).style.display = 'block');
       } else {
@@ -556,18 +635,19 @@
           social: ['socialSection'],
           games: ['gamesSection']
         };
-        
+
         sections.forEach(s => {
           document.getElementById(s).style.display = mapping[tab]?.includes(s) ? 'block' : 'none';
         });
       }
     }
-    
+
     function navigateTo(page) {
-      document.getElementById('featuresPage').style.display = 'none';
-      document.getElementById('leaderboardPage').style.display = 'none';
-      document.getElementById('settingsPage').style.display = 'none';
-      
+      ['featuresPage', 'leaderboardPage', 'settingsPage', 'modcasesPage'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = 'none';
+      });
+
       if (page === 'features') {
         document.getElementById('pageTitle').textContent = 'Özellikler';
         document.getElementById('featuresPage').style.display = 'block';
@@ -575,41 +655,50 @@
         document.getElementById('pageTitle').textContent = 'Sıralama';
         document.getElementById('leaderboardPage').style.display = 'block';
         loadLeaderboard();
+      } else if (page === 'modcases') {
+        document.getElementById('pageTitle').textContent = 'Mod Vakaları';
+        document.getElementById('modcasesPage').style.display = 'block';
+        loadModCases();
       } else if (page === 'settings') {
         document.getElementById('pageTitle').textContent = 'Ayarlar';
         document.getElementById('settingsPage').style.display = 'block';
       }
     }
-    
+
     async function loadLeaderboard() {
+      const container = document.getElementById('leaderboardContent');
+      container.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;padding:40px;color:var(--text-muted);"><div class="loading-spinner"></div><p style="margin-top:12px;">Yükleniyor...</p></div>';
       try {
         const res = await fetch(`/api/guild/${guildId}/leaderboard`);
         const data = await res.json();
-        
-        const container = document.getElementById('leaderboardContent');
-        if (data.length === 0) {
-          container.innerHTML = '<div class="feature-card"><p>Henüz sıralama verisi yok.</p></div>';
+
+        if (!Array.isArray(data) || data.length === 0) {
+          container.innerHTML = '<div class="feature-card"><p style="color:var(--text-muted);">Henüz sıralama verisi yok. Üyeler mesaj gönderdikçe burada görünecek.</p></div>';
           return;
         }
-        
+
+        const rankColors = ['var(--accent-yellow)', '#C0C0C0', 'var(--accent-orange)'];
         container.innerHTML = data.map((user, index) => {
-          const progress = ((user.xp - user.currentLevelXp) / (user.nextLevelXp - user.currentLevelXp)) * 100;
-          const rankClass = index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? 'bronze' : '';
-          
+          const currentXp = user.currentLevelXp || 0;
+          const nextXp = user.nextLevelXp || 1;
+          const progress = Math.max(0, Math.min(100, ((user.xp - currentXp) / (nextXp - currentXp)) * 100));
+          const rankBg = index < 3 ? rankColors[index] : 'var(--bg-tertiary)';
+          const rankColor = index < 3 ? '#000' : 'var(--text-secondary)';
+
           return `
-            <div class="feature-card" style="margin-bottom: 12px; padding: 16px;">
+            <div class="feature-card" style="margin-bottom: 10px; padding: 14px;">
               <div style="display: flex; align-items: center; gap: 16px;">
-                <div style="width: 40px; height: 40px; border-radius: 50%; background: ${rankClass ? 'var(--accent-' + (rankClass === 'gold' ? 'yellow' : rankClass === 'silver' ? 'blue' : 'orange') + ')' : 'var(--bg-tertiary)'}; display: flex; align-items: center; justify-content: center; font-weight: 700; color: ${rankClass ? '#000' : 'var(--text-secondary)'};">
+                <div style="min-width:40px; height:40px; border-radius:50%; background:${rankBg}; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:15px; color:${rankColor};">
                   ${index + 1}
                 </div>
-                <div style="flex: 1;">
-                  <div style="font-weight: 600;">${user.username}</div>
-                  <div style="font-size: 13px; color: var(--text-secondary);">Seviye ${user.level} - ${user.xp} XP</div>
-                  <div style="height: 6px; background: var(--bg-tertiary); border-radius: 3px; margin-top: 8px; overflow: hidden;">
-                    <div style="height: 100%; width: ${progress}%; background: var(--accent-blue); border-radius: 3px;"></div>
+                <div style="flex: 1; min-width: 0;">
+                  <div style="font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${user.username || 'Bilinmeyen'}</div>
+                  <div style="font-size: 13px; color: var(--text-secondary); margin-top: 2px;">Seviye ${user.level} · ${user.xp.toLocaleString('tr-TR')} XP</div>
+                  <div style="height: 5px; background: var(--bg-tertiary); border-radius: 3px; margin-top: 8px; overflow: hidden;">
+                    <div style="height:100%; width:${progress.toFixed(1)}%; background:var(--accent-blue); border-radius:3px; transition: width 0.5s ease;"></div>
                   </div>
                 </div>
-                <div style="background: var(--accent-blue); padding: 6px 14px; border-radius: 20px; font-weight: 600; font-size: 14px;">
+                <div style="background: rgba(88,101,242,0.15); border: 1px solid var(--accent-blue); color: var(--accent-blue); padding:5px 12px; border-radius: 20px; font-weight:600; font-size:13px; white-space:nowrap;">
                   LVL ${user.level}
                 </div>
               </div>
@@ -618,53 +707,119 @@
         }).join('');
       } catch (error) {
         console.error('Leaderboard error:', error);
+        container.innerHTML = '<div class="feature-card"><p style="color:var(--accent-red);"><i class="fas fa-exclamation-circle"></i> Sıralama verisi yüklenemedi.</p></div>';
       }
     }
-    
+
+    async function loadModCases() {
+      const container = document.getElementById('modcasesContent');
+      const typeFilter = document.getElementById('caseTypeFilter')?.value || '';
+
+      try {
+        const res = await fetch(`/api/guild/${guildId}/cases`);
+        let cases = await res.json();
+
+        if (typeFilter) cases = cases.filter(c => c.type === typeFilter);
+
+        if (!Array.isArray(cases) || cases.length === 0) {
+          container.innerHTML = '<div class="feature-card"><p style="color:var(--text-muted);">Bu filtreye uygun moderasyon vakası yok.</p></div>';
+          return;
+        }
+
+        const typeConfig = {
+          ban: { color: 'var(--accent-red)', icon: 'fa-ban', label: 'Ban' },
+          kick: { color: 'var(--accent-orange)', icon: 'fa-person-walking-arrow-right', label: 'Kick' },
+          mute: { color: 'var(--accent-purple)', icon: 'fa-microphone-slash', label: 'Mute' },
+          warn: { color: 'var(--accent-yellow)', icon: 'fa-triangle-exclamation', label: 'Uyarı' },
+          unmute: { color: 'var(--accent-green)', icon: 'fa-microphone', label: 'Unmute' },
+          unban: { color: 'var(--accent-green)', icon: 'fa-check-circle', label: 'Unban' }
+        };
+
+        container.innerHTML = `
+          <div style="overflow-x:auto;">
+            <table style="width:100%; border-collapse:collapse; font-size:14px;">
+              <thead>
+                <tr style="color:var(--text-muted); text-align:left; border-bottom: 1px solid var(--border-color);">
+                  <th style="padding:10px 12px;">#</th>
+                  <th style="padding:10px 12px;">Tip</th>
+                  <th style="padding:10px 12px;">Kullanıcı</th>
+                  <th style="padding:10px 12px;">Yetkili</th>
+                  <th style="padding:10px 12px;">Sebep</th>
+                  <th style="padding:10px 12px;">Tarih</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${cases.map(c => {
+          const cfg = typeConfig[c.type] || { color: 'var(--text-muted)', icon: 'fa-circle', label: c.type };
+          const date = c.createdAt ? new Date(c.createdAt).toLocaleDateString('tr-TR') : '-';
+          return `<tr style="border-bottom: 1px solid var(--border-color); transition: background 0.15s;" onmouseenter="this.style.background='var(--bg-hover)'" onmouseleave="this.style.background=''">
+                    <td style="padding:10px 12px; color:var(--text-muted);">#${c.caseNumber || c.id}</td>
+                    <td style="padding:10px 12px;">
+                      <span style="display:inline-flex; align-items:center; gap:6px; padding:3px 10px; border-radius:12px; font-size:12px; font-weight:600; background:${cfg.color}22; color:${cfg.color};">
+                        <i class="fas ${cfg.icon}"></i> ${cfg.label}
+                      </span>
+                    </td>
+                    <td style="padding:10px 12px; font-family: monospace; font-size:12px; color:var(--text-secondary);">${c.userId}</td>
+                    <td style="padding:10px 12px; font-family: monospace; font-size:12px; color:var(--text-secondary);">${c.moderatorId}</td>
+                    <td style="padding:10px 12px; color:var(--text-primary); max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${c.reason || '-'}</td>
+                    <td style="padding:10px 12px; color:var(--text-muted); font-size:12px;">${date}</td>
+                  </tr>`;
+        }).join('')}
+              </tbody>
+            </table>
+          </div>
+          <p style="color:var(--text-muted); font-size:12px; margin-top:12px; text-align:right;">${cases.length} vaka gösteriliyor</p>
+        `;
+      } catch (error) {
+        console.error('Mod cases error:', error);
+        container.innerHTML = '<div class="feature-card"><p style="color:var(--accent-red);"><i class="fas fa-exclamation-circle"></i> Vakalar yüklenemedi.</p></div>';
+      }
+    }
+
     async function enableFeature(featureId) {
       modules[featureId] = true;
-      
+
       try {
         await fetch(`/api/guild/${guildId}/settings`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ modules })
         });
-        
+
         showToast('Özellik etkinleştirildi!', 'success');
         renderFeatures();
       } catch (error) {
         showToast('Hata oluştu', 'error');
       }
     }
-    
+
     async function toggleFeature(featureId) {
       modules[featureId] = false;
-      
+
       try {
         await fetch(`/api/guild/${guildId}/settings`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ modules })
         });
-        
+
         showToast('Özellik devre dışı bırakıldı', 'success');
         renderFeatures();
       } catch (error) {
         showToast('Hata oluştu', 'error');
       }
     }
-    
+
     async function disableFeature(featureId) {
       modules[featureId] = false;
-      
+
       try {
         await fetch(`/api/guild/${guildId}/settings`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ modules })
         });
-        
+
         showToast('Özellik devre dışı bırakıldı', 'success');
         renderFeatures();
         closeModal();
@@ -672,18 +827,18 @@
         showToast('Hata oluştu', 'error');
       }
     }
-    
+
     function openFeatureSettings(featureId) {
       const allFeatures = [...features.basic, ...features.management, ...features.tools, ...features.social, ...features.games];
       const feature = allFeatures.find(f => f.id === featureId);
-      
+
       if (!feature) return;
-      
+
       document.getElementById('modalTitle').textContent = feature.name + ' Ayarları';
-      
+
       let bodyContent = '';
       let footerContent = '';
-      
+
       switch (featureId) {
         case 'welcome':
           bodyContent = `
@@ -741,11 +896,11 @@
             </div>
           `;
           footerContent = `
-            <button class="btn btn-outline" onclick="disableFeature('welcome')">Devre Dışı Bırak</button>
+            <button class="btn btn-outline" onclick="confirmDisable('welcome')">Devre Dışı Bırak</button>
             <button class="btn btn-primary" onclick="saveWelcomeSettings()">Kaydet</button>
           `;
           break;
-          
+
         case 'leveling':
           bodyContent = `
             <h4 style="margin: 0 0 12px; font-size: 14px; color: #5865F2;">📊 Seviye Bildirimi</h4>
@@ -809,7 +964,7 @@
             <button class="btn btn-primary" onclick="saveLevelingSettings()">Kaydet</button>
           `;
           break;
-          
+
         case 'automod':
           bodyContent = `
             <h4 style="margin: 0 0 12px; font-size: 14px; color: #5865F2;">🛡️ Mesaj Filtreleri</h4>
@@ -847,6 +1002,18 @@
                 <small style="color: var(--text-muted); display: block;">Aşırı büyük harf kullanımını engelle</small>
               </div>
               <div class="toggle-switch ${settings.automodConfig?.caps ? 'active' : ''}" onclick="this.classList.toggle('active')" id="capsToggle"></div>
+            </div>
+            <div class="form-group" style="display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <label class="form-label" style="margin: 0;">Özel Regex Filtresi</label>
+                <small style="color: var(--text-muted); display: block;">Kendi düzenli ifadeleriniz ile gelişmiş koruma sağlayın</small>
+              </div>
+              <div class="toggle-switch ${settings.automodConfig?.regexFilter?.enabled ? 'active' : ''}" onclick="this.classList.toggle('active')" id="regexFilterToggle"></div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Regex Desenleri (Her satıra bir kural)</label>
+                <textarea class="form-textarea" id="regexPatterns" placeholder="^[0-9]{4}-[0-9]{4}$&#10;\\b(bad|banned)\\b">${(settings.automodConfig?.regexFilter?.patterns || []).join('\n')}</textarea>
+                <small style="color: var(--text-muted);">Sadece Regex bilenler için önerilir. Yanlış ifadeler mesaj gönderimini tamamen engelleyebilir.</small>
             </div>
             
             <h4 style="margin: 20px 0 12px; font-size: 14px; color: #5865F2;">⚠️ Spam Koruması</h4>
@@ -890,15 +1057,38 @@
             <button class="btn btn-primary" onclick="saveAutomodSettings()">Kaydet</button>
           `;
           break;
-          
+
         case 'logging':
           bodyContent = `
-            <div class="form-group">
-              <label class="form-label">Log Kanalı</label>
-              <select class="form-select" id="logChannel">
-                <option value="">Kanal Seçin</option>
-                ${guildData.channels.map(c => `<option value="${c.id}" ${settings.logChannel === c.id ? 'selected' : ''}>${c.name}</option>`).join('')}
-              </select>
+            <div class="log-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px;">
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label" style="font-size: 13px;">Genel / Sistem Log Kanalı</label>
+                <select class="form-select" id="logChannel">
+                  <option value="">Devre Dışı</option>
+                  ${guildData.channels.map(c => `<option value="${c.id}" ${settings.logChannel === c.id ? 'selected' : ''}>${c.name}</option>`).join('')}
+                </select>
+              </div>
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label" style="font-size: 13px;">Mod Log Kanalı (Ban, Kick, Warn)</label>
+                <select class="form-select" id="modLogChannel">
+                  <option value="">Genel kanalı kullan</option>
+                  ${guildData.channels.map(c => `<option value="${c.id}" ${settings.modLogChannel === c.id ? 'selected' : ''}>${c.name}</option>`).join('')}
+                </select>
+              </div>
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label" style="font-size: 13px;">Üye Log Kanalı (Giriş, Çıkış, Rol)</label>
+                <select class="form-select" id="memberLogChannel">
+                  <option value="">Genel kanalı kullan</option>
+                  ${guildData.channels.map(c => `<option value="${c.id}" ${settings.memberLogChannel === c.id ? 'selected' : ''}>${c.name}</option>`).join('')}
+                </select>
+              </div>
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label" style="font-size: 13px;">Mesaj Log Kanalı (Silme, Düzenleme)</label>
+                <select class="form-select" id="messageLogChannel">
+                  <option value="">Genel kanalı kullan</option>
+                  ${guildData.channels.map(c => `<option value="${c.id}" ${settings.messageLogChannel === c.id ? 'selected' : ''}>${c.name}</option>`).join('')}
+                </select>
+              </div>
             </div>
             
             <h4 style="margin: 20px 0 12px; font-size: 14px; color: #5865F2;">Mesaj Olayları</h4>
@@ -1067,7 +1257,7 @@
             <button class="btn btn-primary" onclick="saveLoggingSettings()">Kaydet</button>
           `;
           break;
-        
+
         case 'customcommands':
           loadCustomCommands();
           bodyContent = `
@@ -1088,7 +1278,38 @@
             <button class="btn btn-primary" onclick="closeModal()">Tamam</button>
           `;
           break;
-          
+
+        case 'antiraid':
+          bodyContent = `
+                <div class="form-group">
+                    <label class="form-label">Saldırı Tespiti (Saniyedeki Giriş)</label>
+                    <div style="display: flex; gap: 12px; align-items: center;">
+                        <input type="number" class="form-input" id="antiraidThreshold" value="${settings.antiraidConfig?.threshold || 5}" min="2" max="50" style="width: 80px;">
+                        <span style="color: var(--text-muted);">kullanıcı / </span>
+                        <input type="number" class="form-input" id="antiraidTimeFrame" value="${settings.antiraidConfig?.timeFrame || 10}" min="5" max="60" style="width: 80px;">
+                        <span style="color: var(--text-muted);">saniye</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Uygulanacak Ceza Action</label>
+                    <select class="form-select" id="antiraidAction">
+                        <option value="kick" ${settings.antiraidConfig?.action === 'kick' ? 'selected' : ''}>Kullanıcıları Sunucudan At (Kick)</option>
+                        <option value="ban" ${settings.antiraidConfig?.action === 'ban' ? 'selected' : ''}>Kullanıcıları Yasakla (Ban)</option>
+                        <option value="alert" ${settings.antiraidConfig?.action === 'alert' ? 'selected' : ''}>Sadece Loglara Bildir</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Minimum Hesap Yaşı (Gün)</label>
+                    <input type="number" class="form-input" id="antiraidAccountAge" value="${settings.antiraidConfig?.accountAgeDays || 0}" min="0">
+                    <small style="color: var(--text-muted);">0 yaparsanız yeni açılmış hesaplar raid olarak işaretlenmez.</small>
+                </div>
+            `;
+          footerContent = `
+                <button class="btn btn-outline" onclick="disableFeature('antiraid')">Devre Dışı Bırak</button>
+                <button class="btn btn-primary" onclick="saveAntiraidSettings()">Kaydet</button>
+            `;
+          break;
+
         case 'giveaway':
           loadGiveaways();
           bodyContent = `
@@ -1105,7 +1326,7 @@
             <button class="btn btn-primary" onclick="closeModal()">Tamam</button>
           `;
           break;
-        
+
         case 'reminders':
           loadReminders();
           bodyContent = `
@@ -1122,7 +1343,7 @@
             <button class="btn btn-primary" onclick="closeModal()">Tamam</button>
           `;
           break;
-        
+
         case 'tempvoice':
           bodyContent = `
             <div class="form-group">
@@ -1153,7 +1374,7 @@
             <button class="btn btn-primary" onclick="saveTempVoiceSettings()">Kaydet</button>
           `;
           break;
-        
+
         case 'statchannels':
           bodyContent = `
             <p style="color: var(--text-secondary); margin-bottom: 16px;">İstatistik kanalları sunucu bilgilerini gösteren ses kanalları oluşturur.</p>
@@ -1171,7 +1392,7 @@
             <button class="btn btn-primary" onclick="closeModal()">Tamam</button>
           `;
           break;
-        
+
         case 'polls':
           loadPolls();
           bodyContent = `
@@ -1187,7 +1408,7 @@
             <button class="btn btn-primary" onclick="closeModal()">Tamam</button>
           `;
           break;
-        
+
         case 'embed':
           bodyContent = `
             <p style="color: var(--text-secondary); margin-bottom: 16px;">Gömülü mesaj oluşturucu ile özel embed mesajlar oluşturun.</p>
@@ -1204,7 +1425,7 @@
             <button class="btn btn-primary" onclick="closeModal()">Tamam</button>
           `;
           break;
-        
+
         case 'achievements':
           bodyContent = `
             <p style="color: var(--text-secondary); margin-bottom: 16px;">Kullanıcılar çeşitli aktiviteler yaparak başarımlar kazanabilir.</p>
@@ -1226,7 +1447,7 @@
             <button class="btn btn-primary" onclick="closeModal()">Tamam</button>
           `;
           break;
-        
+
         case 'automation':
           bodyContent = `
             <p style="color: var(--text-secondary); margin-bottom: 16px;">Otomasyon sistemi ile sunucunuzu daha verimli yönetin.</p>
@@ -1249,7 +1470,7 @@
             <button class="btn btn-primary" onclick="closeModal()">Tamam</button>
           `;
           break;
-        
+
         case 'tickets':
           bodyContent = `
             <div class="form-group">
@@ -1266,14 +1487,22 @@
                 ${guildData.roles.map(r => `<option value="${r.id}" ${settings.ticketSupportRole === r.id ? 'selected' : ''}>${r.name}</option>`).join('')}
               </select>
             </div>
+            <div class="form-group">
+              <label class="form-label">Transcript Log Kanalı</label>
+              <select class="form-select" id="ticketLogChannel">
+                <option value="">Devre Dışı</option>
+                ${guildData.channels.filter(c => c.type === 0).map(c => `<option value="${c.id}" ${settings.ticketLogChannel === c.id ? 'selected' : ''}>${c.name}</option>`).join('')}
+              </select>
+              <small style="color:var(--text-muted);">Ticket kapandığında transcript bu kanala gönderilir</small>
+            </div>
             <p style="color: var(--text-muted); font-size: 13px; margin-top: 12px;">Bot komutu: <strong>!talep kur #kategori @rol</strong></p>
           `;
           footerContent = `
-            <button class="btn btn-outline" onclick="disableFeature('tickets')">Devre Dışı Bırak</button>
+            <button class="btn btn-outline" onclick="confirmDisable('tickets')">Devre Dışı Bırak</button>
             <button class="btn btn-primary" onclick="saveTicketSettings()">Kaydet</button>
           `;
           break;
-        
+
         case 'reactionroles':
           loadReactionRoles();
           bodyContent = `
@@ -1289,7 +1518,7 @@
             <button class="btn btn-primary" onclick="closeModal()">Tamam</button>
           `;
           break;
-        
+
         case 'birthday':
           bodyContent = `
             <h4 style="margin: 0 0 12px; font-size: 14px; color: #5865F2;">🎂 Doğum Günü Bildirimleri</h4>
@@ -1308,7 +1537,7 @@
             <div class="form-group">
               <label class="form-label">Kutlama Saati</label>
               <select class="form-select" id="birthdayTime">
-                ${Array.from({length: 24}, (_, i) => `<option value="${i}" ${(settings.birthdayConfig?.hour || 9) === i ? 'selected' : ''}>${i.toString().padStart(2, '0')}:00</option>`).join('')}
+                ${Array.from({ length: 24 }, (_, i) => `<option value="${i}" ${(settings.birthdayConfig?.hour || 9) === i ? 'selected' : ''}>${i.toString().padStart(2, '0')}:00</option>`).join('')}
               </select>
               <small style="color: var(--text-muted);">Doğum günü mesajı bu saatte gönderilir</small>
             </div>
@@ -1338,7 +1567,7 @@
             <button class="btn btn-primary" onclick="saveBirthdaySettings()">Kaydet</button>
           `;
           break;
-        
+
         case 'economy':
           const letheChannels = settings.modules?.letheChannels || [];
           bodyContent = `
@@ -1403,7 +1632,7 @@
             <button class="btn btn-primary" onclick="saveLetheSettings()">Kaydet</button>
           `;
           break;
-        
+
         case 'twitch':
         case 'kick':
         case 'youtube':
@@ -1441,7 +1670,7 @@
             <button class="btn btn-primary" onclick="closeModal()">Tamam</button>
           `;
           break;
-        
+
         case 'invitetracker':
           bodyContent = `
             <div class="form-group">
@@ -1463,7 +1692,7 @@
             <button class="btn btn-primary" onclick="saveInviteSettings()">Kaydet</button>
           `;
           break;
-        
+
         case 'help':
           bodyContent = `
             <h4 style="margin: 0 0 12px; font-size: 14px; color: #5865F2;">📖 Yardım Komutu Ayarları</h4>
@@ -1525,7 +1754,7 @@
             <button class="btn btn-primary" onclick="saveHelpSettings()">Kaydet</button>
           `;
           break;
-          
+
         default:
           bodyContent = `
             <p style="color: var(--text-secondary);">Bu özellik aktif durumda.</p>
@@ -1536,23 +1765,23 @@
             <button class="btn btn-primary" onclick="closeModal()">Tamam</button>
           `;
       }
-      
+
       document.getElementById('modalBody').innerHTML = bodyContent;
       document.getElementById('modalFooter').innerHTML = footerContent;
       document.getElementById('modalOverlay').classList.add('active');
     }
-    
+
     async function loadCustomCommands() {
       try {
         const res = await fetch(`/api/guild/${guildId}/commands`);
         const commands = await res.json();
-        
+
         const container = document.getElementById('customCommandsList');
         if (commands.length === 0) {
           container.innerHTML = '<p style="color: var(--text-muted);">Henüz özel komut yok.</p>';
           return;
         }
-        
+
         container.innerHTML = commands.map(cmd => `
           <div class="feature-card" style="background: var(--bg-tertiary); margin-bottom: 8px; padding: 12px; display: flex; justify-content: space-between; align-items: center;">
             <div>
@@ -1568,23 +1797,23 @@
         console.error('Commands error:', error);
       }
     }
-    
+
     async function addCustomCommand() {
       const name = document.getElementById('newCommandName').value.trim();
       const response = document.getElementById('newCommandResponse').value.trim();
-      
+
       if (!name || !response) {
         showToast('Lütfen tüm alanları doldurun', 'error');
         return;
       }
-      
+
       try {
         await fetch(`/api/guild/${guildId}/commands`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ name, response })
         });
-        
+
         showToast('Komut eklendi!', 'success');
         document.getElementById('newCommandName').value = '';
         document.getElementById('newCommandResponse').value = '';
@@ -1593,7 +1822,7 @@
         showToast('Hata oluştu', 'error');
       }
     }
-    
+
     async function deleteCustomCommand(name) {
       try {
         await fetch(`/api/guild/${guildId}/commands/${name}`, { method: 'DELETE' });
@@ -1603,11 +1832,11 @@
         showToast('Hata oluştu', 'error');
       }
     }
-    
+
     function closeModal() {
       document.getElementById('modalOverlay').classList.remove('active');
     }
-    
+
     async function saveWelcomeSettings() {
       const newSettings = {
         welcomeChannel: document.getElementById('welcomeChannel').value,
@@ -1619,10 +1848,10 @@
         autoRole: document.getElementById('autoRole').value,
         modules: { ...modules, welcome: true }
       };
-      
+
       await saveSettings(newSettings);
     }
-    
+
     async function saveLevelingSettings() {
       const newSettings = {
         levelUpChannel: document.getElementById('levelUpChannel').value,
@@ -1634,46 +1863,49 @@
         levelRoles: settings.levelRoles || [],
         modules: { ...modules, leveling: true }
       };
-      
+
       await saveSettings(newSettings);
     }
-    
+
     async function addLevelRole() {
       const level = parseInt(document.getElementById('newLevelRoleLevel').value);
       const roleId = document.getElementById('newLevelRoleRole').value;
-      
+
       if (!level || !roleId) {
         showToast('Lütfen seviye ve rol seçin', 'error');
         return;
       }
-      
+
       const levelRoles = settings.levelRoles || [];
       if (levelRoles.some(lr => lr.level === level)) {
         showToast('Bu seviye için zaten bir rol var', 'error');
         return;
       }
-      
+
       levelRoles.push({ level, roleId });
       levelRoles.sort((a, b) => a.level - b.level);
       settings.levelRoles = levelRoles;
-      
+
       await saveSettings({ levelRoles, modules: { ...modules, leveling: true } });
       openFeatureSettings('leveling');
     }
-    
+
     async function removeLevelRole(index) {
       const levelRoles = settings.levelRoles || [];
       levelRoles.splice(index, 1);
       settings.levelRoles = levelRoles;
-      
+
       await saveSettings({ levelRoles, modules: { ...modules, leveling: true } });
       openFeatureSettings('leveling');
     }
-    
+
     async function saveAutomodSettings() {
       const exemptRolesSelect = document.getElementById('automodExemptRoles');
       const exemptRoles = exemptRolesSelect ? Array.from(exemptRolesSelect.selectedOptions).map(opt => opt.value) : [];
-      
+
+      const regexPatternsRaw = document.getElementById('regexPatterns')?.value || '';
+      const regexPatterns = regexPatternsRaw.split('\n').map(p => p.trim()).filter(p => p.length > 0);
+
       const automodConfig = {
         badWords: document.getElementById('badWordsToggle')?.classList.contains('active') || false,
         spam: document.getElementById('spamToggle')?.classList.contains('active') || false,
@@ -1683,12 +1915,17 @@
         mentionSpam: document.getElementById('mentionSpamToggle')?.classList.contains('active') || false,
         emojiSpam: document.getElementById('emojiSpamToggle')?.classList.contains('active') || false,
         rateLimit: document.getElementById('rateLimitToggle')?.classList.contains('active') || false,
+        regexFilter: {
+          enabled: document.getElementById('regexFilterToggle')?.classList.contains('active') || false,
+          patterns: regexPatterns,
+          action: 'delete'
+        },
         exemptRoles: exemptRoles
       };
-      
+
       await saveSettings({ automodConfig, modules: { ...modules, automod: true } });
     }
-    
+
     async function saveLoggingSettings() {
       const logConfig = {
         messageDelete: document.getElementById('logMessageDelete')?.checked || false,
@@ -1718,32 +1955,48 @@
         voiceLeave: document.getElementById('logVoiceLeave')?.checked || false,
         voiceMove: document.getElementById('logVoiceMove')?.checked || false
       };
-      
-      const logChannel = document.getElementById('logChannel').value;
-      
-      await saveSettings({ logChannel, logConfig, modules: { ...modules, logging: true } });
+
+      const logChannel = document.getElementById('logChannel')?.value || null;
+      const modLogChannel = document.getElementById('modLogChannel')?.value || null;
+      const memberLogChannel = document.getElementById('memberLogChannel')?.value || null;
+      const messageLogChannel = document.getElementById('messageLogChannel')?.value || null;
+
+      await saveSettings({ logChannel, modLogChannel, memberLogChannel, messageLogChannel, logConfig, modules: { ...modules, logging: true } });
     }
-    
+
     async function saveGeneralSettings() {
       const newSettings = {
         logChannel: document.getElementById('settingsLogChannel').value,
         autoRole: document.getElementById('settingsAutoRole').value,
         muteRole: document.getElementById('settingsMuteRole').value
       };
-      
+
       await saveSettings(newSettings);
     }
-    
+
     async function saveTicketSettings() {
       const newSettings = {
         ticketCategory: document.getElementById('ticketCategory').value,
         ticketSupportRole: document.getElementById('ticketSupportRole').value,
+        ticketLogChannel: document.getElementById('ticketLogChannel')?.value || null,
         modules: { ...modules, tickets: true }
       };
-      
+
       await saveSettings(newSettings);
     }
-    
+
+    async function saveAntiraidSettings() {
+      const antiraidConfig = {
+        enabled: true,
+        threshold: parseInt(document.getElementById('antiraidThreshold').value) || 5,
+        timeFrame: parseInt(document.getElementById('antiraidTimeFrame').value) || 10,
+        action: document.getElementById('antiraidAction').value || 'kick',
+        accountAgeDays: parseInt(document.getElementById('antiraidAccountAge').value) || 0
+      };
+
+      await saveSettings({ antiraidConfig, modules: { ...modules, antiraid: true } });
+    }
+
     async function saveBirthdaySettings() {
       const birthdayConfig = {
         channelId: document.getElementById('birthdayChannel').value,
@@ -1751,27 +2004,27 @@
         message: document.getElementById('birthdayMessage').value,
         hour: parseInt(document.getElementById('birthdayTime')?.value) || 9
       };
-      
+
       await saveSettings({ birthdayConfig, modules: { ...modules, birthday: true } });
     }
-    
+
     async function saveLetheSettings() {
       const selectEl = document.getElementById('letheChannelSelect');
       const selectedChannels = Array.from(selectEl.selectedOptions).map(opt => opt.value);
-      
+
       const updatedModules = { ...modules, economy: true, letheChannels: selectedChannels };
       await saveSettings({ modules: updatedModules });
     }
-    
+
     async function saveInviteSettings() {
       const newSettings = {
         inviteChannel: document.getElementById('inviteChannel').value,
         modules: { ...modules, invitetracker: true }
       };
-      
+
       await saveSettings(newSettings);
     }
-    
+
     async function saveHelpSettings() {
       const newSettings = {
         prefix: document.getElementById('helpPrefix').value || '!',
@@ -1784,55 +2037,61 @@
         },
         modules: { ...modules, help: true }
       };
-      
+
       await saveSettings(newSettings);
     }
-    
+
+    function confirmDisable(featureId) {
+      if (confirm(`"${featureId}" özelliğini devre dışı bırakmak istediğinize emin misiniz?`)) {
+        disableFeature(featureId);
+      }
+    }
+
     async function saveTempVoiceSettings() {
       const category = document.getElementById('tempVoiceCategory').value;
       const channel = document.getElementById('tempVoiceChannel').value;
-      
+
       if (!category) {
         showToast('Lütfen bir kategori seçin', 'error');
         return;
       }
-      
+
       try {
         const res = await fetch(`/api/guild/${guildId}/tempvoice/config`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
+          body: JSON.stringify({
             tempVoiceCategory: category,
             tempVoiceChannel: channel,
             createNew: channel === 'create_new'
           })
         });
-        
+
         if (!res.ok) {
           const error = await res.json();
           showToast(error.error || 'Hata oluştu', 'error');
           return;
         }
-        
+
         await saveSettings({ modules: { ...modules, tempvoice: true } });
       } catch (error) {
         showToast('Hata oluştu', 'error');
       }
     }
-    
+
     async function loadGiveaways() {
       try {
         const res = await fetch(`/api/guild/${guildId}/giveaways/all`);
         const giveawayList = await res.json();
-        
+
         const container = document.getElementById('giveawaysList');
         if (!container) return;
-        
+
         if (giveawayList.length === 0) {
           container.innerHTML = '<p style="color: var(--text-muted);">Aktif veya geçmiş çekiliş yok.</p>';
           return;
         }
-        
+
         container.innerHTML = giveawayList.map(g => `
           <div class="feature-card" style="background: var(--bg-tertiary); margin-bottom: 8px; padding: 12px;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -1849,7 +2108,7 @@
         console.error('Giveaways error:', error);
       }
     }
-    
+
     async function endGiveaway(id) {
       try {
         await fetch(`/api/guild/${guildId}/giveaways/${id}/end`, { method: 'POST' });
@@ -1859,20 +2118,20 @@
         showToast('Hata oluştu', 'error');
       }
     }
-    
+
     async function loadReminders() {
       try {
         const res = await fetch(`/api/guild/${guildId}/reminders`);
         const reminderList = await res.json();
-        
+
         const container = document.getElementById('remindersList');
         if (!container) return;
-        
+
         if (reminderList.length === 0) {
           container.innerHTML = '<p style="color: var(--text-muted);">Aktif hatırlatıcı yok.</p>';
           return;
         }
-        
+
         container.innerHTML = reminderList.map(r => `
           <div class="feature-card" style="background: var(--bg-tertiary); margin-bottom: 8px; padding: 12px;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -1892,7 +2151,7 @@
         console.error('Reminders error:', error);
       }
     }
-    
+
     async function deleteReminder(id) {
       try {
         await fetch(`/api/guild/${guildId}/reminders/${id}`, { method: 'DELETE' });
@@ -1902,20 +2161,20 @@
         showToast('Hata oluştu', 'error');
       }
     }
-    
+
     async function loadPolls() {
       try {
         const res = await fetch(`/api/guild/${guildId}/polls`);
         const pollList = await res.json();
-        
+
         const container = document.getElementById('pollsList');
         if (!container) return;
-        
+
         if (pollList.length === 0) {
           container.innerHTML = '<p style="color: var(--text-muted);">Aktif anket yok.</p>';
           return;
         }
-        
+
         container.innerHTML = pollList.map(p => `
           <div class="feature-card" style="background: var(--bg-tertiary); margin-bottom: 8px; padding: 12px;">
             <strong>${p.question}</strong>
@@ -1928,20 +2187,20 @@
         console.error('Polls error:', error);
       }
     }
-    
+
     async function loadReactionRoles() {
       try {
         const res = await fetch(`/api/guild/${guildId}/reactionroles`);
         const roles = await res.json();
-        
+
         const container = document.getElementById('reactionRolesList');
         if (!container) return;
-        
+
         if (roles.length === 0) {
           container.innerHTML = '<p style="color: var(--text-muted);">Henüz tepki rol yok. Bot komutlarıyla ekleyebilirsiniz.</p>';
           return;
         }
-        
+
         container.innerHTML = roles.map(rr => `
           <div class="feature-card" style="background: var(--bg-tertiary); margin-bottom: 8px; padding: 12px;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -1961,7 +2220,97 @@
         console.error('Reaction roles error:', error);
       }
     }
-    
+
+    let growthChartInstance = null;
+    let messagesChartInstance = null;
+
+    // Determine chart text/grid color based on current theme
+    function chartColors() {
+      const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+      return {
+        textColor: isDark ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.6)',
+        gridColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'
+      };
+    }
+
+    async function loadAnalytics() {
+      const showChartError = (canvasId, msg) => {
+        const canvas = document.getElementById(canvasId);
+        if (canvas) {
+          const parent = canvas.parentElement;
+          canvas.style.display = 'none';
+          const err = document.createElement('p');
+          err.style.cssText = 'color:var(--text-muted);text-align:center;padding:40px 0;font-size:13px;';
+          err.innerHTML = `<i class="fas fa-chart-bar" style="display:block;font-size:32px;margin-bottom:8px;opacity:0.3;"></i>${msg}`;
+          parent.appendChild(err);
+        }
+      };
+
+      try {
+        // Load Chart.js dynamically if not already loaded
+        if (typeof Chart === 'undefined') {
+          await new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/chart.js';
+            script.onload = resolve;
+            script.onerror = reject;
+            document.head.appendChild(script);
+          });
+        }
+      } catch (e) {
+        showChartError('growthChart', 'Chart.js yüklenemedi');
+        showChartError('messagesChart', 'Chart.js yüklenemedi');
+        return;
+      }
+
+      const colors = chartColors();
+      const sharedOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { labels: { color: colors.textColor } } },
+        scales: {
+          x: { ticks: { color: colors.textColor }, grid: { color: colors.gridColor } },
+          y: { ticks: { color: colors.textColor }, grid: { color: colors.gridColor } }
+        }
+      };
+
+      // Growth chart
+      try {
+        const grReq = await fetch(`/api/guild/${guildId}/analytics/growth`);
+        if (!grReq.ok) throw new Error('API error');
+        const grData = await grReq.json();
+        const ctxGrowth = document.getElementById('growthChart');
+        if (ctxGrowth) {
+          if (growthChartInstance) growthChartInstance.destroy();
+          growthChartInstance = new Chart(ctxGrowth, {
+            type: 'line',
+            data: { labels: grData.labels, datasets: grData.datasets },
+            options: sharedOptions
+          });
+        }
+      } catch (e) {
+        showChartError('growthChart', 'Üye büyüme verisi yüklenemedi.');
+      }
+
+      // Messages chart
+      try {
+        const msReq = await fetch(`/api/guild/${guildId}/analytics/messages`);
+        if (!msReq.ok) throw new Error('API error');
+        const msData = await msReq.json();
+        const ctxMsg = document.getElementById('messagesChart');
+        if (ctxMsg) {
+          if (messagesChartInstance) messagesChartInstance.destroy();
+          messagesChartInstance = new Chart(ctxMsg, {
+            type: 'bar',
+            data: { labels: msData.labels, datasets: msData.datasets },
+            options: sharedOptions
+          });
+        }
+      } catch (e) {
+        showChartError('messagesChart', 'Mesaj trafiği verisi yüklenemedi.');
+      }
+    }
+
     async function deleteReactionRole(id) {
       try {
         await fetch(`/api/guild/${guildId}/reactionroles/${id}`, { method: 'DELETE' });
@@ -1971,20 +2320,20 @@
         showToast('Hata oluştu', 'error');
       }
     }
-    
+
     async function loadSocialNotifications(platform) {
       try {
         const res = await fetch(`/api/guild/${guildId}/social?platform=${platform}`);
         const notifications = await res.json();
-        
+
         const container = document.getElementById('socialNotificationsList');
         if (!container) return;
-        
+
         if (notifications.length === 0) {
           container.innerHTML = '<p style="color: var(--text-muted);">Henüz bildirim ayarlanmamış.</p>';
           return;
         }
-        
+
         container.innerHTML = notifications.map(n => `
           <div class="feature-card" style="background: var(--bg-tertiary); margin-bottom: 8px; padding: 12px;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -1993,7 +2342,7 @@
                 <span style="margin-left: 8px;">→</span>
                 <span style="margin-left: 8px; color: var(--accent-blue);">#${guildData.channels.find(c => c.id === n.channelId)?.name || 'Bilinmeyen Kanal'}</span>
               </div>
-              <button class="btn btn-outline" style="padding: 6px 12px;" onclick="deleteSocialNotification(${n.id})">
+              <button class="btn btn-outline" style="padding: 6px 12px;" onclick="deleteSocialNotification(${n.id}, '${platform}')">
                 <i class="fas fa-trash"></i>
               </button>
             </div>
@@ -2004,24 +2353,24 @@
         console.error('Social notifications error:', error);
       }
     }
-    
+
     async function addSocialNotification(platform) {
       const username = document.getElementById('socialUsername').value.trim();
       const channelId = document.getElementById('socialChannel').value;
       const customMessage = document.getElementById('socialMessage').value.trim();
-      
+
       if (!username || !channelId) {
         showToast('Lütfen kullanıcı adı ve kanal seçin', 'error');
         return;
       }
-      
+
       try {
         await fetch(`/api/guild/${guildId}/social`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ platform, username, channelId, customMessage })
         });
-        
+
         showToast('Bildirim eklendi!', 'success');
         document.getElementById('socialUsername').value = '';
         document.getElementById('socialMessage').value = '';
@@ -2030,16 +2379,17 @@
         showToast('Hata oluştu', 'error');
       }
     }
-    
-    async function deleteSocialNotification(id) {
+
+    async function deleteSocialNotification(id, platform) {
       try {
         await fetch(`/api/guild/${guildId}/social/${id}`, { method: 'DELETE' });
         showToast('Bildirim silindi', 'success');
+        if (platform) loadSocialNotifications(platform);
       } catch (error) {
         showToast('Hata oluştu', 'error');
       }
     }
-    
+
     async function saveSettings(newSettings) {
       try {
         const res = await fetch(`/api/guild/${guildId}/settings`, {
@@ -2047,7 +2397,7 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(newSettings)
         });
-        
+
         if (res.ok) {
           settings = { ...settings, ...newSettings };
           modules = newSettings.modules || modules;
@@ -2062,12 +2412,18 @@
         showToast('Bir hata oluştu', 'error');
       }
     }
-    
+
     document.getElementById('modalOverlay').addEventListener('click', (e) => {
       if (e.target.id === 'modalOverlay') closeModal();
     });
-    
+
+    // Esc key closes modal
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeModal();
+    });
+
     init();
   </script>
 </body>
+
 </html>

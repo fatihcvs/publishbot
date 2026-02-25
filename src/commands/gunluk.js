@@ -1,125 +1,68 @@
 const { EmbedBuilder } = require('discord.js');
-const letheStorage = require('../lethe/letheStorage');
+const { db } = require('../../database/db');
+const { userEconomy, economyConfig } = require('../../../shared/schema');
+const { eq, and } = require('drizzle-orm');
 
 module.exports = {
   name: 'günlük',
-  aliases: ['gn', 'gunluk', 'daily', 'ödül'],
-  description: 'Günlük ödülünü al',
-  usage: '!günlük',
-  category: 'lethe',
-  
+  aliases: ['gunluk', 'daily'],
+  description: 'Her 24 saatte bir günlük hediye paranızı alırsınız.',
+
   async execute(message, args, client) {
-    const userId = message.author.id;
-    
-    try {
-      const subCommand = args[0]?.toLowerCase();
-      
-      if (subCommand === 'durum' || subCommand === 'status') {
-        const status = await letheStorage.getDailyStatus(userId);
-        
-        const embed = new EmbedBuilder()
-          .setColor('#F59E0B')
-          .setTitle('📅 Günlük Ödül Durumu')
-          .setThumbnail(message.author.displayAvatarURL())
-          .addFields(
-            { name: '🔥 Mevcut Seri', value: `${status.currentStreak} gün`, inline: true },
-            { name: '🏆 En Uzun Seri', value: `${status.longestStreak} gün`, inline: true },
-            { name: '📊 Toplam', value: `${status.totalClaims} kez`, inline: true }
-          );
-        
-        if (status.canClaim) {
-          embed.addFields({
-            name: '✅ Durum',
-            value: `**Ödülünü alabilirsin!** \`!günlük\` yaz.`,
-            inline: false
-          });
-        } else {
-          embed.addFields({
-            name: '⏳ Durum',
-            value: `**${status.hoursLeft} saat** sonra tekrar gel.`,
-            inline: false
-          });
-        }
-        
-        const rewardsPreview = status.allRewards.map((r, i) => {
-          const current = i === (status.currentStreak % 7) ? '➡️' : '';
-          const bonus = r.bonus ? ' + 📦 Sandık' : '';
-          return `${current} Gün ${r.day}: **${r.money} 💰**${bonus}`;
-        }).join('\n');
-        
-        embed.addFields({
-          name: '🎁 Ödül Takvimi',
-          value: rewardsPreview,
-          inline: false
-        });
-        
-        return message.reply({ embeds: [embed] });
-      }
-      
-      const result = await letheStorage.claimDailyReward(userId, message.guild.id);
-      
-      if (!result.success) {
-        const status = await letheStorage.getDailyStatus(userId);
-        
-        const embed = new EmbedBuilder()
-          .setColor('#EF4444')
-          .setTitle('⏳ Günlük Ödül')
-          .setDescription(result.error)
-          .addFields(
-            { name: '🔥 Mevcut Seri', value: `${status.currentStreak} gün`, inline: true },
-            { name: '⏰ Kalan Süre', value: `${status.hoursLeft} saat`, inline: true }
-          );
-        
-        return message.reply({ embeds: [embed] });
-      }
-      
-      let moneyText = `+${result.money} 💰`;
-      if (result.isVip && result.vipBonus > 0) {
-        moneyText = `+${result.baseMoney} (+${result.vipBonus} VIP) 💰`;
-      }
-      
-      const embed = new EmbedBuilder()
-        .setColor(result.isVip ? '#FFD700' : '#10B981')
-        .setTitle(result.isVip ? '🌟 VIP Günlük Ödül Alındı!' : '🎁 Günlük Ödül Alındı!')
-        .setThumbnail(message.author.displayAvatarURL())
-        .addFields(
-          { name: '📅 Gün', value: `${result.day}/7`, inline: true },
-          { name: '💰 Para', value: moneyText, inline: true },
-          { name: '🔥 Seri', value: `${result.day} gün`, inline: true }
-        );
-      
-      if (result.isVip) {
-        embed.addFields({
-          name: '🌟 VIP Bonus',
-          value: `+%50 ekstra günlük ödül!`,
-          inline: false
-        });
-      }
-      
-      if (result.bonus) {
-        embed.addFields({
-          name: '🎊 Bonus Ödül!',
-          value: `📦 **${result.bonus.id}** x${result.bonus.quantity}`,
-          inline: false
-        });
-      }
-      
-      if (result.nextReward) {
-        const nextBonus = result.nextReward.bonus ? ' + 📦 Sandık' : '';
-        embed.addFields({
-          name: '📆 Yarınki Ödül',
-          value: `**${result.nextReward.money} 💰**${nextBonus}`,
-          inline: false
-        });
-      }
-      
-      embed.setFooter({ text: result.isVip ? '🌟 VIP Sunucu Bonusları Aktif!' : '7 gün üst üste gel ve bonus sandık kazan!' });
-      
-      return message.reply({ embeds: [embed] });
-      
-    } catch (error) {
-      console.error('Daily reward error:', error);
-      return message.reply('Günlük ödül alınırken bir hata oluştu!');
+    // Check config
+    const [configRow] = await db.select().from(economyConfig).where(eq(economyConfig.guildId, message.guild.id));
+    if (configRow && !configRow.enabled) {
+      return message.reply('❌ Bu sunucuda ekonomi sistemi kapalı.');
     }
+
+    const currencySymbol = configRow?.currencySymbol || '💰';
+    const rewardAmount = configRow?.dailyAmount || 100;
+
+    let [userRow] = await db.select().from(userEconomy)
+      .where(and(eq(userEconomy.guildId, message.guild.id), eq(userEconomy.userId, message.author.id)))
+      .limit(1);
+
+    const now = new Date();
+
+    if (!userRow) {
+      // Init row
+      const [inserted] = await db.insert(userEconomy).values({
+        guildId: message.guild.id,
+        userId: message.author.id,
+        balance: 0,
+        bank: 0,
+        lastDaily: null,
+        lastWork: null
+      }).returning();
+      userRow = inserted;
+    }
+
+    if (userRow.lastDaily) {
+      const lastClaim = new Date(userRow.lastDaily);
+      const diffMs = now.getTime() - lastClaim.getTime();
+      const twentyFourHours = 24 * 60 * 60 * 1000;
+
+      if (diffMs < twentyFourHours) {
+        const remainingMs = twentyFourHours - diffMs;
+        const hours = Math.floor(remainingMs / (1000 * 60 * 60));
+        const minutes = Math.floor((remainingMs % (1000 * 60 * 60)) / (1000 * 60));
+
+        return message.reply(`⏰ Günlük ödülünüzü zaten aldınız! Tekrar alabilmek için **${hours} saat ${minutes} dakika** beklemelisiniz.`);
+      }
+    }
+
+    const newBalance = (userRow.balance || 0) + rewardAmount;
+
+    await db.update(userEconomy)
+      .set({ balance: newBalance, lastDaily: now })
+      .where(eq(userEconomy.id, userRow.id));
+
+    const embed = new EmbedBuilder()
+      .setColor('#57F287')
+      .setTitle('🎁 Günlük Ödül')
+      .setDescription(`Tebrikler <@${message.author.id}>, günlük **${rewardAmount} ${currencySymbol}** ödülünüzü başarıyla tahsil ettiniz!\n\nYeni Bakiye: **${newBalance.toLocaleString()} ${currencySymbol}**`)
+      .setTimestamp();
+
+    return message.reply({ embeds: [embed] });
   }
 };

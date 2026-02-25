@@ -1,13 +1,27 @@
 const { db } = require('./db');
 const { eq, and, desc, sql, lte, gte } = require('drizzle-orm');
-const { guilds, warnings, modCases, customCommands, reactionRoles, giveaways, reminders, afkUsers, userLevels, levelRewards, scheduledMessages, userAchievements, inviteTracking, socialNotifications, userBirthdays, birthdayConfig, userEconomy, economyConfig, shopItems, tickets, ticketConfig, polls, tempVoiceChannels, gameHistory, userInventory, gameItems, activeDuels, dailyStreak, jackpotPool, userStats, lootBoxes } = require('../../shared/schema');
+const { guilds, warnings, modCases, customCommands, reactionRoles, giveaways, reminders, afkUsers, userLevels, levelRewards, scheduledMessages, userAchievements, inviteTracking, socialNotifications, userBirthdays, birthdayConfig, userEconomy, economyConfig, shopItems, tickets, ticketConfig, polls, tempVoiceChannels, gameHistory, userInventory, gameItems, activeDuels, dailyStreak, jackpotPool, userStats, lootBoxes, commandUsage } = require('../../shared/schema');
 const fs = require('fs');
 const path = require('path');
 
 class DatabaseStorage {
+  constructor() {
+    this.guildCache = new Map();
+    this.CACHE_TTL = 60 * 1000; // 1 dakika
+  }
+
   async getGuild(guildId) {
     if (!db) return null;
+
+    const cached = this.guildCache.get(guildId);
+    if (cached && (Date.now() - cached.timestamp < this.CACHE_TTL)) {
+      return cached.data;
+    }
+
     const [guild] = await db.select().from(guilds).where(eq(guilds.id, guildId));
+    if (guild) {
+      this.guildCache.set(guildId, { data: guild, timestamp: Date.now() });
+    }
     return guild || null;
   }
 
@@ -19,7 +33,19 @@ class DatabaseStorage {
     } else {
       await db.insert(guilds).values({ id: guildId, ...data });
     }
-    return this.getGuild(guildId);
+
+    // Cache invalidation & warm-up
+    const updated = await this._fetchGuildForce(guildId);
+    return updated;
+  }
+
+  async _fetchGuildForce(guildId) {
+    if (!db) return null;
+    const [guild] = await db.select().from(guilds).where(eq(guilds.id, guildId));
+    if (guild) {
+      this.guildCache.set(guildId, { data: guild, timestamp: Date.now() });
+    }
+    return guild || null;
   }
 
   async addWarning(guildId, userId, moderatorId, reason) {
@@ -59,9 +85,9 @@ class DatabaseStorage {
       .where(eq(modCases.guildId, guildId))
       .orderBy(desc(modCases.caseNumber))
       .limit(1);
-    
+
     const caseNumber = (lastCase[0]?.caseNumber || 0) + 1;
-    
+
     const [modCase] = await db.insert(modCases).values({
       guildId, caseNumber, type, userId, moderatorId, reason, duration
     }).returning();
@@ -98,6 +124,32 @@ class DatabaseStorage {
       and(eq(customCommands.guildId, guildId), eq(customCommands.name, name.toLowerCase()))
     );
     return cmd || null;
+  }
+
+  async incrementCommandUsage(commandName) {
+    if (!db) return;
+    try {
+      const existing = await db.select().from(commandUsage).where(eq(commandUsage.commandName, commandName));
+      if (existing.length > 0) {
+        await db.update(commandUsage)
+          .set({ usageCount: existing[0].usageCount + 1, lastUsedAt: new Date() })
+          .where(eq(commandUsage.commandName, commandName));
+      } else {
+        await db.insert(commandUsage).values({ commandName, usageCount: 1 });
+      }
+    } catch (e) {
+      console.error('[Storage] Error incrementing command usage:', e);
+    }
+  }
+
+  async getCommandUsages() {
+    if (!db) return [];
+    try {
+      return db.select().from(commandUsage).orderBy(desc(commandUsage.usageCount));
+    } catch (e) {
+      console.error('[Storage] Error getting command usages:', e);
+      return [];
+    }
   }
 
   async getCustomCommands(guildId) {
@@ -227,22 +279,36 @@ class DatabaseStorage {
     return user || null;
   }
 
+  async getLeaderboard(guildId, limit = 50) {
+    if (!db) return [];
+    try {
+      return await db.select()
+        .from(userLevels)
+        .where(eq(userLevels.guildId, guildId))
+        .orderBy(desc(userLevels.xp))
+        .limit(limit);
+    } catch (e) {
+      console.error('[Storage] Error getting leaderboard:', e);
+      return [];
+    }
+  }
+
   async updateUserXp(guildId, userId, xpToAdd) {
     if (!db) return null;
     const existing = await this.getUserLevel(guildId, userId);
-    
+
     if (existing) {
       const newXp = existing.xp + xpToAdd;
       const newLevel = this.calculateLevel(newXp);
       const leveledUp = newLevel > existing.level;
-      
+
       await db.update(userLevels).set({
         xp: newXp,
         level: newLevel,
         totalMessages: existing.totalMessages + 1,
         lastXpTime: new Date()
       }).where(and(eq(userLevels.guildId, guildId), eq(userLevels.userId, userId)));
-      
+
       return { xp: newXp, level: newLevel, leveledUp, oldLevel: existing.level };
     } else {
       const newLevel = this.calculateLevel(xpToAdd);
@@ -257,7 +323,7 @@ class DatabaseStorage {
     let level = 0;
     let requiredXp = 100;
     let totalRequired = 0;
-    
+
     while (xp >= totalRequired + requiredXp) {
       totalRequired += requiredXp;
       level++;
@@ -545,11 +611,11 @@ class DatabaseStorage {
     if (!db) return null;
     let user = await this.getUserEconomy(guildId, userId);
     if (!user) user = await this.createUserEconomy(guildId, userId);
-    
-    const updateData = isBank 
+
+    const updateData = isBank
       ? { bank: user.bank + amount }
       : { balance: user.balance + amount };
-    
+
     await db.update(userEconomy).set(updateData).where(
       and(eq(userEconomy.guildId, guildId), eq(userEconomy.userId, userId))
     );
@@ -619,10 +685,10 @@ class DatabaseStorage {
 
   async closeTicket(id, closedBy) {
     if (!db) return;
-    await db.update(tickets).set({ 
-      status: 'closed', 
-      closedBy, 
-      closedAt: new Date() 
+    await db.update(tickets).set({
+      status: 'closed',
+      closedBy,
+      closedAt: new Date()
     }).where(eq(tickets.id, id));
   }
 
@@ -841,36 +907,36 @@ class DatabaseStorage {
     if (!db) return null;
     let streak = await this.getDailyStreak(guildId, userId);
     const now = new Date();
-    
+
     if (!streak) {
       const [newStreak] = await db.insert(dailyStreak).values({
         guildId, userId, currentStreak: 1, longestStreak: 1, lastClaim: now
       }).returning();
       return { streak: newStreak, bonus: 0, isNewStreak: true };
     }
-    
+
     const lastClaim = streak.lastClaim ? new Date(streak.lastClaim) : null;
     const hoursSinceLast = lastClaim ? (now - lastClaim) / (1000 * 60 * 60) : 999;
-    
+
     if (hoursSinceLast < 20) {
       return { streak, bonus: 0, alreadyClaimed: true };
     }
-    
+
     let newCurrentStreak = 1;
     if (hoursSinceLast <= 48) {
       newCurrentStreak = streak.currentStreak + 1;
     }
-    
+
     const newLongestStreak = Math.max(streak.longestStreak, newCurrentStreak);
     const bonus = Math.min(newCurrentStreak * 10, 100);
-    
+
     await db.update(dailyStreak).set({
       currentStreak: newCurrentStreak,
       longestStreak: newLongestStreak,
       lastClaim: now
     }).where(eq(dailyStreak.id, streak.id));
-    
-    return { 
+
+    return {
       streak: { ...streak, currentStreak: newCurrentStreak, longestStreak: newLongestStreak },
       bonus,
       isNewStreak: newCurrentStreak === 1
@@ -1160,12 +1226,12 @@ class JSONStorage {
   async updateUserXp(guildId, userId, xpToAdd) {
     const levels = this.loadJSON('levels.json', {});
     if (!levels[guildId]) levels[guildId] = {};
-    
+
     const existing = levels[guildId][userId] || { xp: 0, level: 0, totalMessages: 0 };
     const newXp = existing.xp + xpToAdd;
     const newLevel = this.calculateLevel(newXp);
     const leveledUp = newLevel > existing.level;
-    
+
     levels[guildId][userId] = {
       xp: newXp,
       level: newLevel,

@@ -6,7 +6,7 @@ module.exports = {
   description: 'Tüm komutları gösterir',
   async execute(message, args, client) {
     const category = args[0]?.toLowerCase();
-    
+
     if (category === 'mod' || category === 'moderasyon') {
       const embed = new EmbedBuilder()
         .setColor('#ff0000')
@@ -29,7 +29,7 @@ module.exports = {
         .setTimestamp();
       return message.reply({ embeds: [embed] });
     }
-    
+
     if (category === 'ayar' || category === 'ayarlar') {
       const embed = new EmbedBuilder()
         .setColor('#5865F2')
@@ -46,7 +46,7 @@ module.exports = {
         .setTimestamp();
       return message.reply({ embeds: [embed] });
     }
-    
+
     if (category === 'rol') {
       const embed = new EmbedBuilder()
         .setColor('#00ff00')
@@ -62,7 +62,7 @@ module.exports = {
         .setTimestamp();
       return message.reply({ embeds: [embed] });
     }
-    
+
     if (category === 'ekonomi' || category === 'economy') {
       const embed = new EmbedBuilder()
         .setColor('#f1c40f')
@@ -80,7 +80,7 @@ module.exports = {
         .setTimestamp();
       return message.reply({ embeds: [embed] });
     }
-    
+
     if (category === 'eğlence' || category === 'eglence') {
       const embed = new EmbedBuilder()
         .setColor('#ff69b4')
@@ -98,7 +98,7 @@ module.exports = {
         .setTimestamp();
       return message.reply({ embeds: [embed] });
     }
-    
+
     if (category === 'seviye' || category === 'level') {
       const embed = new EmbedBuilder()
         .setColor('#9b59b6')
@@ -132,7 +132,24 @@ module.exports = {
         .setTimestamp();
       return message.reply({ embeds: [embed] });
     }
-    
+
+    if (category === 'oyun' || category === 'game' || category === 'istatistik') {
+      const embed = new EmbedBuilder()
+        .setColor('#1b2838')
+        .setTitle('🎮 Oyun & Film Komutları')
+        .setDescription('Steam, Valorant, LOL istatistikleri ve film/dizi bilgileri')
+        .addFields(
+          { name: '!steam <Oyun Adı>', value: 'Steam\'de oyun arar — fiyat, puan, tür, yayın tarihi' },
+          { name: '!valorant <Ad#TAG> [bölge]', value: 'Valorant rank ve istatistikler (bölgeler: eu na ap kr br)' },
+          { name: '!lol <Ad#TAG> [bölge]', value: 'League of Legends Solo/Flex rank ve WR bilgisi' },
+          { name: '!film <Ad>', value: 'Film bilgisi: IMDB puan, oyuncular, özet' },
+          { name: '!dizi <Ad>', value: 'Dizi bilgisi: sezon, platform, durum, puan' }
+        )
+        .setFooter({ text: 'Steam Store API · HenrikDev · Riot Games API · OMDB/TVMaze' })
+        .setTimestamp();
+      return message.reply({ embeds: [embed] });
+    }
+
     const embed = new EmbedBuilder()
       .setColor('#5865F2')
       .setTitle('Publisher Bot - Komutlar')
@@ -146,7 +163,8 @@ module.exports = {
         { name: '🎉 Eğlence', value: '`!yardım eğlence`', inline: true },
         { name: '🤖 Yapay Zeka', value: '`!yardım ai`', inline: true },
         { name: '📝 Özel Komutlar', value: '`!komutekle` `!komutsil` `!komutlar`', inline: false },
-        { name: 'ℹ️ Bilgi', value: '`!sunucu` `!kullanıcı` `!avatar` `!ping`', inline: false }
+        { name: '👀 Bilgi', value: '`!sunucu` `!kullanıcı` `!avatar` `!ping`', inline: false },
+        { name: '🎮 Oyun & Film', value: '`!yardım oyun`', inline: true }
       )
       .setFooter({ text: 'Publisher Bot | Dashboard: /dashboard' })
       .setTimestamp();

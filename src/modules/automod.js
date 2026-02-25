@@ -8,7 +8,8 @@ const defaultConfig = {
   linkFilter: { enabled: false, whitelist: [], action: 'delete' },
   mentionSpam: { enabled: false, maxMentions: 5, action: 'warn' },
   emojiSpam: { enabled: false, maxEmojis: 10, action: 'delete' },
-  inviteFilter: { enabled: false, action: 'delete' }
+  inviteFilter: { enabled: false, action: 'delete' },
+  regexFilter: { enabled: false, patterns: [], action: 'delete' }
 };
 
 const messageCache = new Map();
@@ -16,11 +17,18 @@ const messageCache = new Map();
 async function checkAutomod(message, client, storage) {
   if (!message.guild || message.author.bot) return false;
   if (message.member?.permissions.has('ManageMessages')) return false;
-  
+
   const guildData = await storage.getGuild(message.guild.id);
   const config = guildData?.automodConfig || defaultConfig;
-  
+
   if (!config.enabled) return false;
+
+  // Exemptions (Bypasses)
+  const exemptChannels = config.exemptChannels || [];
+  const exemptRoles = config.exemptRoles || [];
+
+  if (exemptChannels.includes(message.channel.id)) return false;
+  if (message.member?.roles.cache.some(role => exemptRoles.includes(role.id))) return false;
 
   const violations = [];
 
@@ -31,7 +39,7 @@ async function checkAutomod(message, client, storage) {
     userMessages.push(now);
     const recent = userMessages.filter(t => now - t < (config.spamFilter.interval || 5000));
     messageCache.set(key, recent);
-    
+
     if (recent.length > (config.spamFilter.maxMessages || 5)) {
       violations.push({ type: 'spam', action: config.spamFilter.action });
     }
@@ -94,7 +102,29 @@ async function checkAutomod(message, client, storage) {
     }
   }
 
+  if (config.regexFilter?.enabled && config.regexFilter.patterns?.length > 0) {
+    const content = message.content;
+    for (const pattern of config.regexFilter.patterns) {
+      try {
+        const regex = new RegExp(pattern, 'i');
+        if (regex.test(content)) {
+          violations.push({ type: 'regex', action: config.regexFilter.action, pattern });
+          break;
+        }
+      } catch (err) {
+        console.error('[AutoMod] Invalid regex pattern configured:', pattern);
+      }
+    }
+  }
+
   if (violations.length > 0) {
+    // En ağır ihlali seç (ban > kick > mute > warn > delete)
+    const severityOrder = ['ban', 'kick', 'mute', 'warn', 'delete'];
+    violations.sort((a, b) => {
+      const aIdx = severityOrder.indexOf(a.action);
+      const bIdx = severityOrder.indexOf(b.action);
+      return aIdx - bIdx;
+    });
     await handleViolation(message, violations[0], client, storage, guildData);
     return true;
   }
@@ -110,12 +140,13 @@ async function handleViolation(message, violation, client, storage, guildData) {
     link: 'Yasak Link',
     invite: 'Discord Daveti',
     mentions: 'Etiket Spam',
-    emoji: 'Emoji Spam'
+    emoji: 'Emoji Spam',
+    regex: 'Özel Regex Filtresi'
   };
 
   try {
     if (violation.action === 'delete' || violation.action === 'warn' || violation.action === 'mute') {
-      await message.delete().catch(() => {});
+      await message.delete().catch(() => { });
     }
 
     if (violation.action === 'warn') {
@@ -138,8 +169,9 @@ async function handleViolation(message, violation, client, storage, guildData) {
       await storage.addModCase(message.guild.id, 'ban', message.author.id, client.user.id, `AutoMod: ${typeNames[violation.type]}`);
     }
 
-    if (guildData?.logChannel) {
-      const logChannel = message.guild.channels.cache.get(guildData.logChannel);
+    const targetLogChannel = guildData?.modLogChannel || guildData?.logChannel;
+    if (targetLogChannel) {
+      const logChannel = message.guild.channels.cache.get(targetLogChannel);
       if (logChannel) {
         const embed = new EmbedBuilder()
           .setColor('#ff9900')
@@ -152,7 +184,7 @@ async function handleViolation(message, violation, client, storage, guildData) {
             { name: 'Mesaj', value: message.content.slice(0, 1000) || 'İçerik yok' }
           )
           .setTimestamp();
-        
+
         await logChannel.send({ embeds: [embed] });
       }
     }

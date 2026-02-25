@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="tr">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,6 +9,7 @@
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
     :root {
       --bg-primary: #0a0a0f;
       --bg-secondary: #12121a;
@@ -25,7 +27,13 @@
       --border-color: rgba(255, 255, 255, 0.08);
       --glow-purple: rgba(167, 139, 250, 0.4);
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
     body {
       background: var(--bg-primary);
       color: var(--text-primary);
@@ -33,16 +41,21 @@
       min-height: 100vh;
       padding-top: 80px;
     }
+
     body::before {
       content: '';
       position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: 
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background:
         radial-gradient(ellipse 80% 50% at 50% -20%, rgba(120, 80, 200, 0.12), transparent),
         radial-gradient(ellipse 60% 40% at 80% 60%, rgba(60, 100, 200, 0.08), transparent);
       pointer-events: none;
       z-index: -1;
     }
+
     .navbar {
       background: var(--bg-glass) !important;
       backdrop-filter: blur(20px);
@@ -55,6 +68,7 @@
       right: 0;
       z-index: 1000;
     }
+
     .navbar-brand {
       font-size: 1.5rem;
       font-weight: 800;
@@ -63,13 +77,19 @@
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
+
     .nav-link {
       color: var(--text-secondary) !important;
       font-weight: 500;
       transition: all 0.3s;
       padding: 8px 16px !important;
     }
-    .nav-link:hover, .nav-link.active { color: var(--text-primary) !important; }
+
+    .nav-link:hover,
+    .nav-link.active {
+      color: var(--text-primary) !important;
+    }
+
     .btn-discord {
       background: linear-gradient(135deg, #5865F2 0%, #7289da 100%);
       color: white;
@@ -83,16 +103,19 @@
       transition: all 0.3s;
       text-decoration: none;
     }
+
     .btn-discord:hover {
       transform: translateY(-2px);
       box-shadow: 0 10px 30px rgba(88, 101, 242, 0.3);
       color: white;
     }
+
     .page-header {
       text-align: center;
       padding: 60px 0 40px;
       position: relative;
     }
+
     .page-header h1 {
       font-size: 3rem;
       font-weight: 800;
@@ -102,12 +125,14 @@
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
+
     .page-header p {
       color: var(--text-secondary);
       font-size: 1.2rem;
       max-width: 600px;
       margin: 0 auto;
     }
+
     .game-banner {
       background: linear-gradient(135deg, rgba(244, 114, 182, 0.15), rgba(167, 139, 250, 0.15));
       border: 1px solid rgba(244, 114, 182, 0.3);
@@ -121,11 +146,13 @@
       gap: 20px;
       flex-wrap: wrap;
     }
+
     .game-banner-content {
       display: flex;
       align-items: center;
       gap: 16px;
     }
+
     .game-banner-icon {
       width: 50px;
       height: 50px;
@@ -137,15 +164,18 @@
       font-size: 1.5rem;
       color: white;
     }
+
     .game-banner h4 {
       margin: 0 0 4px;
       font-weight: 700;
     }
+
     .game-banner p {
       margin: 0;
       color: var(--text-secondary);
       font-size: 0.9rem;
     }
+
     .btn-game {
       background: linear-gradient(135deg, var(--accent-pink), var(--accent-purple));
       color: white;
@@ -156,16 +186,19 @@
       transition: all 0.3s;
       white-space: nowrap;
     }
+
     .btn-game:hover {
       transform: translateY(-2px);
       box-shadow: 0 10px 30px rgba(244, 114, 182, 0.3);
       color: white;
     }
+
     .search-box {
       max-width: 500px;
       margin: 30px auto 0;
       position: relative;
     }
+
     .search-box input {
       width: 100%;
       background: var(--bg-glass);
@@ -177,12 +210,17 @@
       font-size: 1rem;
       transition: all 0.3s;
     }
+
     .search-box input:focus {
       outline: none;
       border-color: var(--accent-purple);
       box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.2);
     }
-    .search-box input::placeholder { color: var(--text-secondary); }
+
+    .search-box input::placeholder {
+      color: var(--text-secondary);
+    }
+
     .search-box i {
       position: absolute;
       left: 18px;
@@ -190,13 +228,16 @@
       transform: translateY(-50%);
       color: var(--text-secondary);
     }
+
     .commands-container {
       padding: 40px 0 80px;
     }
+
     .category-sidebar {
       position: sticky;
       top: 100px;
     }
+
     .category-nav {
       background: var(--bg-glass);
       backdrop-filter: blur(10px);
@@ -204,6 +245,7 @@
       border-radius: 16px;
       padding: 20px;
     }
+
     .category-nav h5 {
       font-size: 0.85rem;
       font-weight: 600;
@@ -212,6 +254,7 @@
       letter-spacing: 1px;
       margin-bottom: 15px;
     }
+
     .category-link {
       display: flex;
       align-items: center;
@@ -223,16 +266,23 @@
       transition: all 0.3s;
       margin-bottom: 6px;
     }
+
     .category-link:hover {
       background: var(--bg-tertiary);
       color: var(--text-primary);
     }
+
     .category-link.active {
       background: linear-gradient(135deg, rgba(167, 139, 250, 0.2), rgba(96, 165, 250, 0.2));
       color: var(--text-primary);
       border: 1px solid rgba(167, 139, 250, 0.3);
     }
-    .category-link i { width: 20px; text-align: center; }
+
+    .category-link i {
+      width: 20px;
+      text-align: center;
+    }
+
     .category-link .count {
       margin-left: auto;
       background: var(--bg-tertiary);
@@ -240,10 +290,12 @@
       border-radius: 10px;
       font-size: 0.8rem;
     }
+
     .category-section {
       margin-bottom: 50px;
       scroll-margin-top: 100px;
     }
+
     .category-header {
       display: flex;
       align-items: center;
@@ -252,6 +304,7 @@
       padding-bottom: 16px;
       border-bottom: 1px solid var(--border-color);
     }
+
     .category-icon {
       width: 48px;
       height: 48px;
@@ -261,25 +314,68 @@
       justify-content: center;
       font-size: 1.25rem;
     }
-    .category-icon.moderation { background: rgba(96, 165, 250, 0.15); color: var(--accent-blue); }
-    .category-icon.automod { background: rgba(167, 139, 250, 0.15); color: var(--accent-purple); }
-    .category-icon.settings { background: rgba(52, 211, 153, 0.15); color: var(--accent-green); }
-    .category-icon.roles { background: rgba(251, 191, 36, 0.15); color: var(--accent-orange); }
-    .category-icon.fun { background: rgba(244, 114, 182, 0.15); color: var(--accent-pink); }
-    .category-icon.utility { background: rgba(34, 211, 238, 0.15); color: var(--accent-cyan); }
-    .category-icon.social { background: rgba(248, 113, 113, 0.15); color: var(--accent-red); }
-    .category-icon.schedule { background: rgba(251, 191, 36, 0.15); color: var(--accent-orange); }
-    .category-icon.info { background: rgba(96, 165, 250, 0.15); color: var(--accent-blue); }
-    .category-icon.ai { background: rgba(167, 139, 250, 0.15); color: var(--accent-purple); }
+
+    .category-icon.moderation {
+      background: rgba(96, 165, 250, 0.15);
+      color: var(--accent-blue);
+    }
+
+    .category-icon.automod {
+      background: rgba(167, 139, 250, 0.15);
+      color: var(--accent-purple);
+    }
+
+    .category-icon.settings {
+      background: rgba(52, 211, 153, 0.15);
+      color: var(--accent-green);
+    }
+
+    .category-icon.roles {
+      background: rgba(251, 191, 36, 0.15);
+      color: var(--accent-orange);
+    }
+
+    .category-icon.fun {
+      background: rgba(244, 114, 182, 0.15);
+      color: var(--accent-pink);
+    }
+
+    .category-icon.utility {
+      background: rgba(34, 211, 238, 0.15);
+      color: var(--accent-cyan);
+    }
+
+    .category-icon.social {
+      background: rgba(248, 113, 113, 0.15);
+      color: var(--accent-red);
+    }
+
+    .category-icon.schedule {
+      background: rgba(251, 191, 36, 0.15);
+      color: var(--accent-orange);
+    }
+
+    .category-icon.info {
+      background: rgba(96, 165, 250, 0.15);
+      color: var(--accent-blue);
+    }
+
+    .category-icon.ai {
+      background: rgba(167, 139, 250, 0.15);
+      color: var(--accent-purple);
+    }
+
     .category-header h3 {
       font-size: 1.3rem;
       font-weight: 700;
       margin: 0;
     }
+
     .category-header span {
       color: var(--text-secondary);
       font-size: 0.9rem;
     }
+
     .command-card {
       background: var(--bg-glass);
       backdrop-filter: blur(10px);
@@ -289,11 +385,13 @@
       margin-bottom: 12px;
       transition: all 0.3s;
     }
+
     .command-card:hover {
       border-color: rgba(167, 139, 250, 0.3);
       transform: translateX(5px);
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
     }
+
     .command-header {
       display: flex;
       align-items: center;
@@ -301,18 +399,21 @@
       flex-wrap: wrap;
       gap: 10px;
     }
+
     .command-name {
       font-family: 'JetBrains Mono', 'Fira Code', monospace;
       color: var(--accent-blue);
       font-weight: 600;
       font-size: 0.95rem;
     }
+
     .command-desc {
       color: var(--text-secondary);
       margin: 10px 0 0;
       font-size: 0.9rem;
       line-height: 1.6;
     }
+
     .command-usage {
       background: var(--bg-tertiary);
       border-radius: 8px;
@@ -322,12 +423,14 @@
       font-size: 0.85rem;
       color: var(--accent-green);
     }
+
     .command-permissions {
       margin-top: 12px;
       display: flex;
       gap: 8px;
       flex-wrap: wrap;
     }
+
     .permission-badge {
       background: rgba(248, 113, 113, 0.15);
       color: var(--accent-red);
@@ -336,25 +439,30 @@
       font-size: 0.75rem;
       font-weight: 600;
     }
+
     .no-results {
       text-align: center;
       padding: 60px 20px;
       color: var(--text-secondary);
     }
+
     .no-results i {
       font-size: 3rem;
       margin-bottom: 20px;
       opacity: 0.5;
     }
+
     .no-results h4 {
       margin-bottom: 10px;
       color: var(--text-primary);
     }
+
     footer {
       background: var(--bg-secondary);
       border-top: 1px solid var(--border-color);
       padding: 50px 0;
     }
+
     .footer-content {
       display: flex;
       justify-content: space-between;
@@ -362,6 +470,7 @@
       flex-wrap: wrap;
       gap: 20px;
     }
+
     .footer-brand {
       font-size: 1.25rem;
       font-weight: 700;
@@ -369,32 +478,59 @@
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
+
     .footer-links {
       display: flex;
       gap: 24px;
     }
+
     .footer-links a {
       color: var(--text-secondary);
       text-decoration: none;
       transition: color 0.3s;
     }
-    .footer-links a:hover { color: var(--accent-purple); }
+
+    .footer-links a:hover {
+      color: var(--accent-purple);
+    }
+
     .footer-copy {
       color: var(--text-secondary);
       font-size: 0.9rem;
     }
+
     @media (max-width: 991px) {
-      .category-sidebar { display: none; }
+      .category-sidebar {
+        display: none;
+      }
     }
+
     @media (max-width: 768px) {
-      .page-header h1 { font-size: 2rem; }
-      .game-banner { flex-direction: column; text-align: center; }
-      .game-banner-content { flex-direction: column; }
-      .footer-content { flex-direction: column; text-align: center; }
-      .footer-links { justify-content: center; }
+      .page-header h1 {
+        font-size: 2rem;
+      }
+
+      .game-banner {
+        flex-direction: column;
+        text-align: center;
+      }
+
+      .game-banner-content {
+        flex-direction: column;
+      }
+
+      .footer-content {
+        flex-direction: column;
+        text-align: center;
+      }
+
+      .footer-links {
+        justify-content: center;
+      }
     }
   </style>
 </head>
+
 <body>
   <nav class="navbar navbar-expand-lg navbar-dark">
     <div class="container">
@@ -423,7 +559,7 @@
     <div class="container">
       <h1>Bot Komutlari</h1>
       <p>Publisher Bot'un tum moderasyon, ayar ve yardimci komutlari</p>
-      
+
       <div class="game-banner">
         <div class="game-banner-content">
           <div class="game-banner-icon"><i class="fas fa-paw"></i></div>
@@ -436,7 +572,7 @@
           <i class="fas fa-gamepad me-2"></i>Oyun Sayfasi
         </a>
       </div>
-      
+
       <div class="search-box">
         <i class="fas fa-search"></i>
         <input type="text" id="search-input" placeholder="Komut ara...">
@@ -506,7 +642,7 @@
         </div>
         <div class="col-lg-9">
           <div id="commands-list">
-            
+
             <div class="category-section" id="moderation">
               <div class="category-header">
                 <div class="category-icon moderation"><i class="fas fa-shield-alt"></i></div>
@@ -649,7 +785,8 @@
                 <div class="command-header">
                   <span class="command-name">!automod [ayar] [deger]</span>
                 </div>
-                <p class="command-desc">Otomatik moderasyon sistemini yapilandirir. Spam, link, kufur, davet, emoji ve etiket filtreleri.</p>
+                <p class="command-desc">Otomatik moderasyon sistemini yapilandirir. Spam, link, kufur, davet, emoji ve
+                  etiket filtreleri.</p>
                 <div class="command-usage">!automod spam ac | !automod link kapat | !automod kelime ekle kelime</div>
                 <div class="command-permissions">
                   <span class="permission-badge">Administrator</span>
@@ -688,7 +825,8 @@
                 <div class="command-header">
                   <span class="command-name">!hosgeldin mesaj [mesaj]</span>
                 </div>
-                <p class="command-desc">Hos geldin mesajini ayarlar. {user}, {server}, {memberCount}, {inviter} degiskenleri kullanilabilir.</p>
+                <p class="command-desc">Hos geldin mesajini ayarlar. {user}, {server}, {memberCount}, {inviter}
+                  degiskenleri kullanilabilir.</p>
                 <div class="command-usage">!hosgeldin mesaj Hosgeldin {user}! Davet eden: {inviter}</div>
                 <div class="command-permissions">
                   <span class="permission-badge">Manage Guild</span>
@@ -886,7 +1024,8 @@
                 <div class="command-header">
                   <span class="command-name">!sosyal ekle [platform] [kullanici] #kanal [mesaj]</span>
                 </div>
-                <p class="command-desc">Sosyal medya bildirimi ekler. Platformlar: twitch, youtube, tiktok, twitter, instagram, rss</p>
+                <p class="command-desc">Sosyal medya bildirimi ekler. Platformlar: twitch, youtube, tiktok, twitter,
+                  instagram, rss</p>
                 <div class="command-usage">!sosyal ekle twitch ninja #bildirimler Yayin basladi!</div>
                 <div class="command-permissions">
                   <span class="permission-badge">Manage Guild</span>
@@ -1040,7 +1179,8 @@
                 <div class="command-header">
                   <span class="command-name">!analiz [soru]</span>
                 </div>
-                <p class="command-desc">Gorselleri yapay zeka ile analiz eder. Bir gorsel ekleyerek veya yanit vererek kullanin.</p>
+                <p class="command-desc">Gorselleri yapay zeka ile analiz eder. Bir gorsel ekleyerek veya yanit vererek
+                  kullanin.</p>
               </div>
               <div class="command-card">
                 <div class="command-header">
@@ -1084,7 +1224,7 @@
     const noResults = document.getElementById('no-results');
     const categoryLinks = document.querySelectorAll('.category-link');
 
-    searchInput.addEventListener('input', function() {
+    searchInput.addEventListener('input', function () {
       const query = this.value.toLowerCase().trim();
       let hasResults = false;
 
@@ -1095,7 +1235,7 @@
         cards.forEach(card => {
           const name = card.querySelector('.command-name').textContent.toLowerCase();
           const desc = card.querySelector('.command-desc').textContent.toLowerCase();
-          
+
           if (name.includes(query) || desc.includes(query)) {
             card.style.display = 'block';
             sectionHasResults = true;
@@ -1112,13 +1252,13 @@
     });
 
     categoryLinks.forEach(link => {
-      link.addEventListener('click', function() {
+      link.addEventListener('click', function () {
         categoryLinks.forEach(l => l.classList.remove('active'));
         this.classList.add('active');
       });
     });
 
-    window.addEventListener('scroll', function() {
+    window.addEventListener('scroll', function () {
       let currentSection = '';
       categorySections.forEach(section => {
         const sectionTop = section.offsetTop;
@@ -1134,6 +1274,46 @@
         }
       });
     });
+
+    // Fetch and display real-time command usage stats
+    async function loadCommandStats() {
+      try {
+        const response = await fetch('/api/commands/stats');
+        if (!response.ok) return;
+        const stats = await response.json();
+
+        const statsMap = {};
+        stats.forEach(s => {
+          statsMap[s.commandName.toLowerCase()] = s.usageCount;
+        });
+
+        document.querySelectorAll('.command-card').forEach(card => {
+          const nameText = card.querySelector('.command-name').textContent;
+          let cmdNameStr = '';
+          if (nameText.startsWith('!')) {
+            cmdNameStr = nameText.split(' ')[0].substring(1).toLowerCase();
+          } else if (nameText.startsWith('@Publisher')) {
+            cmdNameStr = 'chatgpt'; // Default internal name
+          }
+
+          if (statsMap[cmdNameStr] && statsMap[cmdNameStr] > 0) {
+            const header = card.querySelector('.command-header');
+            const badge = document.createElement('span');
+            badge.className = 'permission-badge usage-badge';
+            badge.style.background = 'rgba(52, 211, 153, 0.15)';
+            badge.style.color = 'var(--accent-green)';
+            badge.style.marginLeft = 'auto';
+            badge.innerHTML = `<i class="fas fa-bolt me-1"></i> ${statsMap[cmdNameStr].toLocaleString('tr-TR')} Kullanım`;
+            header.appendChild(badge);
+          }
+        });
+      } catch (err) {
+        console.error('Failed to load command stats:', err);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadCommandStats);
   </script>
 </body>
+
 </html>

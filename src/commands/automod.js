@@ -1,93 +1,173 @@
 const { EmbedBuilder, PermissionFlagsBits } = require('discord.js');
+const { db } = require('../../database/db');
+const { guilds } = require('../../../shared/schema');
+const { eq } = require('drizzle-orm');
 
 module.exports = {
   name: 'automod',
-  aliases: ['otomod'],
-  description: 'AutoMod ayarlarını yönetir',
+  description: 'Gelişmiş AutoMod sistemini yapılandırır (Özel Kelimeler, Muafiyetler).',
   permissions: [PermissionFlagsBits.ManageGuild],
-  async execute(message, args, client) {
-    const { storage } = require('../database/storage');
-    
-    const subCommand = args[0]?.toLowerCase();
-    const guildData = await storage.getGuild(message.guild.id) || {};
-    const config = guildData.automodConfig || { enabled: false };
-    
-    if (!subCommand || subCommand === 'durum' || subCommand === 'status') {
+  usage: '!automod [bwl/muafiyet/durum]',
+
+  async execute(message, args, client, storage) {
+    if (!args[0]) return this.sendHelp(message);
+
+    const subCommand = args[0].toLowerCase();
+
+    switch (subCommand) {
+      case 'bwl':
+      case 'kelime':
+        return this.handleBadWords(message, args.slice(1), storage);
+      case 'muafiyet':
+      case 'bypass':
+      case 'exempt':
+        return this.handleExemptions(message, args.slice(1), storage);
+      case 'durum':
+      case 'status':
+        return this.showStatus(message, storage);
+      default:
+        return this.sendHelp(message);
+    }
+  },
+
+  async handleBadWords(message, args, storage) {
+    if (!args[0]) return message.reply('❌ Kullanım: `!automod bwl [ekle/sil/liste] [kelime]`');
+
+    const action = args[0].toLowerCase();
+    const guildData = await storage.getGuild(message.guild.id);
+    let automodConfig = guildData.automodConfig || { enabled: true, badWords: { enabled: true, words: [], action: 'delete' } };
+
+    // Ensure specific keys exist
+    if (!automodConfig.badWords) automodConfig.badWords = { enabled: true, words: [], action: 'delete' };
+    if (!automodConfig.badWords.words) automodConfig.badWords.words = [];
+
+    let wordsList = automodConfig.badWords.words;
+
+    if (action === 'ekle' || action === 'add') {
+      const word = args.slice(1).join(' ').toLowerCase();
+      if (!word) return message.reply('Lütfen eklenecek kelimeyi girin.');
+      if (wordsList.includes(word)) return message.reply('Bu kelime halihazırda yasaklı listesinde bulunuyor!');
+
+      wordsList.push(word);
+      automodConfig.badWords.words = wordsList;
+      automodConfig.badWords.enabled = true;
+      automodConfig.enabled = true;
+
+      await this.saveConfig(message.guild.id, automodConfig);
+      return message.reply(`✅ \`${word}\` kelimesi yasaklı kelimeler (BWL) listesine eklendi.`);
+    }
+    else if (action === 'sil' || action === 'remove') {
+      const word = args.slice(1).join(' ').toLowerCase();
+      if (!word) return message.reply('Lütfen silinecek kelimeyi girin.');
+      if (!wordsList.includes(word)) return message.reply('Bu kelime yasaklı listesinde bulunmuyor.');
+
+      wordsList = wordsList.filter(w => w !== word);
+      automodConfig.badWords.words = wordsList;
+
+      await this.saveConfig(message.guild.id, automodConfig);
+      return message.reply(`✅ \`${word}\` kelimesi yasaklı kelimeler (BWL) listesinden silindi.`);
+    }
+    else if (action === 'liste' || action === 'list') {
+      if (wordsList.length === 0) return message.reply('Yasaklı kelime (BWL) listesi şu an boş.');
       const embed = new EmbedBuilder()
-        .setColor('#5865F2')
-        .setTitle('AutoMod Ayarları')
-        .addFields(
-          { name: 'Durum', value: config.enabled ? '✅ Aktif' : '❌ Kapalı', inline: true },
-          { name: 'Spam Filtresi', value: config.spamFilter?.enabled ? '✅' : '❌', inline: true },
-          { name: 'Caps Filtresi', value: config.capsFilter?.enabled ? '✅' : '❌', inline: true },
-          { name: 'Kötü Kelime', value: config.badWords?.enabled ? '✅' : '❌', inline: true },
-          { name: 'Link Filtresi', value: config.linkFilter?.enabled ? '✅' : '❌', inline: true },
-          { name: 'Davet Filtresi', value: config.inviteFilter?.enabled ? '✅' : '❌', inline: true },
-          { name: 'Etiket Spam', value: config.mentionSpam?.enabled ? '✅' : '❌', inline: true },
-          { name: 'Emoji Spam', value: config.emojiSpam?.enabled ? '✅' : '❌', inline: true }
-        )
-        .setDescription('Ayarları değiştirmek için:\n`!automod aç/kapat`\n`!automod <filtre> aç/kapat`\n`!automod kelime ekle/sil <kelime>`')
-        .setTimestamp();
-      
+        .setColor('#ED4245')
+        .setTitle('🚫 Yasaklı Kelimeler (BWL) Listesi')
+        .setDescription(wordsList.map(w => `• ${w}`).join('\n'));
       return message.reply({ embeds: [embed] });
     }
-    
-    if (subCommand === 'aç' || subCommand === 'enable') {
-      config.enabled = true;
-      await storage.upsertGuild(message.guild.id, { automodConfig: config });
-      return message.reply('AutoMod aktif edildi!');
-    }
-    
-    if (subCommand === 'kapat' || subCommand === 'disable') {
-      config.enabled = false;
-      await storage.upsertGuild(message.guild.id, { automodConfig: config });
-      return message.reply('AutoMod kapatıldı!');
-    }
-    
-    const filterTypes = {
-      'spam': 'spamFilter',
-      'caps': 'capsFilter',
-      'kelime': 'badWords',
-      'link': 'linkFilter',
-      'davet': 'inviteFilter',
-      'etiket': 'mentionSpam',
-      'emoji': 'emojiSpam'
-    };
-    
-    const filterKey = filterTypes[subCommand];
-    if (filterKey && (args[1] === 'aç' || args[1] === 'kapat')) {
-      if (!config[filterKey]) config[filterKey] = { enabled: false };
-      config[filterKey].enabled = args[1] === 'aç';
-      await storage.upsertGuild(message.guild.id, { automodConfig: config });
-      return message.reply(`${subCommand} filtresi ${args[1] === 'aç' ? 'aktif edildi' : 'kapatıldı'}!`);
-    }
-    
-    if (subCommand === 'kelime') {
-      if (!config.badWords) config.badWords = { enabled: false, words: [] };
-      
-      if (args[1] === 'ekle' && args[2]) {
-        const word = args.slice(2).join(' ').toLowerCase();
-        if (!config.badWords.words.includes(word)) {
-          config.badWords.words.push(word);
-          await storage.upsertGuild(message.guild.id, { automodConfig: config });
-          return message.reply(`"${word}" yasaklı kelimeler listesine eklendi.`);
-        }
-        return message.reply('Bu kelime zaten listede!');
+  },
+
+  async handleExemptions(message, args, storage) {
+    if (!args[0]) return message.reply('❌ Kullanım: `!automod muafiyet [ekle/sil/liste] [@rol/#kanal]`');
+
+    const action = args[0].toLowerCase();
+    const guildData = await storage.getGuild(message.guild.id);
+    let automodConfig = guildData.automodConfig || { enabled: true };
+
+    if (!automodConfig.exemptRoles) automodConfig.exemptRoles = [];
+    if (!automodConfig.exemptChannels) automodConfig.exemptChannels = [];
+
+    if (action === 'ekle' || action === 'add') {
+      const role = message.mentions.roles.first();
+      const channel = message.mentions.channels.first();
+
+      if (role) {
+        if (automodConfig.exemptRoles.includes(role.id)) return message.reply('Bu rol zaten muaf.');
+        automodConfig.exemptRoles.push(role.id);
+        await this.saveConfig(message.guild.id, automodConfig);
+        return message.reply(`✅ <@&${role.id}> rolü AutoMod kontrollerinden muaf tutuldu.`);
+      } else if (channel) {
+        if (automodConfig.exemptChannels.includes(channel.id)) return message.reply('Bu kanal zaten muaf.');
+        automodConfig.exemptChannels.push(channel.id);
+        await this.saveConfig(message.guild.id, automodConfig);
+        return message.reply(`✅ <#${channel.id}> kanalı AutoMod kontrollerinden muaf tutuldu.`);
       }
-      
-      if (args[1] === 'sil' && args[2]) {
-        const word = args.slice(2).join(' ').toLowerCase();
-        config.badWords.words = config.badWords.words.filter(w => w !== word);
-        await storage.upsertGuild(message.guild.id, { automodConfig: config });
-        return message.reply(`"${word}" yasaklı kelimeler listesinden silindi.`);
-      }
-      
-      if (args[1] === 'liste') {
-        const words = config.badWords.words || [];
-        return message.reply(`Yasaklı kelimeler: ${words.length > 0 ? words.map(w => `\`${w}\``).join(', ') : 'Yok'}`);
-      }
+      return message.reply('❌ Lütfen muaf tutulacak bir rol veya kanal etiketleyin.');
     }
-    
-    message.reply('Geçersiz komut! `!automod` yazarak tüm ayarları görün.');
+    else if (action === 'sil' || action === 'remove') {
+      const role = message.mentions.roles.first();
+      const channel = message.mentions.channels.first();
+
+      if (role) {
+        if (!automodConfig.exemptRoles.includes(role.id)) return message.reply('Bu rol muafiyet listesinde değil.');
+        automodConfig.exemptRoles = automodConfig.exemptRoles.filter(id => id !== role.id);
+        await this.saveConfig(message.guild.id, automodConfig);
+        return message.reply(`✅ <@&${role.id}> rolünün muafiyeti kaldırıldı.`);
+      } else if (channel) {
+        if (!automodConfig.exemptChannels.includes(channel.id)) return message.reply('Bu kanal muafiyet listesinde değil.');
+        automodConfig.exemptChannels = automodConfig.exemptChannels.filter(id => id !== channel.id);
+        await this.saveConfig(message.guild.id, automodConfig);
+        return message.reply(`✅ <#${channel.id}> kanalının muafiyeti kaldırıldı.`);
+      }
+      return message.reply('❌ Lütfen muafiyeti kaldırılacak bir rol veya kanal etiketleyin.');
+    }
+    else if (action === 'liste' || action === 'list') {
+      let desc = '**Muaf Roller:**\n';
+      desc += automodConfig.exemptRoles.length > 0 ? automodConfig.exemptRoles.map(id => `• <@&${id}>`).join('\n') : 'Yok';
+      desc += '\n\n**Muaf Kanallar:**\n';
+      desc += automodConfig.exemptChannels.length > 0 ? automodConfig.exemptChannels.map(id => `• <#${id}>`).join('\n') : 'Yok';
+
+      const embed = new EmbedBuilder()
+        .setColor('#5865F2')
+        .setTitle('🛡️ AutoMod Muafiyetleri')
+        .setDescription(desc);
+      return message.reply({ embeds: [embed] });
+    }
+  },
+
+  async showStatus(message, storage) {
+    const guildData = await storage.getGuild(message.guild.id);
+    const conf = guildData.automodConfig || {};
+
+    const isEnabled = conf.enabled ? '✅ Aktif' : '❌ Kapalı';
+    const bwlCount = conf.badWords?.words?.length || 0;
+    const bypassCount = (conf.exemptRoles?.length || 0) + (conf.exemptChannels?.length || 0);
+
+    const embed = new EmbedBuilder()
+      .setColor('#5865F2')
+      .setTitle('🛡️ AutoMod Durumu')
+      .addFields(
+        { name: 'Genel Durum', value: isEnabled, inline: true },
+        { name: 'Yasaklı Kelimeler (BWL)', value: `${bwlCount} kelime`, inline: true },
+        { name: 'Muafiyetler', value: `${bypassCount} rol/kanal`, inline: true }
+      );
+
+    message.reply({ embeds: [embed] });
+  },
+
+  async saveConfig(guildId, automodConfig) {
+    await db.update(guilds).set({ automodConfig }).where(eq(guilds.id, guildId));
+  },
+
+  sendHelp(message) {
+    const embed = new EmbedBuilder()
+      .setColor('#FFA500')
+      .setTitle('🛡️ Gelişmiş AutoMod Sistemi')
+      .addFields(
+        { name: 'Özel Yasaklı Kelime Listesi (BWL)', value: '`!automod bwl ekle <kelime>`\n`!automod bwl sil <kelime>`\n`!automod bwl liste`' },
+        { name: 'Rol/Kanal Muafiyetleri', value: '`!automod muafiyet ekle <@rol/#kanal>`\n`!automod muafiyet sil <@rol/#kanal>`\n`!automod muafiyet liste`' },
+        { name: 'Durum Görüntüleme', value: '`!automod durum`' }
+      );
+    return message.reply({ embeds: [embed] });
   }
 };

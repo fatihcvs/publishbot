@@ -33,12 +33,12 @@ module.exports = {
     if (guildData?.modules && guildData.modules.economy === false) {
       return message.reply('❌ Lethe Game bu sunucuda devre dışı.');
     }
-    
+
     const letheChannels = guildData?.modules?.letheChannels || [];
     if (letheChannels.length > 0 && !letheChannels.includes(message.channel.id)) {
       return message.reply(`❌ Lethe Game komutları sadece belirlenen kanallarda çalışır! \`!oyunkanal liste\` ile kontrol et.`);
     }
-    
+
     const result = await letheStorage.huntAnimal(message.author.id, message.guild.id);
 
     if (!result.success) {
@@ -54,19 +54,19 @@ module.exports = {
 
     // Update quest progress
     const completedQuests = await letheStorage.updateQuestProgress(message.author.id, 'hunt', 1);
-    
+
     // Check for rare+ catch
     const rareRarities = ['rare', 'epic', 'legendary', 'mythic', 'hidden', 'eternal'];
     if (rareRarities.includes(animal.rarity)) {
       await letheStorage.updateQuestProgress(message.author.id, 'rare_catch', 1);
     }
-    
+
     // Check for epic+ catch
     const epicRarities = ['epic', 'legendary', 'mythic', 'hidden', 'eternal'];
     if (epicRarities.includes(animal.rarity)) {
       await letheStorage.updateQuestProgress(message.author.id, 'epic_catch', 1);
     }
-    
+
     // Update unique catch progress
     await letheStorage.updateQuestProgress(message.author.id, 'unique_catch', 1);
 
@@ -81,11 +81,11 @@ module.exports = {
       hidden: 0.50,      // 50%
       eternal: 1.00      // 100%
     };
-    
+
     const gemEmojis = {
       common: '⬜', uncommon: '🟩', rare: '🟦', epic: '🟪', legendary: '🟨', mythic: '🟧', hidden: '❓', eternal: '👑'
     };
-    
+
     let gemDropped = null;
     const dropChance = gemDropChances[animal.rarity] || 0.05;
     if (Math.random() < dropChance) {
@@ -95,7 +95,7 @@ module.exports = {
 
     // Check if this is a VIP exclusive animal
     const isVipExclusive = ['vip_phoenix', 'vip_guardian', 'vip_spirit'].includes(animal.animalId);
-    
+
     let description = `**${rarityName}** bir hayvan yakaladın!`;
     if (isVipExclusive) {
       description = `🌟 **VIP ÖZEL** 🌟\n**${rarityName}** bir VIP hayvan yakaladın!`;
@@ -137,15 +137,24 @@ module.exports = {
 
     // Show gem drop
     if (gemDropped) {
-      embed.addFields({ 
-        name: '💎 Evrim Taşı Düştü!', 
-        value: `${gemEmojis[gemDropped]} +1 ${gemDropped} taşı kazandın!`, 
-        inline: false 
+      embed.addFields({
+        name: '💎 Evrim Taşı Düştü!',
+        value: `${gemEmojis[gemDropped]} +1 ${gemDropped} taşı kazandın!`,
+        inline: false
+      });
+    }
+
+    // Phase 7 Part 2: Show map piece drop
+    if (result.foundMapPiece) {
+      embed.addFields({
+        name: '🗺️ Gizemli Buluntu!',
+        value: 'Yerde parlayan bir şey var... **1x Hazine Haritası Parçası** buldun!\n*(3 parça toplayınca `!hazine` komutunu kullanabilirsin)*',
+        inline: false
       });
     }
 
     await message.reply({ embeds: [embed] });
-    
+
     // Send separate detailed quest completion messages
     if (completedQuests.length > 0) {
       for (const q of completedQuests) {
@@ -157,7 +166,7 @@ module.exports = {
           const itemName = q.rewards.item.id.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
           rewardLines.push(`🎁 **${q.rewards.item.quantity}x** ${itemName}`);
         }
-        
+
         const questEmbed = new EmbedBuilder()
           .setColor('#10B981')
           .setTitle(`🎯 Görev Tamamlandı!`)
@@ -169,11 +178,11 @@ module.exports = {
           .setThumbnail(message.author.displayAvatarURL())
           .setFooter({ text: `Görevlerini görmek için: !görev` })
           .setTimestamp();
-        
+
         await message.channel.send({ embeds: [questEmbed] });
       }
     }
-    
+
     // VIP Promotion DM System - Send once per day if not in VIP server
     const canSendDm = await letheStorage.canSendDailyDm(message.author.id);
     if (!result.isVip && canSendDm) {
@@ -181,7 +190,7 @@ module.exports = {
         // Check if user is already in VIP server using fetch (more reliable than cache)
         const vipGuild = client.guilds.cache.get('291436861082042378');
         let isInVipServer = false;
-        
+
         if (vipGuild) {
           try {
             await vipGuild.members.fetch(message.author.id);
@@ -190,10 +199,10 @@ module.exports = {
             isInVipServer = false;
           }
         }
-        
+
         if (!isInVipServer) {
           const promo = letheStorage.getVipPromoMessage();
-          
+
           const promoEmbed = new EmbedBuilder()
             .setColor('#FFD700')
             .setTitle(promo.title)
@@ -204,11 +213,11 @@ module.exports = {
             )
             .setFooter({ text: 'Bu mesaj günde 1 kere gönderilir.' })
             .setTimestamp();
-          
+
           await message.author.send({ embeds: [promoEmbed] }).catch(() => {
             // User has DMs disabled, ignore silently
           });
-          
+
           letheStorage.markDmSent(message.author.id);
         }
       } catch (e) {

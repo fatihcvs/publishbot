@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Publisher Bot — API Anahtarları Yönetimi</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+    <link href="/css/dashboard.css" rel="stylesheet">
+    <style>
+        .admin-container {
+            min-height: 100vh;
+            background: var(--bg-primary);
+            padding: 40px 24px;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .admin-header {
+            max-width: 820px;
+            margin: 0 auto 32px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .admin-header-icon {
+            width: 52px;
+            height: 52px;
+            background: linear-gradient(135deg, #5865f2, #eb459e);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            color: #fff;
+            flex-shrink: 0;
+        }
+
+        .admin-header h1 {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin: 0;
+        }
+
+        .admin-header p {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin: 4px 0 0;
+        }
+
+        .owner-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: linear-gradient(135deg, rgba(88, 101, 242, 0.2), rgba(235, 69, 158, 0.2));
+            border: 1px solid rgba(88, 101, 242, 0.4);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #a8b4ff;
+            margin-left: auto;
+        }
+
+        .keys-grid {
+            max-width: 820px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .key-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 20px 24px;
+            transition: border-color 0.2s;
+        }
+
+        .key-card:hover {
+            border-color: rgba(88, 101, 242, 0.4);
+        }
+
+        .key-card.key-set {
+            border-left: 3px solid #57f287;
+        }
+
+        .key-card.key-unset {
+            border-left: 3px solid #ed4245;
+        }
+
+        .key-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+
+        .key-name {
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            background: var(--bg-tertiary);
+            padding: 4px 10px;
+            border-radius: 6px;
+        }
+
+        .key-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 3px 10px;
+            border-radius: 12px;
+        }
+
+        .key-status.set {
+            background: rgba(87, 242, 135, 0.15);
+            color: #57f287;
+        }
+
+        .key-status.unset {
+            background: rgba(237, 66, 69, 0.15);
+            color: #ed4245;
+        }
+
+        .key-preview {
+            font-family: monospace;
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-left: auto;
+        }
+
+        .key-description {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 14px;
+        }
+
+        .key-input-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .key-input-row input {
+            flex: 1;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 9px 14px;
+            font-size: 13px;
+            color: var(--text-primary);
+            font-family: monospace;
+            transition: border-color 0.2s;
+        }
+
+        .key-input-row input:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+        }
+
+        .key-input-row input::placeholder {
+            color: var(--text-muted);
+            font-family: 'Inter', sans-serif;
+        }
+
+        .btn-save {
+            background: var(--accent-blue);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 9px 18px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: opacity 0.2s, transform 0.1s;
+            white-space: nowrap;
+        }
+
+        .btn-save:hover {
+            opacity: 0.88;
+        }
+
+        .btn-save:active {
+            transform: scale(0.97);
+        }
+
+        .btn-clear {
+            background: transparent;
+            color: #ed4245;
+            border: 1px solid rgba(237, 66, 69, 0.4);
+            border-radius: 8px;
+            padding: 9px 14px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-clear:hover {
+            background: rgba(237, 66, 69, 0.1);
+        }
+
+        .section-title-small {
+            max-width: 820px;
+            margin: 28px auto 12px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        .info-banner {
+            max-width: 820px;
+            margin: 0 auto 28px;
+            background: rgba(88, 101, 242, 0.10);
+            border: 1px solid rgba(88, 101, 242, 0.25);
+            border-radius: 12px;
+            padding: 14px 20px;
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+            font-size: 13px;
+            color: #a8b4ff;
+        }
+
+        .info-banner i {
+            margin-top: 2px;
+            flex-shrink: 0;
+        }
+
+        .toast-admin {
+            position: fixed;
+            bottom: 32px;
+            right: 32px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 14px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            transform: translateY(80px);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(.4, 0, .2, 1);
+            z-index: 9999;
+        }
+
+        .toast-admin.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast-admin.success {
+            border-left: 3px solid #57f287;
+            color: #57f287;
+        }
+
+        .toast-admin.error {
+            border-left: 3px solid #ed4245;
+            color: #ed4245;
+        }
+
+        .spinner-inline {
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            display: none;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .back-link {
+            max-width: 820px;
+            margin: 0 auto 24px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-muted);
+            font-size: 13px;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .back-link:hover {
+            color: var(--accent-blue);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="admin-container">
+        <a href="/dashboard" class="back-link"><i class="fas fa-arrow-left"></i> Dashboard'a Dön</a>
+
+        <div class="admin-header">
+            <div class="admin-header-icon"><i class="fas fa-key"></i></div>
+            <div>
+                <h1>API Anahtarları Yönetimi</h1>
+                <p>Bot'un kullandığı API anahtarlarını buradan güvenli şekilde yönetin.</p>
+            </div>
+            <div class="owner-badge"><i class="fas fa-crown"></i> Bot Sahibi</div>
+        </div>
+
+        <div class="info-banner">
+            <i class="fas fa-shield-halved"></i>
+            <div>
+                <strong style="display:block; margin-bottom:4px;">Güvenlik Notu</strong>
+                Anahtarlar <code style="background:rgba(255,255,255,0.1);padding:1px 6px;border-radius:4px;">.env</code>
+                dosyasına şifrelenmeden yazılır.
+                Değiştirme işlemi anında geçerli olur — bot yeniden başlatmaya gerek <strong>yok</strong>.
+                Kaydettiğiniz anahtarların tam değerini dashboard üzerinden görüntüleyemezsiniz (güvenlik gereği).
+            </div>
+        </div>
+
+        <p class="section-title-small"><i class="fas fa-gamepad"></i> &nbsp;Oyun &amp; Film Entegrasyonları</p>
+        <div class="keys-grid" id="keysGrid">
+            <!-- Dynamic content -->
+            <div style="text-align:center; padding:40px; color:var(--text-muted);">
+                <div class="loading-spinner" style="margin:0 auto 12px;"></div>
+                <p>Yükleniyor...</p>
+            </div>
+        </div>
+
+        <p class="section-title-small"><i class="fas fa-discord"></i> &nbsp;Discord &amp; Temel Ayarlar</p>
+        <div class="keys-grid" id="keysGridCore">
+            <!-- Dynamic content -->
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast-admin" id="adminToast">
+        <i class="fas fa-check-circle"></i>
+        <span id="adminToastMsg">İşlem başarılı</span>
+    </div>
+
+    <script>
+        const KEY_META = {
+            RIOT_API_KEY: {
+                label: 'Riot Games API Key',
+                desc: 'League of Legends ve Valorant komutları için gerekli. <a href="https://developer.riot.games" target="_blank" style="color:var(--accent-blue);">developer.riot.games</a> üzerinden ücretsiz alın.',
+                placeholder: 'RGAPI-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
+                category: 'game'
+            },
+            OMDB_API_KEY: {
+                label: 'OMDB API Key',
+                desc: '!film komutu için. <a href="https://www.omdbapi.com/apikey.aspx" target="_blank" style="color:var(--accent-blue);">omdbapi.com</a> üzerinden ücretsiz alın (1000 istek/gün). Yoksa TVMaze fallback çalışır.',
+                placeholder: 'xxxxxxxx',
+                category: 'game'
+            },
+            OPENAI_API_KEY: {
+                label: 'OpenAI API Key',
+                desc: 'GPT-4o, DALL-E 3 (görsel, analiz, çeviri) komutları için gerekli.',
+                placeholder: 'sk-proj-...',
+                category: 'game'
+            },
+            OPENAI_ORG: {
+                label: 'OpenAI Organization ID',
+                desc: 'Opsiyonel — birden fazla OpenAI organizasyonunuz varsa kullanın.',
+                placeholder: 'org-...',
+                category: 'game'
+            },
+            DISCORD_CLIENT_ID: {
+                label: 'Discord Client ID',
+                desc: 'Dashboard OAuth girişi için Discord uygulamasının client ID\'si.',
+                placeholder: '123456789012345678',
+                category: 'core'
+            },
+            DISCORD_CLIENT_SECRET: {
+                label: 'Discord Client Secret',
+                desc: 'Dashboard OAuth girişi için Discord uygulamasının client secret\'ı.',
+                placeholder: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
+                category: 'core'
+            },
+            SESSION_SECRET: {
+                label: 'Session Secret',
+                desc: 'Dashboard oturumlarını şifreleyen rastgele bir string. Değiştirirseniz tüm oturumlar sıfırlanır.',
+                placeholder: 'çok-güçlü-rastgele-string-buraya',
+                category: 'core'
+            }
+        };
+
+        let keys = [];
+
+        async function loadKeys() {
+            try {
+                const res = await fetch('/api/admin/keys');
+                if (!res.ok) throw new Error('Unauthorized');
+                keys = await res.json();
+                renderKeys();
+            } catch (err) {
+                document.getElementById('keysGrid').innerHTML =
+                    `<div class="feature-card"><p style="color:var(--accent-red);"><i class="fas fa-lock"></i> Anahtarlar yüklenemedi: ${err.message}</p></div>`;
+            }
+        }
+
+        function renderKeys() {
+            const game = keys.filter(k => KEY_META[k.key]?.category === 'game');
+            const core = keys.filter(k => KEY_META[k.key]?.category === 'core');
+            document.getElementById('keysGrid').innerHTML = game.map(renderCard).join('');
+            document.getElementById('keysGridCore').innerHTML = core.map(renderCard).join('');
+        }
+
+        function renderCard(keyObj) {
+            const meta = KEY_META[keyObj.key] || { label: keyObj.key, desc: '', placeholder: '' };
+            const isSet = keyObj.set;
+            return `
+      <div class="key-card ${isSet ? 'key-set' : 'key-unset'}" id="card-${keyObj.key}">
+        <div class="key-header">
+          <span class="key-name">${keyObj.key}</span>
+          <span class="key-status ${isSet ? 'set' : 'unset'}">
+            <i class="fas ${isSet ? 'fa-check' : 'fa-xmark'}"></i>
+            ${isSet ? 'Ayarlı' : 'Ayarsız'}
+          </span>
+          ${isSet && keyObj.preview ? `<span class="key-preview">${keyObj.preview}</span>` : ''}
+        </div>
+        <p class="key-description">${meta.desc}</p>
+        <div class="key-input-row">
+          <input
+            type="password"
+            id="input-${keyObj.key}"
+            placeholder="${meta.placeholder}"
+            autocomplete="new-password"
+            spellcheck="false"
+          >
+          <button class="btn-save" onclick="saveKey('${keyObj.key}')">
+            <span class="spinner-inline" id="spinner-${keyObj.key}"></span>
+            <i class="fas fa-floppy-disk"></i> Kaydet
+          </button>
+          ${isSet ? `<button class="btn-clear" onclick="clearKey('${keyObj.key}')" title="Anahtarı sil"><i class="fas fa-trash"></i></button>` : ''}
+        </div>
+      </div>
+    `;
+        }
+
+        async function saveKey(key) {
+            const input = document.getElementById(`input-${key}`);
+            const value = input.value.trim();
+            if (!value) {
+                showToast('Değer boş olamaz — silmek için 🗑️ butonunu kullanın', 'error');
+                return;
+            }
+
+            const spinner = document.getElementById(`spinner-${key}`);
+            if (spinner) spinner.style.display = 'block';
+
+            try {
+                const res = await fetch('/api/admin/keys', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ key, value })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Hata');
+
+                input.value = '';
+                showToast(`${key} başarıyla kaydedildi ✅`, 'success');
+                await loadKeys();
+            } catch (err) {
+                showToast(`Hata: ${err.message}`, 'error');
+            } finally {
+                if (spinner) spinner.style.display = 'none';
+            }
+        }
+
+        async function clearKey(key) {
+            if (!confirm(`"${key}" anahtarını silmek istediğinize emin misiniz?`)) return;
+
+            try {
+                const res = await fetch('/api/admin/keys', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ key, value: '' })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Hata');
+
+                showToast(`${key} temizlendi`, 'success');
+                await loadKeys();
+            } catch (err) {
+                showToast(`Hata: ${err.message}`, 'error');
+            }
+        }
+
+        // Enter key submits
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && e.target.tagName === 'INPUT' && e.target.id.startsWith('input-')) {
+                const key = e.target.id.replace('input-', '');
+                saveKey(key);
+            }
+        });
+
+        let toastTimer;
+        function showToast(msg, type = 'success') {
+            const toast = document.getElementById('adminToast');
+            const icon = toast.querySelector('i');
+            document.getElementById('adminToastMsg').textContent = msg;
+            toast.className = `toast-admin ${type}`;
+            icon.className = type === 'success' ? 'fas fa-check-circle' : 'fas fa-circle-exclamation';
+            toast.classList.add('show');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => toast.classList.remove('show'), 3500);
+        }
+
+        // Toggle password visibility on input click+hold
+        document.addEventListener('dblclick', (e) => {
+            if (e.target.tagName === 'INPUT' && e.target.type === 'password') {
+                e.target.type = 'text';
+                setTimeout(() => { e.target.type = 'password'; }, 3000);
+            }
+        });
+
+        loadKeys();
+    </script>
+</body>
+
+</html>

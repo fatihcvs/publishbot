@@ -6,13 +6,18 @@ const guilds = pgTable('guilds', {
   prefix: text('prefix').default('!'),
   welcomeChannel: text('welcome_channel'),
   welcomeMessage: text('welcome_message'),
-  logChannel: text('log_channel'),
+  logChannel: text('log_channel'), // Legacy global log
+  modLogChannel: text('mod_log_channel'), // PHASE 1.2
+  memberLogChannel: text('member_log_channel'), // PHASE 1.2
+  messageLogChannel: text('message_log_channel'), // PHASE 1.2
   autoRole: text('auto_role'),
   muteRole: text('mute_role'),
+  levelRoles: jsonb('level_roles').default({}), // PHASE 2: Level Roles
   modules: jsonb('modules').default({}),
   automodConfig: jsonb('automod_config').default({}),
   autoPunishments: jsonb('auto_punishments').default({}),
   logConfig: jsonb('log_config').default({}),
+  antiraidConfig: jsonb('antiraid_config').default({}), // PHASE 1: Anti-Raid
   goodbyeChannel: text('goodbye_channel'),
   goodbyeMessage: text('goodbye_message'),
   verificationRole: text('verification_role'),
@@ -133,6 +138,14 @@ const userAchievements = pgTable('user_achievements', {
   userId: text('user_id').notNull(),
   achievementId: text('achievement_id').notNull(),
   unlockedAt: timestamp('unlocked_at').defaultNow()
+});
+const userProfiles = pgTable('user_profiles', {
+  id: serial('id').primaryKey(),
+  guildId: text('guild_id').notNull(),
+  userId: text('user_id').notNull(),
+  biography: text('biography').default('Henüz bir biyografi ayarlanmamış.'),
+  title: text('title').default('Acemi'),
+  createdAt: timestamp('created_at').defaultNow()
 });
 
 const inviteTracking = pgTable('invite_tracking', {
@@ -324,22 +337,18 @@ const jackpotPool = pgTable('jackpot_pool', {
 
 const userStats = pgTable('user_stats', {
   id: serial('id').primaryKey(),
-  guildId: text('guild_id').notNull(),
-  userId: text('user_id').notNull(),
-  gamesPlayed: integer('games_played').default(0),
-  gamesWon: integer('games_won').default(0),
-  gamesLost: integer('games_lost').default(0),
-  totalBet: integer('total_bet').default(0),
-  totalWon: integer('total_won').default(0),
-  totalLost: integer('total_lost').default(0),
-  biggestWin: integer('biggest_win').default(0),
-  fishCaught: integer('fish_caught').default(0),
-  oresMined: integer('ores_mined').default(0),
-  animalsHunted: integer('animals_hunted').default(0),
-  robberyAttempts: integer('robbery_attempts').default(0),
-  robberySuccess: integer('robbery_success').default(0),
-  timesRobbed: integer('times_robbed').default(0),
-  createdAt: timestamp('created_at').defaultNow()
+  userId: text('user_id').notNull().unique(),
+  totalWins: integer('total_wins').default(0),
+  totalLosses: integer('total_losses').default(0),
+  totalEarned: integer('total_earned').default(0),
+  bossKills: integer('boss_kills').default(0),
+  gamesPlayed: integer('games_played').default(0)
+});
+
+const commandUsage = pgTable('command_usage', {
+  commandName: text('command_name').primaryKey(),
+  usageCount: integer('usage_count').default(0),
+  lastUsedAt: timestamp('last_used_at').defaultNow()
 });
 
 const lootBoxes = pgTable('loot_boxes', {
@@ -366,6 +375,7 @@ const letheAnimals = pgTable('lethe_animals', {
   sellPrice: integer('sell_price').default(5),
   xpReward: integer('xp_reward').default(1),
   season: text('season'),
+  regionId: text('region_id'),
   isVipExclusive: boolean('is_vip_exclusive').default(false)
 });
 
@@ -492,6 +502,11 @@ const userLetheProfile = pgTable('user_lethe_profile', {
   level: integer('level').default(1),
   xp: integer('xp').default(0),
   coins: integer('coins').default(0),
+  clanId: text('clan_id'),
+  explorationEnergy: integer('exploration_energy').default(100),
+  lastEnergyUpdate: timestamp('last_energy_update'),
+  currentRegionId: text('current_region_id').default('forest'),
+  mapPieces: integer('map_pieces').default(0), // PHASE 7: Hazine Haritası Parçaları
   totalHunts: integer('total_hunts').default(0),
   totalBattles: integer('total_battles').default(0),
   battlesWon: integer('battles_won').default(0),
@@ -516,14 +531,24 @@ const letheAchievements = pgTable('lethe_achievements', {
   requirement: text('requirement').notNull(),
   requirementValue: integer('requirement_value').default(1),
   rewardMoney: integer('reward_money').default(0),
-  rewardItem: text('reward_item')
+  rewardXp: integer('reward_xp').default(0), // PHASE 9: XP Reward added
+  rewardItem: text('reward_item') // Optional item
 });
 
 const userLetheAchievements = pgTable('user_lethe_achievements', {
   id: serial('id').primaryKey(),
   visitorId: text('user_id').notNull(),
   achievementId: text('achievement_id').notNull(),
-  unlockedAt: timestamp('unlocked_at').defaultNow()
+  unlockedAt: timestamp('unlocked_at').defaultNow(),
+  rewardClaimed: boolean('reward_claimed').default(false)
+});
+
+// PHASE 9: Koleksiyon Tamamlama Ödülleri
+const userLetheCollections = pgTable('user_lethe_collections', {
+  id: serial('id').primaryKey(),
+  userId: text('user_id').notNull(),
+  collectionId: text('collection_id').notNull(), // e.g. 'forest_common', 'all_epic'
+  completedAt: timestamp('completed_at').defaultNow()
 });
 
 const letheBattles = pgTable('lethe_battles', {
@@ -725,6 +750,38 @@ const letheEventParticipation = pgTable('lethe_event_participation', {
   participatedAt: timestamp('participated_at').defaultNow()
 });
 
+const letheClans = pgTable('lethe_clans', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull(),
+  description: text('description'),
+  leaderId: text('leader_id').notNull(),
+  level: integer('level').default(1),
+  xp: integer('xp').default(0),
+  coins: integer('coins').default(0),
+  createdAt: timestamp('created_at').defaultNow()
+});
+
+const letheClanMembers = pgTable('lethe_clan_members', {
+  id: serial('id').primaryKey(),
+  clanId: text('clan_id').notNull(),
+  userId: text('user_id').notNull(),
+  role: text('role').notNull().default('member'),
+  contributionCoins: integer('contribution_coins').default(0),
+  contributionXp: integer('contribution_xp').default(0),
+  joinedAt: timestamp('joined_at').defaultNow()
+});
+
+// --- KEŞİF SİSTEMİ (PHASE 7) ---
+const letheRegions = pgTable('lethe_regions', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull(),
+  description: text('description'),
+  emoji: text('emoji').notNull(),
+  requiredLevel: integer('required_level').default(1),
+  energyCost: integer('energy_cost').default(10),
+  isEventRegion: boolean('is_event_region').default(false)
+});
+
 module.exports = {
   guilds,
   warnings,
@@ -756,6 +813,7 @@ module.exports = {
   dailyStreak,
   jackpotPool,
   userStats,
+  commandUsage,
   lootBoxes,
   letheAnimals,
   userAnimals,
@@ -770,6 +828,7 @@ module.exports = {
   userLetheProfile,
   letheAchievements,
   userLetheAchievements,
+  userLetheCollections,
   letheBattles,
   letheQuests,
   userLetheQuests,
@@ -784,5 +843,9 @@ module.exports = {
   letheLeaderboard,
   letheEvents,
   letheCommunityGoals,
-  letheEventParticipation
+  letheEventParticipation,
+  letheClans,
+  letheClanMembers,
+  letheRegions,
+  userProfiles
 };

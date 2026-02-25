@@ -1,5 +1,5 @@
 const { db } = require('../database/db');
-const { 
+const {
   letheAnimals, userAnimals, letheWeapons, letheArmors, letheAccessories,
   letheConsumables, letheBaits, letheCrates, letheBosses, userLetheInventory,
   userLetheProfile, letheAchievements, userLetheAchievements, letheBattles,
@@ -44,15 +44,15 @@ async function canSendDailyDm(userId) {
     const profile = await db.select().from(userLetheProfile)
       .where(eq(userLetheProfile.visitorId, userId))
       .limit(1);
-    
+
     if (!profile[0] || !profile[0].lastPromoDm) {
       return true;
     }
-    
+
     const lastDm = new Date(profile[0].lastPromoDm);
     const now = new Date();
     const hoursSince = (now - lastDm) / (1000 * 60 * 60);
-    
+
     return hoursSince >= 24;
   } catch {
     return true;
@@ -105,7 +105,7 @@ async function seedDatabase() {
       const seasonalCheck = await db.select().from(letheAnimals)
         .where(sql`${letheAnimals.season} IS NOT NULL`)
         .limit(1);
-      
+
       if (seasonalCheck.length === 0 && seedData.seasonalAnimals) {
         console.log('Seeding seasonal animals...');
         for (const animal of seedData.seasonalAnimals) {
@@ -113,7 +113,7 @@ async function seedDatabase() {
         }
         console.log('Seasonal animals seeded!');
       }
-      
+
       console.log('Lethe Game data already seeded');
       return;
     }
@@ -121,14 +121,14 @@ async function seedDatabase() {
     for (const animal of seedData.animals) {
       await db.insert(letheAnimals).values(animal).onConflictDoNothing();
     }
-    
+
     // Seed seasonal animals
     if (seedData.seasonalAnimals) {
       for (const animal of seedData.seasonalAnimals) {
         await db.insert(letheAnimals).values(animal).onConflictDoNothing();
       }
     }
-    
+
     for (const weapon of seedData.weapons) {
       await db.insert(letheWeapons).values(weapon).onConflictDoNothing();
     }
@@ -158,7 +158,7 @@ async function seedDatabase() {
   } catch (error) {
     console.error('Error seeding Lethe Game data:', error);
   }
-  
+
   try {
     const schema = require('../../shared/schema');
     await eventSystem.initialize(db, schema);
@@ -188,32 +188,35 @@ async function addCoins(userId, amount) {
   await db.update(userLetheProfile)
     .set({ coins: sql`${userLetheProfile.coins} + ${amount}` })
     .where(eq(userLetheProfile.visitorId, userId));
+
+  // Trigger achievement check
+  processAchievements(userId).catch(console.error);
 }
 
 async function addBattleReward(userId, xpAmount, moneyAmount, won, isBoss = false, guildId = null) {
   await getOrCreateProfile(userId);
   const isVip = isVipServer(guildId);
   const vipBonuses = getVipBonuses(guildId);
-  
+
   // Apply VIP bonuses
   let finalXp = xpAmount;
   let finalMoney = moneyAmount;
   let xpBonus = 0;
   let moneyBonus = 0;
-  
+
   if (isVip && vipBonuses) {
     xpBonus = Math.floor(xpAmount * (vipBonuses.xpMultiplier - 1));
     moneyBonus = Math.floor(moneyAmount * (vipBonuses.coinMultiplier - 1));
     finalXp = Math.floor(xpAmount * vipBonuses.xpMultiplier);
     finalMoney = Math.floor(moneyAmount * vipBonuses.coinMultiplier);
   }
-  
+
   // Apply event bonuses
   const eventXpMultiplier = eventSystem.getXPMultiplier();
   const eventGoldMultiplier = eventSystem.getGoldMultiplier();
   let eventXpBonus = 0;
   let eventMoneyBonus = 0;
-  
+
   if (eventXpMultiplier > 1) {
     eventXpBonus = Math.floor(finalXp * (eventXpMultiplier - 1));
     finalXp = Math.floor(finalXp * eventXpMultiplier);
@@ -222,27 +225,27 @@ async function addBattleReward(userId, xpAmount, moneyAmount, won, isBoss = fals
     eventMoneyBonus = Math.floor(finalMoney * (eventGoldMultiplier - 1));
     finalMoney = Math.floor(finalMoney * eventGoldMultiplier);
   }
-  
+
   const updateData = {
     totalBattles: sql`${userLetheProfile.totalBattles} + 1`,
     xp: sql`${userLetheProfile.xp} + ${finalXp}`
   };
-  
+
   if (won) {
     updateData.battlesWon = sql`${userLetheProfile.battlesWon} + 1`;
   }
-  
+
   if (isBoss && won) {
     updateData.bossesKilled = sql`${userLetheProfile.bossesKilled} + 1`;
     // Contribute to community goal for boss kills
     await eventSystem.contributeToCommunityGoal('boss_kills', 1);
     await eventSystem.recordParticipation(userId, 'boss_kills', 1);
   }
-  
+
   // Contribute to community battle goal
   await eventSystem.contributeToCommunityGoal('battles', 1);
   await eventSystem.recordParticipation(userId, 'battles', 1);
-  
+
   await db.update(userLetheProfile)
     .set(updateData)
     .where(eq(userLetheProfile.visitorId, userId));
@@ -251,11 +254,21 @@ async function addBattleReward(userId, xpAmount, moneyAmount, won, isBoss = fals
     await addCoins(userId, finalMoney);
   }
 
+  // Add Clan XP (10% of Battle XP earned goes to Clan XP)
+  // Need to import clanSystem at the top of letheStorage.js first though, I'll do this carefully.
+  try {
+    const { clanSystem } = require('./clanSystem');
+    const profile = await getOrCreateProfile(userId);
+    if (profile.clanId) {
+      await clanSystem.addClanProgress(profile.clanId, userId, 0, Math.floor(finalXp * 0.1));
+    }
+  } catch (e) { console.error('Error adding clan XP:', e) }
+
   await checkLevelUp(userId);
-  
-  return { 
-    xpBonus: xpBonus + eventXpBonus, 
-    moneyBonus: moneyBonus + eventMoneyBonus, 
+
+  return {
+    xpBonus: xpBonus + eventXpBonus,
+    moneyBonus: moneyBonus + eventMoneyBonus,
     isVip,
     eventXpBonus,
     eventMoneyBonus,
@@ -266,10 +279,13 @@ async function addBattleReward(userId, xpAmount, moneyAmount, won, isBoss = fals
 async function checkLevelUp(userId) {
   const profile = await getOrCreateProfile(userId);
   const xpNeeded = profile.level * 100;
-  
+
+  // Trigger achievement check
+  processAchievements(userId).catch(console.error);
+
   if (profile.xp >= xpNeeded) {
     await db.update(userLetheProfile)
-      .set({ 
+      .set({
         level: sql`${userLetheProfile.level} + 1`,
         xp: sql`${userLetheProfile.xp} - ${xpNeeded}`
       })
@@ -281,11 +297,11 @@ async function checkLevelUp(userId) {
 
 async function getTeamWithEquipment(userId) {
   const team = await getTeam(userId);
-  
+
   let totalWeaponDamage = 0;
   let totalArmorDefense = 0;
   let allEquipment = [];
-  
+
   const baseStats = {
     hp: 0,
     str: 0,
@@ -296,24 +312,24 @@ async function getTeamWithEquipment(userId) {
   for (const t of team) {
     const animal = t.userAnimal;
     const equipment = await getAnimalEquipmentDetails(animal);
-    
+
     let animalStr = animal.str;
     let animalDef = animal.def;
     let animalHp = animal.hp;
     let animalSpd = animal.spd;
-    
+
     if (equipment.weaponInfo) {
       animalStr += equipment.weaponInfo.damage || 0;
       totalWeaponDamage += equipment.weaponInfo.damage || 0;
       allEquipment.push({ type: 'weapon', ...equipment.weaponInfo, animalName: t.animalInfo.name });
     }
-    
+
     if (equipment.armorInfo) {
       animalDef += equipment.armorInfo.defense || 0;
       totalArmorDefense += equipment.armorInfo.defense || 0;
       allEquipment.push({ type: 'armor', ...equipment.armorInfo, animalName: t.animalInfo.name });
     }
-    
+
     if (equipment.accessoryInfo) {
       const acc = equipment.accessoryInfo;
       if (acc.effect === 'str_boost') animalStr += acc.effectValue || 0;
@@ -328,23 +344,23 @@ async function getTeamWithEquipment(userId) {
       }
       allEquipment.push({ type: 'accessory', ...acc, animalName: t.animalInfo.name });
     }
-    
+
     t.effectiveStats = { hp: animalHp, str: animalStr, def: animalDef, spd: animalSpd };
     t.equipment = equipment;
-    
+
     baseStats.hp += animalHp;
     baseStats.str += animalStr;
     baseStats.def += animalDef;
     baseStats.spd += animalSpd;
   }
-  
+
   if (team.length > 0) {
     baseStats.spd = Math.round(baseStats.spd / team.length);
   }
 
-  return { 
-    team, 
-    stats: baseStats, 
+  return {
+    team,
+    stats: baseStats,
     allEquipment,
     weapon: { damage: totalWeaponDamage, name: totalWeaponDamage > 0 ? `+${totalWeaponDamage} Hasar` : null },
     armor: { defense: totalArmorDefense, name: totalArmorDefense > 0 ? `+${totalArmorDefense} Savunma` : null }
@@ -355,7 +371,7 @@ async function huntAnimal(userId, guildId = null) {
   const profile = await getOrCreateProfile(userId);
   const isVip = isVipServer(guildId);
   const vipBonuses = getVipBonuses(guildId);
-  
+
   const huntCooldown = 15000;
   if (profile.lastHunt) {
     const timeSinceHunt = Date.now() - new Date(profile.lastHunt).getTime();
@@ -384,7 +400,7 @@ async function huntAnimal(userId, guildId = null) {
     adjustedRarityChances.mythic += boost * 0.08;
     adjustedRarityChances.hidden += boost * 0.02;
   }
-  
+
   // Apply event rare boost
   const eventRareMultiplier = eventSystem.getRareMultiplier();
   if (eventRareMultiplier > 1) {
@@ -396,12 +412,12 @@ async function huntAnimal(userId, guildId = null) {
     adjustedRarityChances.mythic += eventBoost * 0.15;
     adjustedRarityChances.hidden += eventBoost * 0.05;
   }
-  
+
   // Ensure common chance doesn't go negative and normalize probabilities
   if (adjustedRarityChances.common < 0.30) {
     adjustedRarityChances.common = 0.30;
   }
-  
+
   // Normalize to sum to 1
   const total = Object.values(adjustedRarityChances).reduce((sum, val) => sum + val, 0);
   for (const rarity in adjustedRarityChances) {
@@ -419,7 +435,7 @@ async function huntAnimal(userId, guildId = null) {
   // Check for VIP exclusive animal chance (only in VIP server)
   let caughtAnimal = null;
   let isSeasonal = false;
-  
+
   if (isVip && Math.random() < 0.02) { // 2% chance for VIP exclusive
     const vipAnimals = await db.select().from(letheAnimals)
       .where(sql`${letheAnimals.animalId} IN ('vip_phoenix', 'vip_guardian', 'vip_spirit')`);
@@ -431,6 +447,7 @@ async function huntAnimal(userId, guildId = null) {
   // Regular animal selection if no VIP exclusive
   if (!caughtAnimal) {
     // Get regular animals (no season) and current season animals
+    // PHASE 7: Also filter by Region
     const animalsOfRarity = await db.select().from(letheAnimals)
       .where(and(
         eq(letheAnimals.rarity, selectedRarity),
@@ -438,6 +455,10 @@ async function huntAnimal(userId, guildId = null) {
         or(
           sql`${letheAnimals.season} IS NULL`,
           eq(letheAnimals.season, currentSeason)
+        ),
+        or(
+          sql`${letheAnimals.regionId} IS NULL`,
+          eq(letheAnimals.regionId, profile.currentRegionId)
         )
       ));
 
@@ -461,11 +482,11 @@ async function huntAnimal(userId, guildId = null) {
   // Apply VIP XP bonus
   let xpReward = caughtAnimal.xpReward;
   let eventXpBonus = 0;
-  
+
   if (isVip && vipBonuses) {
     xpReward = Math.floor(xpReward * vipBonuses.xpMultiplier);
   }
-  
+
   // Apply event XP bonus
   const eventXpMultiplier = eventSystem.getXPMultiplier();
   if (eventXpMultiplier > 1) {
@@ -474,20 +495,32 @@ async function huntAnimal(userId, guildId = null) {
   }
 
   await db.update(userLetheProfile)
-    .set({ 
+    .set({
       totalHunts: sql`${userLetheProfile.totalHunts} + 1`,
       xp: sql`${userLetheProfile.xp} + ${xpReward}`,
       lastHunt: new Date()
     })
     .where(eq(userLetheProfile.visitorId, userId));
-  
+
   // Contribute to community hunt goal
   await eventSystem.contributeToCommunityGoal('hunts', 1);
   await eventSystem.recordParticipation(userId, 'hunts', 1);
 
-  return { 
-    success: true, 
-    animal: caughtAnimal, 
+  // Phase 7 Part 2: Hazine Haritası Düşme Şansı (Normal Avdan %5)
+  let foundMapPiece = false;
+  if (Math.random() <= 0.05) {
+    await db.update(userLetheProfile)
+      .set({ mapPieces: sql`${userLetheProfile.mapPieces} + 1` })
+      .where(eq(userLetheProfile.visitorId, userId));
+    foundMapPiece = true;
+  }
+
+  // Trigger achievements manually since hunts went up
+  processAchievements(userId).catch(console.error);
+
+  return {
+    success: true,
+    animal: caughtAnimal,
     isVip,
     isSeasonal,
     currentSeason,
@@ -495,7 +528,8 @@ async function huntAnimal(userId, guildId = null) {
     xpBonus: isVip ? Math.floor(caughtAnimal.xpReward * (vipBonuses.xpMultiplier - 1)) : 0,
     eventXpBonus,
     hasEventBonus: eventXpMultiplier > 1 || eventRareMultiplier > 1,
-    eventRareBoost: eventRareMultiplier > 1
+    eventRareBoost: eventRareMultiplier > 1,
+    foundMapPiece // Let the command know a map piece dropped
   };
 }
 
@@ -504,10 +538,10 @@ async function getUserAnimals(userId) {
     userAnimal: userAnimals,
     animalInfo: letheAnimals
   })
-  .from(userAnimals)
-  .leftJoin(letheAnimals, eq(userAnimals.animalId, letheAnimals.animalId))
-  .where(eq(userAnimals.userId, userId))
-  .orderBy(userAnimals.caughtAt);
+    .from(userAnimals)
+    .leftJoin(letheAnimals, eq(userAnimals.animalId, letheAnimals.animalId))
+    .where(eq(userAnimals.userId, userId))
+    .orderBy(userAnimals.caughtAt);
 }
 
 async function giveAnimalToUser(userId, animalId) {
@@ -520,7 +554,7 @@ async function giveAnimalToUser(userId, animalId) {
   }
 
   const animal = animalData[0];
-  
+
   const result = await db.insert(userAnimals).values({
     userId,
     animalId: animal.animalId,
@@ -531,9 +565,9 @@ async function giveAnimalToUser(userId, animalId) {
   }).returning();
 
   await getOrCreateProfile(userId);
-  
+
   await db.update(userLetheProfile)
-    .set({ 
+    .set({
       xp: sql`${userLetheProfile.xp} + ${animal.xpReward}`
     })
     .where(eq(userLetheProfile.visitorId, userId));
@@ -546,10 +580,10 @@ async function sellAnimal(userId, userAnimalId) {
     userAnimal: userAnimals,
     animalInfo: letheAnimals
   })
-  .from(userAnimals)
-  .leftJoin(letheAnimals, eq(userAnimals.animalId, letheAnimals.animalId))
-  .where(eq(userAnimals.id, userAnimalId))
-  .limit(1);
+    .from(userAnimals)
+    .leftJoin(letheAnimals, eq(userAnimals.animalId, letheAnimals.animalId))
+    .where(eq(userAnimals.id, userAnimalId))
+    .limit(1);
 
   if (animal.length === 0 || animal[0].userAnimal.userId !== userId) {
     return { success: false, error: 'Animal not found' };
@@ -562,7 +596,7 @@ async function sellAnimal(userId, userAnimalId) {
   const sellPrice = animal[0].animalInfo.sellPrice;
 
   await db.delete(userAnimals).where(eq(userAnimals.id, userAnimalId));
-  
+
   await addCoins(userId, sellPrice);
 
   return { success: true, animal: animal[0].animalInfo, price: sellPrice };
@@ -573,9 +607,9 @@ async function sellDuplicateAnimals(userId) {
     userAnimal: userAnimals,
     animalInfo: letheAnimals
   })
-  .from(userAnimals)
-  .leftJoin(letheAnimals, eq(userAnimals.animalId, letheAnimals.animalId))
-  .where(eq(userAnimals.userId, userId));
+    .from(userAnimals)
+    .leftJoin(letheAnimals, eq(userAnimals.animalId, letheAnimals.animalId))
+    .where(eq(userAnimals.userId, userId));
 
   const animalGroups = {};
   for (const a of allAnimals) {
@@ -592,7 +626,7 @@ async function sellDuplicateAnimals(userId) {
 
   for (const [animalId, group] of Object.entries(animalGroups)) {
     if (group.length <= 1) continue;
-    
+
     group.sort((a, b) => {
       if (a.userAnimal.isInTeam && !b.userAnimal.isInTeam) return -1;
       if (!a.userAnimal.isInTeam && b.userAnimal.isInTeam) return 1;
@@ -600,7 +634,7 @@ async function sellDuplicateAnimals(userId) {
     });
 
     const toSell = group.slice(1).filter(a => !a.userAnimal.isInTeam);
-    
+
     if (toSell.length === 0) continue;
 
     for (const animal of toSell) {
@@ -624,11 +658,11 @@ async function sellDuplicateAnimals(userId) {
     await addCoins(userId, totalEarned);
   }
 
-  return { 
-    success: true, 
-    soldCount, 
-    totalEarned, 
-    soldDetails 
+  return {
+    success: true,
+    soldCount,
+    totalEarned,
+    soldDetails
   };
 }
 
@@ -637,18 +671,18 @@ async function getTeam(userId) {
     userAnimal: userAnimals,
     animalInfo: letheAnimals
   })
-  .from(userAnimals)
-  .leftJoin(letheAnimals, eq(userAnimals.animalId, letheAnimals.animalId))
-  .where(and(eq(userAnimals.userId, userId), eq(userAnimals.isInTeam, true)))
-  .orderBy(userAnimals.teamSlot);
+    .from(userAnimals)
+    .leftJoin(letheAnimals, eq(userAnimals.animalId, letheAnimals.animalId))
+    .where(and(eq(userAnimals.userId, userId), eq(userAnimals.isInTeam, true)))
+    .orderBy(userAnimals.teamSlot);
 }
 
 async function addToTeam(userId, userAnimalId) {
   const team = await db.select().from(userAnimals)
     .where(eq(userAnimals.userId, userId));
-  
+
   const inTeam = team.filter(a => a.isInTeam);
-  
+
   if (inTeam.length >= 3) {
     return { success: false, error: 'Team is full (max 3)' };
   }
@@ -687,7 +721,7 @@ async function addToTeam(userId, userAnimalId) {
 async function removeFromTeam(userId, slot) {
   const animals = await db.select().from(userAnimals)
     .where(eq(userAnimals.userId, userId));
-  
+
   const animal = animals.find(a => a.teamSlot === slot && a.isInTeam);
 
   if (!animal) {
@@ -697,8 +731,8 @@ async function removeFromTeam(userId, slot) {
   await releaseAnimalEquipment(userId, animal);
 
   await db.update(userAnimals)
-    .set({ 
-      isInTeam: false, 
+    .set({
+      isInTeam: false,
       teamSlot: null,
       equippedWeapon: null,
       equippedArmor: null,
@@ -724,7 +758,7 @@ async function releaseAnimalEquipment(userId, animal) {
         eq(userLetheInventory.itemId, equip.id)
       ))
       .limit(1);
-    
+
     if (inventoryItem.length > 0 && inventoryItem[0].equippedCount > 0) {
       await db.update(userLetheInventory)
         .set({ equippedCount: sql`GREATEST(${userLetheInventory.equippedCount} - 1, 0)` })
@@ -756,7 +790,7 @@ async function getProfile(userId) {
 async function checkBattleCooldown(userId) {
   const profile = await getOrCreateProfile(userId);
   const battleCooldown = 15000; // 15 seconds
-  
+
   if (profile.lastBattle) {
     const timeSince = Date.now() - new Date(profile.lastBattle).getTime();
     if (timeSince < battleCooldown) {
@@ -775,7 +809,7 @@ async function setBattleCooldown(userId) {
 async function checkBossCooldown(userId) {
   const profile = await getOrCreateProfile(userId);
   const bossCooldown = 900000; // 15 minutes (900 seconds)
-  
+
   if (profile.lastBoss) {
     const timeSince = Date.now() - new Date(profile.lastBoss).getTime();
     if (timeSince < bossCooldown) {
@@ -826,7 +860,7 @@ async function getInventory(userId) {
 async function buyItem(userId, itemType, itemId, guildId = null) {
   const isVip = isVipServer(guildId);
   const vipBonuses = getVipBonuses(guildId);
-  
+
   let item;
   switch (itemType) {
     case 'weapon':
@@ -858,7 +892,7 @@ async function buyItem(userId, itemType, itemId, guildId = null) {
   }
 
   const profile = await getOrCreateProfile(userId);
-  
+
   // Apply VIP discount
   let finalPrice = item.price;
   let discount = 0;
@@ -897,7 +931,7 @@ async function buyItem(userId, itemType, itemId, guildId = null) {
 
 async function equipItem(userId, itemType, itemId) {
   const profile = await getOrCreateProfile(userId);
-  
+
   const inventoryItems = await db.select().from(userLetheInventory)
     .where(eq(userLetheInventory.visitorId, userId));
 
@@ -1036,7 +1070,7 @@ async function unequipFromAnimal(userId, animalId, itemType) {
         eq(userLetheInventory.itemId, itemId)
       ))
       .limit(1);
-    
+
     if (inventoryItem.length > 0 && inventoryItem[0].equippedCount > 0) {
       await db.update(userLetheInventory)
         .set({ equippedCount: sql`GREATEST(${userLetheInventory.equippedCount} - 1, 0)` })
@@ -1095,9 +1129,9 @@ async function getUserAchievements(userId) {
     userAchievement: userLetheAchievements,
     achievementInfo: letheAchievements
   })
-  .from(userLetheAchievements)
-  .leftJoin(letheAchievements, eq(userLetheAchievements.achievementId, letheAchievements.achievementId))
-  .where(eq(userLetheAchievements.visitorId, userId));
+    .from(userLetheAchievements)
+    .leftJoin(letheAchievements, eq(userLetheAchievements.achievementId, letheAchievements.achievementId))
+    .where(eq(userLetheAchievements.visitorId, userId));
 }
 
 async function getAllAchievements() {
@@ -1137,7 +1171,7 @@ async function checkAndGrantAchievements(userId) {
   const userAnimalsData = await getUserAnimals(userId);
   const achievements = await getAllAchievements();
   const userAchievementsData = await getUserAchievements(userId);
-  
+
   const earnedIds = new Set(userAchievementsData.map(a => a.userAchievement.achievementId));
   const newAchievements = [];
 
@@ -1233,21 +1267,21 @@ function getNextReset(type) {
 
 async function getUserQuests(userId) {
   await getOrCreateProfile(userId);
-  
+
   const now = new Date();
-  
+
   // Clean expired quests
   await db.delete(userLetheQuests)
     .where(and(eq(userLetheQuests.visitorId, userId), lt(userLetheQuests.expiresAt, now)));
-  
+
   // Get active quests
   let userQuests = await db.select().from(userLetheQuests)
     .where(and(eq(userLetheQuests.visitorId, userId), gte(userLetheQuests.expiresAt, now)));
-  
+
   // Assign new quests if needed
   const allQuests = await db.select().from(letheQuests);
   const assignedQuestIds = new Set(userQuests.map(q => q.questId));
-  
+
   for (const quest of allQuests) {
     if (!assignedQuestIds.has(quest.questId)) {
       const expiresAt = getNextReset(quest.type);
@@ -1261,11 +1295,11 @@ async function getUserQuests(userId) {
       });
     }
   }
-  
+
   // Fetch all quests again with quest details
   userQuests = await db.select().from(userLetheQuests)
     .where(and(eq(userLetheQuests.visitorId, userId), gte(userLetheQuests.expiresAt, now)));
-  
+
   const questsWithDetails = [];
   for (const uq of userQuests) {
     const questInfo = allQuests.find(q => q.questId === uq.questId);
@@ -1273,34 +1307,34 @@ async function getUserQuests(userId) {
       questsWithDetails.push({ ...uq, questInfo });
     }
   }
-  
+
   return questsWithDetails;
 }
 
 async function updateQuestProgress(userId, requirement, amount = 1) {
   const userQuests = await getUserQuests(userId);
   const updated = [];
-  
+
   for (const uq of userQuests) {
     if (uq.completed || uq.claimed) continue;
     if (uq.questInfo.requirement !== requirement) continue;
-    
+
     const newProgress = Math.min(uq.progress + amount, uq.questInfo.targetValue);
     const completed = newProgress >= uq.questInfo.targetValue;
-    
+
     await db.update(userLetheQuests)
-      .set({ 
-        progress: newProgress, 
+      .set({
+        progress: newProgress,
         completed,
         completedAt: completed ? new Date() : null,
         claimed: completed ? true : false
       })
       .where(eq(userLetheQuests.id, uq.id));
-    
+
     if (completed && !uq.completed) {
       const qi = uq.questInfo;
       let rewards = { coins: 0, xp: 0, item: null };
-      
+
       if (qi.rewardMoney > 0) {
         await addCoins(userId, qi.rewardMoney);
         rewards.coins = qi.rewardMoney;
@@ -1316,27 +1350,27 @@ async function updateQuestProgress(userId, requirement, amount = 1) {
         await addInventoryItem(userId, qi.rewardItemType, qi.rewardItem, qi.rewardQuantity || 1);
         rewards.item = { type: qi.rewardItemType, id: qi.rewardItem, quantity: qi.rewardQuantity || 1 };
       }
-      
+
       updated.push({ ...uq, progress: newProgress, completed: true, rewards });
     }
   }
-  
+
   return updated;
 }
 
 async function claimQuestReward(userId, questId) {
   const userQuests = await getUserQuests(userId);
   const quest = userQuests.find(q => q.questId === questId);
-  
+
   if (!quest) return { success: false, error: 'Görev bulunamadı!' };
   if (!quest.completed) return { success: false, error: 'Görev henüz tamamlanmadı!' };
   if (quest.claimed) return { success: false, error: 'Ödül zaten alındı!' };
-  
+
   // Mark as claimed
   await db.update(userLetheQuests)
     .set({ claimed: true })
     .where(eq(userLetheQuests.id, quest.id));
-  
+
   // Give rewards
   const qi = quest.questInfo;
   if (qi.rewardMoney > 0) {
@@ -1351,7 +1385,7 @@ async function claimQuestReward(userId, questId) {
   if (qi.rewardItem && qi.rewardItemType) {
     await addInventoryItem(userId, qi.rewardItemType, qi.rewardItem, qi.rewardQuantity || 1);
   }
-  
+
   return { success: true, quest: qi };
 }
 
@@ -1363,7 +1397,7 @@ async function addInventoryItem(userId, itemType, itemId, quantity = 1) {
       eq(userLetheInventory.itemId, itemId)
     ))
     .limit(1);
-  
+
   if (existing.length > 0) {
     await db.update(userLetheInventory)
       .set({ quantity: sql`${userLetheInventory.quantity} + ${quantity}` })
@@ -1384,14 +1418,14 @@ async function getOrCreateDaily(userId) {
   let daily = await db.select().from(letheDaily)
     .where(eq(letheDaily.visitorId, userId))
     .limit(1);
-  
+
   if (daily.length === 0) {
     await db.insert(letheDaily).values({ visitorId: userId });
     daily = await db.select().from(letheDaily)
       .where(eq(letheDaily.visitorId, userId))
       .limit(1);
   }
-  
+
   return daily[0];
 }
 
@@ -1410,17 +1444,17 @@ async function claimDailyReward(userId, guildId = null) {
   const daily = await getOrCreateDaily(userId);
   const isVip = isVipServer(guildId);
   const vipBonuses = getVipBonuses(guildId);
-  
+
   const now = new Date();
   const lastClaim = daily.lastClaim ? new Date(daily.lastClaim) : null;
-  
+
   if (lastClaim) {
     const hoursSince = (now - lastClaim) / (1000 * 60 * 60);
     if (hoursSince < 24) {
       const hoursLeft = Math.ceil(24 - hoursSince);
       return { success: false, error: `Günlük ödülünü zaten aldın! ${hoursLeft} saat sonra tekrar gel.` };
     }
-    
+
     // Check streak (48 hour window)
     const daysSince = hoursSince / 24;
     if (daysSince > 2) {
@@ -1430,13 +1464,13 @@ async function claimDailyReward(userId, guildId = null) {
         .where(eq(letheDaily.visitorId, userId));
     }
   }
-  
+
   // Calculate new streak
   let newStreak = (daily.currentStreak % 7) + 1;
   const longestStreak = Math.max(daily.longestStreak, newStreak);
-  
+
   const reward = dailyRewards[newStreak - 1];
-  
+
   // Apply VIP daily bonus
   let finalMoney = reward.money;
   let vipBonus = 0;
@@ -1444,28 +1478,28 @@ async function claimDailyReward(userId, guildId = null) {
     vipBonus = Math.floor(reward.money * (vipBonuses.dailyMultiplier - 1));
     finalMoney = Math.floor(reward.money * vipBonuses.dailyMultiplier);
   }
-  
+
   // Update daily record
   await db.update(letheDaily)
-    .set({ 
+    .set({
       currentStreak: newStreak,
       longestStreak,
       lastClaim: now,
       totalClaims: sql`${letheDaily.totalClaims} + 1`
     })
     .where(eq(letheDaily.visitorId, userId));
-  
+
   // Give rewards
   await addCoins(userId, finalMoney);
-  
+
   if (reward.bonus) {
     await addInventoryItem(userId, reward.bonus.type, reward.bonus.id, reward.bonus.quantity);
   }
-  
-  return { 
-    success: true, 
-    day: newStreak, 
-    money: finalMoney, 
+
+  return {
+    success: true,
+    day: newStreak,
+    money: finalMoney,
     baseMoney: reward.money,
     vipBonus,
     isVip,
@@ -1478,10 +1512,10 @@ async function getDailyStatus(userId) {
   const daily = await getOrCreateDaily(userId);
   const now = new Date();
   const lastClaim = daily.lastClaim ? new Date(daily.lastClaim) : null;
-  
+
   let canClaim = true;
   let hoursLeft = 0;
-  
+
   if (lastClaim) {
     const hoursSince = (now - lastClaim) / (1000 * 60 * 60);
     if (hoursSince < 24) {
@@ -1489,10 +1523,10 @@ async function getDailyStatus(userId) {
       hoursLeft = Math.ceil(24 - hoursSince);
     }
   }
-  
+
   const currentDay = daily.currentStreak % 7;
   const nextReward = dailyRewards[currentDay];
-  
+
   return {
     currentStreak: daily.currentStreak,
     longestStreak: daily.longestStreak,
@@ -1517,24 +1551,24 @@ async function getOrCreateWork(userId) {
   let work = await db.select().from(letheWork)
     .where(eq(letheWork.visitorId, userId))
     .limit(1);
-  
+
   if (work.length === 0) {
     await db.insert(letheWork).values({ visitorId: userId });
     work = await db.select().from(letheWork)
       .where(eq(letheWork.visitorId, userId))
       .limit(1);
   }
-  
+
   return work[0];
 }
 
 async function doWork(userId) {
   await getOrCreateProfile(userId);
   const work = await getOrCreateWork(userId);
-  
+
   const now = new Date();
   const lastWork = work.lastWork ? new Date(work.lastWork) : null;
-  
+
   if (lastWork) {
     const minutesSince = (now - lastWork) / (1000 * 60);
     if (minutesSince < 30) {
@@ -1542,27 +1576,27 @@ async function doWork(userId) {
       return { success: false, error: `Dinlenmen gerekiyor! ${minutesLeft} dakika sonra tekrar çalışabilirsin.` };
     }
   }
-  
+
   const job = jobs[work.job] || jobs.hunter;
   const earned = Math.floor(Math.random() * (job.maxPay - job.minPay + 1)) + job.minPay;
-  
+
   // Update work record
   await db.update(letheWork)
-    .set({ 
+    .set({
       lastWork: now,
       totalWorked: sql`${letheWork.totalWorked} + 1`,
       totalEarned: sql`${letheWork.totalEarned} + ${earned}`
     })
     .where(eq(letheWork.visitorId, userId));
-  
+
   // Give money
   await addCoins(userId, earned);
-  
+
   // Update quest progress
   await updateQuestProgress(userId, 'earn_money', earned);
-  
-  return { 
-    success: true, 
+
+  return {
+    success: true,
     job,
     earned,
     totalWorked: work.totalWorked + 1
@@ -1573,12 +1607,12 @@ async function changeJob(userId, newJob) {
   if (!jobs[newJob]) {
     return { success: false, error: 'Geçersiz meslek!' };
   }
-  
+
   await getOrCreateWork(userId);
   await db.update(letheWork)
     .set({ job: newJob })
     .where(eq(letheWork.visitorId, userId));
-  
+
   return { success: true, job: jobs[newJob] };
 }
 
@@ -1586,10 +1620,10 @@ async function getWorkStatus(userId) {
   const work = await getOrCreateWork(userId);
   const now = new Date();
   const lastWork = work.lastWork ? new Date(work.lastWork) : null;
-  
+
   let canWork = true;
   let minutesLeft = 0;
-  
+
   if (lastWork) {
     const minutesSince = (now - lastWork) / (1000 * 60);
     if (minutesSince < 30) {
@@ -1597,7 +1631,7 @@ async function getWorkStatus(userId) {
       minutesLeft = Math.ceil(30 - minutesSince);
     }
   }
-  
+
   return {
     job: jobs[work.job] || jobs.hunter,
     jobId: work.job,
@@ -1616,30 +1650,30 @@ const abilities = {
   quick_hunter: { id: 'quick_hunter', name: 'Hızlı Avcı', emoji: '🏃', description: 'Av cooldown\'u %10 azalır', rarity: 'common', type: 'passive', effect: 'hunt_cooldown', value: 10 },
   tough_skin: { id: 'tough_skin', name: 'Sert Deri', emoji: '🛡️', description: 'Savunma +5', rarity: 'common', type: 'passive', effect: 'defense', value: 5 },
   sharp_claws: { id: 'sharp_claws', name: 'Keskin Pençeler', emoji: '🐾', description: 'Saldırı +5', rarity: 'common', type: 'passive', effect: 'attack', value: 5 },
-  
+
   // Uncommon abilities
   lucky_charm: { id: 'lucky_charm', name: 'Şans Tılsımı', emoji: '🍀', description: 'Nadir hayvan şansı +5%', rarity: 'uncommon', type: 'passive', effect: 'rare_chance', value: 5 },
   battle_fury: { id: 'battle_fury', name: 'Savaş Öfkesi', emoji: '😤', description: 'HP düşükken hasar +20%', rarity: 'uncommon', type: 'passive', effect: 'low_hp_damage', value: 20 },
   regeneration: { id: 'regeneration', name: 'Rejenerasyon', emoji: '💚', description: 'Her turda HP +5', rarity: 'uncommon', type: 'passive', effect: 'regen', value: 5 },
-  
+
   // Rare abilities
   critical_strike: { id: 'critical_strike', name: 'Kritik Vuruş', emoji: '💥', description: '%15 kritik şansı (x2 hasar)', rarity: 'rare', type: 'passive', effect: 'crit_chance', value: 15 },
   evasion: { id: 'evasion', name: 'Kaçınma', emoji: '💨', description: '%10 saldırılardan kaçınma', rarity: 'rare', type: 'passive', effect: 'dodge', value: 10 },
   life_steal: { id: 'life_steal', name: 'Can Çalma', emoji: '🩸', description: 'Verilen hasarın %10\'u HP olarak geri döner', rarity: 'rare', type: 'passive', effect: 'lifesteal', value: 10 },
-  
+
   // Epic abilities
   berserker: { id: 'berserker', name: 'Berserker', emoji: '🔥', description: 'Tüm statlar +10, savunma -5', rarity: 'epic', type: 'passive', effect: 'berserker', value: 10 },
   iron_will: { id: 'iron_will', name: 'Demir İrade', emoji: '🧠', description: 'Ölümcül darbeden %20 şansla 1 HP ile hayatta kal', rarity: 'epic', type: 'passive', effect: 'survive', value: 20 },
   double_strike: { id: 'double_strike', name: 'Çift Vuruş', emoji: '⚔️', description: '%15 şansla 2 kez saldır', rarity: 'epic', type: 'passive', effect: 'double_attack', value: 15 },
-  
+
   // Legendary abilities
   phoenix_rebirth: { id: 'phoenix_rebirth', name: 'Anka Doğuşu', emoji: '🔥', description: 'Savaşta bir kez öldüğünde %50 HP ile geri dön', rarity: 'legendary', type: 'passive', effect: 'rebirth', value: 50 },
   elemental_mastery: { id: 'elemental_mastery', name: 'Element Ustalığı', emoji: '🌈', description: 'Tüm hasar türlerine +25% bonus', rarity: 'legendary', type: 'passive', effect: 'all_damage', value: 25 },
-  
+
   // Mythic abilities
   godslayer: { id: 'godslayer', name: 'Tanrı Katili', emoji: '⚡', description: 'Boss\'lara %50 ekstra hasar', rarity: 'mythic', type: 'passive', effect: 'boss_damage', value: 50 },
   time_warp: { id: 'time_warp', name: 'Zaman Bükücü', emoji: '⏰', description: '%25 şansla ekstra tur kazan', rarity: 'mythic', type: 'passive', effect: 'extra_turn', value: 25 },
-  
+
   // Hidden abilities
   void_touch: { id: 'void_touch', name: 'Boşluk Dokunuşu', emoji: '🕳️', description: 'Tüm statlar +20, savaşta hasar %30 artırılır', rarity: 'hidden', type: 'passive', effect: 'void_power', value: 30 }
 };
@@ -1657,12 +1691,12 @@ const evolutionGemRequirements = {
 async function getUserGems(userId) {
   const gems = await db.select().from(letheEvolutionGems)
     .where(eq(letheEvolutionGems.visitorId, userId));
-  
+
   const gemMap = {};
   for (const gem of gems) {
     gemMap[gem.gemType] = gem.quantity;
   }
-  
+
   return {
     common: gemMap.common || 0,
     uncommon: gemMap.uncommon || 0,
@@ -1678,7 +1712,7 @@ async function addGems(userId, gemType, amount) {
   const existing = await db.select().from(letheEvolutionGems)
     .where(and(eq(letheEvolutionGems.visitorId, userId), eq(letheEvolutionGems.gemType, gemType)))
     .limit(1);
-  
+
   if (existing.length === 0) {
     await db.insert(letheEvolutionGems).values({ visitorId: userId, gemType, quantity: amount });
   } else {
@@ -1692,65 +1726,65 @@ async function evolveAnimal(userId, animalId1, animalId2, animalId3) {
   // Get all three animals
   const animals = await db.select().from(userAnimals)
     .where(and(eq(userAnimals.userId, userId), sql`${userAnimals.id} IN (${animalId1}, ${animalId2}, ${animalId3})`));
-  
+
   if (animals.length !== 3) {
     return { success: false, error: 'Üç geçerli hayvan ID\'si gerekli.' };
   }
-  
+
   // Check if all are the same type
   const animalTypes = [...new Set(animals.map(a => a.animalId))];
   if (animalTypes.length !== 1) {
     return { success: false, error: 'Evrim için aynı türden 3 hayvan gerekli!' };
   }
-  
+
   // Check if any is already evolved
   const alreadyEvolved = animals.find(a => a.evolutionLevel >= 3);
   if (alreadyEvolved) {
     return { success: false, error: 'Bu hayvan zaten maksimum evrim seviyesinde!' };
   }
-  
+
   // Check if any is in team
   const inTeam = animals.find(a => a.isInTeam);
   if (inTeam) {
     return { success: false, error: 'Takımdaki hayvanları birleştiremezsin! Önce takımdan çıkar.' };
   }
-  
+
   // Get animal info for rarity
   const animalInfo = await db.select().from(letheAnimals)
     .where(eq(letheAnimals.animalId, animalTypes[0]))
     .limit(1);
-  
+
   if (animalInfo.length === 0) {
     return { success: false, error: 'Hayvan bilgisi bulunamadı.' };
   }
-  
+
   const rarity = animalInfo[0].rarity;
   const requirement = evolutionGemRequirements[rarity];
-  
+
   // Check gems
   const userGems = await getUserGems(userId);
   if ((userGems[requirement.gemType] || 0) < requirement.amount) {
     return { success: false, error: `Evrim için ${requirement.amount} ${requirement.gemType} taşı gerekli! (Sahip: ${userGems[requirement.gemType] || 0})` };
   }
-  
+
   // Check coins
   const profile = await getOrCreateProfile(userId);
   if (profile.coins < requirement.coinCost) {
     return { success: false, error: `Evrim için ${requirement.coinCost}💰 gerekli! (Sahip: ${profile.coins}💰)` };
   }
-  
+
   // Find the highest level animal to keep
   const bestAnimal = animals.sort((a, b) => b.level - a.level)[0];
   const otherAnimals = animals.filter(a => a.id !== bestAnimal.id);
-  
+
   // Calculate combined stats bonus
   const statBonus = Math.floor((otherAnimals[0].level + otherAnimals[1].level) * 2);
   const newEvolutionLevel = Math.min(bestAnimal.evolutionLevel + 1, 3);
-  
+
   // Assign ability based on rarity
   const rarityAbilities = Object.values(abilities).filter(a => a.rarity === rarity);
   const randomAbility = rarityAbilities.length > 0 ? rarityAbilities[Math.floor(Math.random() * rarityAbilities.length)] : null;
-  
+
   // Update the best animal
   await db.update(userAnimals)
     .set({
@@ -1762,26 +1796,26 @@ async function evolveAnimal(userId, animalId1, animalId2, animalId3) {
       ability: randomAbility ? randomAbility.id : bestAnimal.ability
     })
     .where(eq(userAnimals.id, bestAnimal.id));
-  
+
   // Delete the other two animals
   for (const animal of otherAnimals) {
     await db.delete(userAnimals).where(eq(userAnimals.id, animal.id));
   }
-  
+
   // Deduct gems and coins
   await db.update(letheEvolutionGems)
     .set({ quantity: sql`${letheEvolutionGems.quantity} - ${requirement.amount}` })
     .where(and(eq(letheEvolutionGems.visitorId, userId), eq(letheEvolutionGems.gemType, requirement.gemType)));
-  
+
   await db.update(userLetheProfile)
     .set({ coins: sql`${userLetheProfile.coins} - ${requirement.coinCost}` })
     .where(eq(userLetheProfile.visitorId, userId));
-  
+
   // Get updated animal
   const evolvedAnimal = await db.select().from(userAnimals)
     .where(eq(userAnimals.id, bestAnimal.id))
     .limit(1);
-  
+
   return {
     success: true,
     animal: evolvedAnimal[0],
@@ -1802,13 +1836,13 @@ async function trainAnimal(userId, animalId) {
   const animal = await db.select().from(userAnimals)
     .where(and(eq(userAnimals.userId, userId), eq(userAnimals.id, animalId)))
     .limit(1);
-  
+
   if (animal.length === 0) {
     return { success: false, error: 'Bu hayvan sana ait değil!' };
   }
-  
+
   const pet = animal[0];
-  
+
   // Check cooldown
   if (pet.lastTrained) {
     const timeSince = Date.now() - new Date(pet.lastTrained).getTime();
@@ -1817,21 +1851,21 @@ async function trainAnimal(userId, animalId) {
       return { success: false, error: `Bu hayvan dinleniyor! ${minutesLeft} dakika bekle.`, cooldown: minutesLeft };
     }
   }
-  
+
   // Check if max training level
   if (pet.trainingLevel >= 10) {
     return { success: false, error: 'Bu hayvan maksimum eğitim seviyesine ulaştı!' };
   }
-  
+
   // Training cost increases with level
   const trainingCost = 100 + (pet.trainingLevel * 50);
-  
+
   // Check coins
   const profile = await getOrCreateProfile(userId);
   if (profile.coins < trainingCost) {
     return { success: false, error: `Eğitim için ${trainingCost}💰 gerekli! (Sahip: ${profile.coins}💰)` };
   }
-  
+
   // Random stat gains
   const statGains = {
     hp: Math.floor(Math.random() * 10) + 5,
@@ -1839,10 +1873,10 @@ async function trainAnimal(userId, animalId) {
     def: Math.floor(Math.random() * 3) + 1,
     spd: Math.floor(Math.random() * 2) + 1
   };
-  
+
   // XP gain
   const xpGain = 20 + (pet.trainingLevel * 5);
-  
+
   // Update animal
   await db.update(userAnimals)
     .set({
@@ -1855,22 +1889,22 @@ async function trainAnimal(userId, animalId) {
       lastTrained: new Date()
     })
     .where(eq(userAnimals.id, animalId));
-  
+
   // Deduct coins
   await db.update(userLetheProfile)
     .set({ coins: sql`${userLetheProfile.coins} - ${trainingCost}` })
     .where(eq(userLetheProfile.visitorId, userId));
-  
+
   // Get updated animal
   const updatedAnimal = await db.select().from(userAnimals)
     .where(eq(userAnimals.id, animalId))
     .limit(1);
-  
+
   // Get animal info
   const animalInfo = await db.select().from(letheAnimals)
     .where(eq(letheAnimals.animalId, pet.animalId))
     .limit(1);
-  
+
   return {
     success: true,
     animal: updatedAnimal[0],
@@ -1886,22 +1920,22 @@ async function getAnimalDetails(userId, animalId) {
   const animal = await db.select().from(userAnimals)
     .where(and(eq(userAnimals.userId, userId), eq(userAnimals.id, animalId)))
     .limit(1);
-  
+
   if (animal.length === 0) {
     return null;
   }
-  
+
   const pet = animal[0];
   const animalInfo = await db.select().from(letheAnimals)
     .where(eq(letheAnimals.animalId, pet.animalId))
     .limit(1);
-  
+
   // Get ability info
   let abilityInfo = null;
   if (pet.ability && abilities[pet.ability]) {
     abilityInfo = abilities[pet.ability];
   }
-  
+
   // Calculate training cooldown
   let canTrain = true;
   let trainingCooldownLeft = 0;
@@ -1912,7 +1946,7 @@ async function getAnimalDetails(userId, animalId) {
       trainingCooldownLeft = Math.ceil((trainingCooldown - timeSince) / (1000 * 60));
     }
   }
-  
+
   return {
     ...pet,
     animalInfo: animalInfo[0],
@@ -1929,7 +1963,7 @@ async function getAnimalDetails(userId, animalId) {
 // === TRADING SYSTEM ===
 async function createTrade(senderId, receiverId, offer) {
   const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
-  
+
   const [trade] = await db.insert(letheTrades).values({
     senderId,
     receiverId,
@@ -1944,7 +1978,7 @@ async function createTrade(senderId, receiverId, offer) {
     status: 'pending',
     expiresAt
   }).returning();
-  
+
   return trade;
 }
 
@@ -1955,7 +1989,7 @@ async function getPendingTrades(userId) {
       eq(letheTrades.status, 'pending')
     ))
     .orderBy(desc(letheTrades.createdAt));
-  
+
   return trades;
 }
 
@@ -1971,7 +2005,7 @@ async function acceptTrade(tradeId) {
   if (!trade || trade.status !== 'pending') {
     return { success: false, error: 'Takas bulunamadı veya geçersiz' };
   }
-  
+
   // Check expiry
   if (new Date(trade.expiresAt) < new Date()) {
     await db.update(letheTrades)
@@ -1979,11 +2013,11 @@ async function acceptTrade(tradeId) {
       .where(eq(letheTrades.id, tradeId));
     return { success: false, error: 'Takas süresi dolmuş' };
   }
-  
+
   // Verify both parties have the items/coins
   const senderProfile = await getOrCreateProfile(trade.senderId);
   const receiverProfile = await getOrCreateProfile(trade.receiverId);
-  
+
   // Check coins
   if (trade.senderCoins > 0 && senderProfile.coins < trade.senderCoins) {
     return { success: false, error: 'Gönderen yeterli altına sahip değil' };
@@ -1991,7 +2025,7 @@ async function acceptTrade(tradeId) {
   if (trade.receiverCoins > 0 && receiverProfile.coins < trade.receiverCoins) {
     return { success: false, error: 'Alıcı yeterli altına sahip değil' };
   }
-  
+
   // Check animals ownership
   if (trade.senderAnimalId) {
     const [animal] = await db.select().from(userAnimals)
@@ -2003,7 +2037,7 @@ async function acceptTrade(tradeId) {
       .where(and(eq(userAnimals.id, trade.receiverAnimalId), eq(userAnimals.userId, trade.receiverId)));
     if (!animal) return { success: false, error: 'Alıcı hayvan sahibi değil' };
   }
-  
+
   // Perform the trade
   // Transfer coins
   if (trade.senderCoins > 0) {
@@ -2014,7 +2048,7 @@ async function acceptTrade(tradeId) {
     await addCoins(trade.receiverId, -trade.receiverCoins);
     await addCoins(trade.senderId, trade.receiverCoins);
   }
-  
+
   // Transfer animals
   if (trade.senderAnimalId) {
     await db.update(userAnimals)
@@ -2026,12 +2060,12 @@ async function acceptTrade(tradeId) {
       .set({ userId: trade.senderId, inTeam: false, teamSlot: null })
       .where(eq(userAnimals.id, trade.receiverAnimalId));
   }
-  
+
   // Update trade status
   await db.update(letheTrades)
     .set({ status: 'accepted' })
     .where(eq(letheTrades.id, tradeId));
-  
+
   return { success: true, trade };
 }
 
@@ -2046,7 +2080,7 @@ async function cancelTrade(tradeId, userId) {
   const trade = await getTrade(tradeId);
   if (!trade) return { success: false, error: 'Takas bulunamadı' };
   if (trade.senderId !== userId) return { success: false, error: 'Bu takası iptal etme yetkiniz yok' };
-  
+
   await db.update(letheTrades)
     .set({ status: 'cancelled' })
     .where(eq(letheTrades.id, tradeId));
@@ -2072,18 +2106,18 @@ async function sendGift(senderId, receiverId, giftType, amount, animalId = null,
   if (!cooldownCheck.canSend) {
     return { success: false, error: `Bu kişiye ${cooldownCheck.remaining} dakika sonra hediye gönderebilirsiniz` };
   }
-  
+
   const senderProfile = await getOrCreateProfile(senderId);
-  
+
   if (giftType === 'coins') {
     if (senderProfile.coins < amount) {
       return { success: false, error: 'Yeterli altınınız yok' };
     }
-    
+
     // Transfer coins
     await addCoins(senderId, -amount);
     await addCoins(receiverId, amount);
-    
+
     // Log gift
     await db.insert(letheGifts).values({
       senderId,
@@ -2092,29 +2126,29 @@ async function sendGift(senderId, receiverId, giftType, amount, animalId = null,
       coins: amount,
       message
     });
-    
+
     giftCache.set(`${senderId}-${receiverId}`, Date.now());
     return { success: true, type: 'coins', amount };
   }
-  
+
   if (giftType === 'animal' && animalId) {
     // Check ownership
     const [animal] = await db.select().from(userAnimals)
       .where(and(eq(userAnimals.id, animalId), eq(userAnimals.userId, senderId)));
-    
+
     if (!animal) {
       return { success: false, error: 'Bu hayvana sahip değilsiniz' };
     }
-    
+
     // Get animal info for response
     const [animalInfo] = await db.select().from(letheAnimals)
       .where(eq(letheAnimals.animalId, animal.animalId));
-    
+
     // Transfer animal
     await db.update(userAnimals)
       .set({ userId: receiverId, inTeam: false, teamSlot: null })
       .where(eq(userAnimals.id, animalId));
-    
+
     // Log gift
     await db.insert(letheGifts).values({
       senderId,
@@ -2123,11 +2157,11 @@ async function sendGift(senderId, receiverId, giftType, amount, animalId = null,
       animalId,
       message
     });
-    
+
     giftCache.set(`${senderId}-${receiverId}`, Date.now());
     return { success: true, type: 'animal', animal: animalInfo };
   }
-  
+
   return { success: false, error: 'Geçersiz hediye türü' };
 }
 
@@ -2136,12 +2170,12 @@ async function getGiftHistory(userId, limit = 20) {
     .where(eq(letheGifts.senderId, userId))
     .orderBy(desc(letheGifts.createdAt))
     .limit(limit);
-  
+
   const received = await db.select().from(letheGifts)
     .where(eq(letheGifts.receiverId, userId))
     .orderBy(desc(letheGifts.createdAt))
     .limit(limit);
-  
+
   return { sent, received };
 }
 
@@ -2150,42 +2184,42 @@ async function sendFriendRequest(userId, friendId) {
   if (userId === friendId) {
     return { success: false, error: 'Kendinizi arkadaş olarak ekleyemezsiniz' };
   }
-  
+
   // Check if already friends or pending
   const existing = await db.select().from(letheFriends)
     .where(or(
       and(eq(letheFriends.userId, userId), eq(letheFriends.friendId, friendId)),
       and(eq(letheFriends.userId, friendId), eq(letheFriends.friendId, userId))
     ));
-  
+
   if (existing.length > 0) {
     const status = existing[0].status;
     if (status === 'accepted') return { success: false, error: 'Zaten arkadaşsınız' };
     if (status === 'pending') return { success: false, error: 'Bekleyen istek var' };
     if (status === 'blocked') return { success: false, error: 'Bu kullanıcıyla etkileşim kuramazsınız' };
   }
-  
+
   await db.insert(letheFriends).values({
     userId,
     friendId,
     status: 'pending'
   });
-  
+
   return { success: true };
 }
 
 async function acceptFriendRequest(userId, requestId) {
   const [request] = await db.select().from(letheFriends)
     .where(and(eq(letheFriends.id, requestId), eq(letheFriends.friendId, userId)));
-  
+
   if (!request || request.status !== 'pending') {
     return { success: false, error: 'İstek bulunamadı' };
   }
-  
+
   await db.update(letheFriends)
     .set({ status: 'accepted' })
     .where(eq(letheFriends.id, requestId));
-  
+
   return { success: true, friendId: request.userId };
 }
 
@@ -2210,7 +2244,7 @@ async function getFriends(userId) {
       or(eq(letheFriends.userId, userId), eq(letheFriends.friendId, userId)),
       eq(letheFriends.status, 'accepted')
     ));
-  
+
   return friends.map(f => f.userId === userId ? f.friendId : f.userId);
 }
 
@@ -2236,28 +2270,28 @@ async function areFriends(userId1, userId2) {
 async function createRaid(guildId, hostId, bossId) {
   const boss = seedData.bosses.find(b => b.bossId === bossId);
   if (!boss) return { success: false, error: 'Boss bulunamadı' };
-  
+
   // Check if there's already an active raid in this guild
   const [existing] = await db.select().from(letheRaids)
     .where(and(
       eq(letheRaids.guildId, guildId),
       or(eq(letheRaids.status, 'recruiting'), eq(letheRaids.status, 'active'))
     ));
-  
+
   if (existing) {
     return { success: false, error: 'Bu sunucuda zaten aktif bir raid var', existingRaid: existing };
   }
-  
+
   // Check host has full team
   const hostTeam = await getTeam(hostId);
   if (hostTeam.length < 3) {
     return { success: false, error: 'Raid başlatmak için 3/3 takım gerekli' };
   }
-  
+
   const bossHp = boss.hp * 3; // Scale up for raid
   const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes to recruit
   const startsAt = new Date(Date.now() + 3 * 60 * 1000); // Starts in 3 minutes
-  
+
   const [raid] = await db.insert(letheRaids).values({
     guildId,
     bossId,
@@ -2270,17 +2304,17 @@ async function createRaid(guildId, hostId, bossId) {
     startsAt,
     expiresAt
   }).returning();
-  
+
   return { success: true, raid, boss };
 }
 
 async function joinRaid(raidId, userId) {
   const [raid] = await db.select().from(letheRaids)
     .where(eq(letheRaids.id, raidId));
-  
+
   if (!raid) return { success: false, error: 'Raid bulunamadı' };
   if (raid.status !== 'recruiting') return { success: false, error: 'Bu raid artık katılıma açık değil' };
-  
+
   const participants = raid.participants || [];
   if (participants.find(p => p.userId === userId)) {
     return { success: false, error: 'Zaten bu raide katıldınız' };
@@ -2288,38 +2322,38 @@ async function joinRaid(raidId, userId) {
   if (participants.length >= raid.maxParticipants) {
     return { success: false, error: 'Raid dolu' };
   }
-  
+
   // Check user has full team
   const team = await getTeam(userId);
   if (team.length < 3) {
     return { success: false, error: 'Raid\'e katılmak için 3/3 takım gerekli' };
   }
-  
+
   participants.push({ userId, damage: 0, joined: true });
-  
+
   await db.update(letheRaids)
     .set({ participants })
     .where(eq(letheRaids.id, raidId));
-  
+
   return { success: true, participantCount: participants.length };
 }
 
 async function attackRaid(raidId, userId) {
   const [raid] = await db.select().from(letheRaids)
     .where(eq(letheRaids.id, raidId));
-  
+
   if (!raid) return { success: false, error: 'Raid bulunamadı' };
   if (raid.status !== 'active') return { success: false, error: 'Raid aktif değil' };
-  
+
   const participants = raid.participants || [];
   const participant = participants.find(p => p.userId === userId);
   if (!participant) return { success: false, error: 'Bu raide katılmadınız' };
-  
+
   // Get user's team and calculate damage
   const teamData = await getTeamWithEquipment(userId);
   let totalDamage = 0;
   const damageBreakdown = [];
-  
+
   for (const member of teamData.team) {
     const baseDamage = (member.effectiveStats?.str || member.userAnimal?.str || 10);
     const critChance = 0.15;
@@ -2332,11 +2366,11 @@ async function attackRaid(raidId, userId) {
       isCrit
     });
   }
-  
+
   // Apply damage
   const newHp = Math.max(0, raid.currentHp - totalDamage);
   participant.damage = (participant.damage || 0) + totalDamage;
-  
+
   // Update raid
   if (newHp <= 0) {
     // Raid completed!
@@ -2347,44 +2381,44 @@ async function attackRaid(raidId, userId) {
       coins: baseCoins * 2,
       xp: baseXp * 2
     };
-    
+
     // Distribute rewards
     for (const p of participants) {
       const damageShare = p.damage / (raid.bossHp - newHp);
       const playerCoins = Math.floor(rewards.coins * damageShare) + 100; // Minimum 100
       const playerXp = Math.floor(rewards.xp * damageShare) + 50;
-      
+
       await addCoins(p.userId, playerCoins);
       p.reward = { coins: playerCoins, xp: playerXp };
     }
-    
+
     await db.update(letheRaids)
-      .set({ 
-        currentHp: 0, 
-        status: 'completed', 
+      .set({
+        currentHp: 0,
+        status: 'completed',
         participants,
-        rewards 
+        rewards
       })
       .where(eq(letheRaids.id, raidId));
-    
-    return { 
-      success: true, 
-      completed: true, 
-      damage: totalDamage, 
+
+    return {
+      success: true,
+      completed: true,
+      damage: totalDamage,
       damageBreakdown,
       participants,
       rewards
     };
   }
-  
+
   await db.update(letheRaids)
     .set({ currentHp: newHp, participants })
     .where(eq(letheRaids.id, raidId));
-  
-  return { 
-    success: true, 
-    completed: false, 
-    damage: totalDamage, 
+
+  return {
+    success: true,
+    completed: false,
+    damage: totalDamage,
     damageBreakdown,
     remainingHp: newHp,
     bossHp: raid.bossHp
@@ -2409,8 +2443,8 @@ async function startRaid(raidId) {
 // === LEADERBOARD SYSTEM ===
 async function getLeaderboard(category, limit = 10) {
   let query;
-  
-  switch(category) {
+
+  switch (category) {
     case 'coins':
       query = db.select({
         userId: userLetheProfile.visitorId,
@@ -2419,7 +2453,7 @@ async function getLeaderboard(category, limit = 10) {
         .orderBy(desc(userLetheProfile.coins))
         .limit(limit);
       break;
-    
+
     case 'level':
       query = db.select({
         userId: userLetheProfile.visitorId,
@@ -2428,7 +2462,7 @@ async function getLeaderboard(category, limit = 10) {
         .orderBy(desc(userLetheProfile.level))
         .limit(limit);
       break;
-    
+
     case 'hunts':
       query = db.select({
         userId: userLetheProfile.visitorId,
@@ -2437,7 +2471,7 @@ async function getLeaderboard(category, limit = 10) {
         .orderBy(desc(userLetheProfile.totalHunts))
         .limit(limit);
       break;
-    
+
     case 'battles':
       query = db.select({
         userId: userLetheProfile.visitorId,
@@ -2446,7 +2480,7 @@ async function getLeaderboard(category, limit = 10) {
         .orderBy(desc(userLetheProfile.battlesWon))
         .limit(limit);
       break;
-    
+
     case 'pvp':
       query = db.select({
         userId: userLetheProfile.visitorId,
@@ -2455,7 +2489,7 @@ async function getLeaderboard(category, limit = 10) {
         .orderBy(desc(userLetheProfile.pvpWins))
         .limit(limit);
       break;
-    
+
     case 'animals':
       // Count animals per user
       query = db.select({
@@ -2466,7 +2500,7 @@ async function getLeaderboard(category, limit = 10) {
         .orderBy(desc(sql`COUNT(*)`))
         .limit(limit);
       break;
-    
+
     default:
       query = db.select({
         userId: userLetheProfile.visitorId,
@@ -2475,7 +2509,7 @@ async function getLeaderboard(category, limit = 10) {
         .orderBy(desc(userLetheProfile.coins))
         .limit(limit);
   }
-  
+
   const results = await query;
   return results.map((r, i) => ({
     rank: i + 1,
@@ -2487,8 +2521,8 @@ async function getLeaderboard(category, limit = 10) {
 async function getUserRank(userId, category) {
   const profile = await getOrCreateProfile(userId);
   let value = 0;
-  
-  switch(category) {
+
+  switch (category) {
     case 'coins': value = profile.coins; break;
     case 'level': value = profile.level; break;
     case 'hunts': value = profile.totalHunts; break;
@@ -2496,10 +2530,10 @@ async function getUserRank(userId, category) {
     case 'pvp': value = profile.pvpWins; break;
     default: value = profile.coins;
   }
-  
+
   // Get count of users with higher value
   let rankQuery;
-  switch(category) {
+  switch (category) {
     case 'coins':
       rankQuery = db.select({ count: sql`COUNT(*)` }).from(userLetheProfile)
         .where(sql`${userLetheProfile.coins} > ${value}`);
@@ -2524,12 +2558,133 @@ async function getUserRank(userId, category) {
       rankQuery = db.select({ count: sql`COUNT(*)` }).from(userLetheProfile)
         .where(sql`${userLetheProfile.coins} > ${value}`);
   }
-  
+
   const [result] = await rankQuery;
   return { rank: Number(result.count) + 1, value };
 }
 
+// === PHASE 9: ADVANCED ACHIEVEMENTS SYSTEM ===
+async function processAchievements(userId) {
+  try {
+    const profile = await getOrCreateProfile(userId);
+    const userAnimalsList = await getUserAnimals(userId);
+
+    // Get all achievements from DB
+    const allAchievements = await db.select().from(letheAchievements);
+
+    // Get user's currently unlocked achievements
+    const unlockedList = await db.select().from(userLetheAchievements)
+      .where(eq(userLetheAchievements.visitorId, userId));
+    const unlockedIds = new Set(unlockedList.map(a => a.achievementId));
+
+    let newlyUnlocked = [];
+    let totalCoinReward = 0;
+    let totalXpReward = 0;
+
+    for (const ach of allAchievements) {
+      if (unlockedIds.has(ach.achievementId)) continue; // Already unlocked
+
+      let conditionMet = false;
+
+      // Check different requirement types
+      switch (ach.requirement) {
+        case 'hunts':
+          conditionMet = profile.totalHunts >= ach.requirementValue;
+          break;
+        case 'battles_won':
+          conditionMet = profile.battlesWon >= ach.requirementValue;
+          break;
+        case 'balance':
+          conditionMet = profile.coins >= ach.requirementValue;
+          break;
+        case 'level':
+          conditionMet = profile.level >= ach.requirementValue;
+          break;
+        case 'collection':
+          // Unique animals collected
+          const uniqueIds = new Set(userAnimalsList.map(a => a.animalInfo.animalId));
+          conditionMet = uniqueIds.size >= ach.requirementValue;
+          break;
+        case 'bosses_killed':
+          conditionMet = profile.bossesKilled >= ach.requirementValue;
+          break;
+        case 'region_forest':
+          const forestCount = userAnimalsList.filter(a => a.animalInfo.regionId === 'forest').length;
+          conditionMet = forestCount >= ach.requirementValue;
+          break;
+        case 'region_ocean':
+          const oceanCount = userAnimalsList.filter(a => a.animalInfo.regionId === 'ocean').length;
+          conditionMet = oceanCount >= ach.requirementValue;
+          break;
+        case 'region_desert':
+          const desertCount = userAnimalsList.filter(a => a.animalInfo.regionId === 'desert').length;
+          conditionMet = desertCount >= ach.requirementValue;
+          break;
+        case 'region_mountain':
+          const mountainCount = userAnimalsList.filter(a => a.animalInfo.regionId === 'mountain').length;
+          conditionMet = mountainCount >= ach.requirementValue;
+          break;
+        case 'region_volcano':
+          const volcanoCount = userAnimalsList.filter(a => a.animalInfo.regionId === 'volcano').length;
+          conditionMet = volcanoCount >= ach.requirementValue;
+          break;
+        case 'region_void':
+          const voidCount = userAnimalsList.filter(a => a.animalInfo.regionId === 'void').length;
+          conditionMet = voidCount >= ach.requirementValue;
+          break;
+      }
+
+      if (conditionMet) {
+        // Unlock Achievement
+        await db.insert(userLetheAchievements).values({
+          visitorId: userId,
+          achievementId: ach.achievementId
+        });
+
+        newlyUnlocked.push(ach);
+        if (ach.rewardMoney > 0) totalCoinReward += ach.rewardMoney;
+        if (ach.rewardXp > 0) totalXpReward += ach.rewardXp;
+      }
+    }
+
+    if (newlyUnlocked.length > 0) {
+      if (totalCoinReward > 0 || totalXpReward > 0) {
+        await db.update(userLetheProfile)
+          .set({
+            coins: sql`${userLetheProfile.coins} + ${totalCoinReward}`,
+            xp: sql`${userLetheProfile.xp} + ${totalXpReward}`
+          })
+          .where(eq(userLetheProfile.visitorId, userId));
+      }
+
+      // Auto-level up check if XP granted
+      if (totalXpReward > 0) {
+        await checkLevelUp(userId);
+      }
+    }
+
+    return newlyUnlocked;
+
+  } catch (error) {
+    console.error('Error processing achievements:', error);
+    return [];
+  }
+}
+
+async function getLetheAchievements(userId) {
+  const allAchv = await db.select().from(letheAchievements).orderBy(asc(letheAchievements.id));
+  const userUnlocked = await db.select().from(userLetheAchievements)
+    .where(eq(userLetheAchievements.visitorId, userId));
+
+  return {
+    all: allAchv,
+    unlocked: userUnlocked
+  };
+}
+
 module.exports = {
+  processAchievements,
+  getLetheAchievements,
   seedDatabase,
   huntAnimal,
   getUserAnimals,

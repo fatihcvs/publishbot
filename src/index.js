@@ -12,6 +12,20 @@ const { StatChannelSystem } = require('./modules/statChannels');
 const { SocialNotificationSystem } = require('./modules/socialNotifications');
 const { chat: chatGPT } = require('./modules/chatgpt');
 const letheStorage = require('./lethe/letheStorage');
+const AntiRaidSystem = require('./modules/antiRaid');
+
+// ─── Global error handlers (A5) ─────────────────────────────────────────────
+process.on('uncaughtException', (err) => {
+  console.error('[FATAL] Uncaught Exception:', err);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('[FATAL] Unhandled Rejection at:', promise, 'reason:', reason);
+});
+// ─────────────────────────────────────────────────────────────────────────────
+
+const DEBUG_MODE = process.env.DEBUG === 'true';
+const debug = (...args) => { if (DEBUG_MODE) console.log('[DEBUG]', ...args); };
 
 const client = new Client({
   intents: [
@@ -34,20 +48,20 @@ client.invites = new Collection();
 
 const PREFIX = '!';
 
-// Prevent duplicate command processing
+// Prevent duplicate command processing (A3 — safe cleanup guaranteed)
 const processedMessages = new Set();
 const MESSAGE_CACHE_TIMEOUT = 5000; // 5 seconds
 
 function isMessageProcessed(messageId) {
-  if (processedMessages.has(messageId)) {
-    return true;
-  }
+  if (processedMessages.has(messageId)) return true;
   processedMessages.add(messageId);
-  setTimeout(() => processedMessages.delete(messageId), MESSAGE_CACHE_TIMEOUT);
+  // Guaranteed cleanup regardless of any error
+  setTimeout(() => { try { processedMessages.delete(messageId); } catch (_) { } }, MESSAGE_CACHE_TIMEOUT);
   return false;
 }
 
 function loadCommands(dir, prefix = '') {
+  let loaded = 0, failed = 0;
   const items = fs.readdirSync(dir);
   for (const item of items) {
     const fullPath = path.join(dir, item);
@@ -62,11 +76,17 @@ function loadCommands(dir, prefix = '') {
           if (command.aliases) {
             command.aliases.forEach(alias => client.commands.set(alias, command));
           }
+          loaded++;
         }
       } catch (error) {
-        console.error(`Error loading command ${prefix}${item}:`, error);
+        console.error(`[CMD LOAD ERROR] ${prefix}${item}:`, error.message);
+        failed++;
       }
     }
+  }
+  // A7: Report load summary at top-level call
+  if (prefix === '') {
+    console.log(`[Commands] ${loaded} komut yüklendi${failed > 0 ? `, ${failed} hatalı` : ''}.`);
   }
 }
 
@@ -78,12 +98,13 @@ let levelingSystem;
 let tempVoiceSystem;
 let statChannelSystem;
 let socialNotificationSystem;
+let antiRaidSystem;
 
 client.once(Events.ClientReady, async () => {
   console.log(`Publisher online! ${client.user.tag} olarak giriş yapıldı.`);
   console.log(`${client.guilds.cache.size} sunucuda aktif.`);
   client.user.setActivity('!yardım publisherbot.org', { type: 3 });
-  
+
   for (const guild of client.guilds.cache.values()) {
     try {
       const invites = await guild.invites.fetch();
@@ -94,33 +115,41 @@ client.once(Events.ClientReady, async () => {
       console.log(`Davetler alınamadı: ${guild.name}`);
     }
   }
-  
+
   scheduler = new Scheduler(client, storage);
   scheduler.start();
-  
+
   logSystem = new LogSystem(client, storage);
   levelingSystem = new LevelingSystem(client, storage);
   tempVoiceSystem = new TempVoiceSystem(client, storage);
   statChannelSystem = new StatChannelSystem(client, storage);
   socialNotificationSystem = new SocialNotificationSystem(client, storage);
-  
+  antiRaidSystem = new AntiRaidSystem(client, storage);
+
   // Seed Lethe Game quests
   await letheStorage.seedQuests();
-  
+
   console.log('All systems started');
 });
 
 client.on(Events.GuildMemberAdd, async (member) => {
   console.log(`[MemberAdd] Yeni üye: ${member.user.tag} (${member.guild.name})`);
+
+  // PHASE 1: Anti-Raid System
+  if (antiRaidSystem) {
+    const isRaidOrNew = await antiRaidSystem.checkRaid(member);
+    if (isRaidOrNew) return; // Eğer üye cezalandırıldıysa geri kalanı çalıştırma
+  }
+
   const guildData = await storage.getGuild(member.guild.id);
   console.log(`[MemberAdd] Guild data autoRole: "${guildData?.autoRole}" (type: ${typeof guildData?.autoRole})`);
-  
+
   let inviterId = null;
   let usedInviteCode = null;
   try {
     const oldInvites = client.invites.get(member.guild.id) || new Collection();
     const newInvites = await member.guild.invites.fetch();
-    
+
     for (const [code, invite] of newInvites) {
       const oldUses = oldInvites.get(code) || 0;
       if (invite.uses > oldUses) {
@@ -129,18 +158,18 @@ client.on(Events.GuildMemberAdd, async (member) => {
         break;
       }
     }
-    
+
     const updatedCache = new Collection();
     newInvites.forEach(inv => updatedCache.set(inv.code, inv.uses || 0));
     client.invites.set(member.guild.id, updatedCache);
-    
+
     if (inviterId && inviterId !== member.id) {
       await storage.trackInvite(member.guild.id, member.id, inviterId, usedInviteCode);
     }
   } catch (error) {
     console.error('Davet takibi hatası:', error);
   }
-  
+
   if (guildData?.autoRole) {
     try {
       const role = member.guild.roles.cache.get(guildData.autoRole);
@@ -149,7 +178,7 @@ client.on(Events.GuildMemberAdd, async (member) => {
         const botMember = member.guild.members.me;
         const botHighestRole = botMember?.roles.highest;
         console.log(`[AutoRole] Bot en yüksek rol: ${botHighestRole?.name} (pos: ${botHighestRole?.position}), Hedef rol: ${role.name} (pos: ${role.position})`);
-        
+
         if (botHighestRole && botHighestRole.position > role.position) {
           await member.roles.add(role);
           console.log(`[AutoRole] Rol verildi: ${role.name} -> ${member.user.tag}`);
@@ -165,7 +194,7 @@ client.on(Events.GuildMemberAdd, async (member) => {
   } else {
     console.log(`[AutoRole] autoRole ayarlanmamış veya boş`);
   }
-  
+
   if (guildData?.welcomeChannel) {
     try {
       const channel = member.guild.channels.cache.get(guildData.welcomeChannel);
@@ -175,33 +204,33 @@ client.on(Events.GuildMemberAdd, async (member) => {
           .replace(/{username}/g, member.user.username)
           .replace(/{server}/g, member.guild.name)
           .replace(/{membercount}/g, member.guild.memberCount);
-        
+
         if (inviterId) {
           welcomeMsg = welcomeMsg.replace(/{inviter}/g, `<@${inviterId}>`);
         } else {
           welcomeMsg = welcomeMsg.replace(/{inviter}/g, 'Bilinmiyor');
         }
-        
+
         const embed = new EmbedBuilder()
-          .setColor('#00ff00')
-          .setTitle('Hoş Geldin!')
+          .setColor('#57f287')
+          .setTitle('👋 Hoş Geldin!')
           .setDescription(welcomeMsg)
-          .setThumbnail(member.user.displayAvatarURL({ dynamic: true }))
+          .setThumbnail(member.user.displayAvatarURL({ extension: 'webp', forceStatic: false })) // A6
           .setTimestamp();
-        
+
         await channel.send({ embeds: [embed] });
       }
     } catch (error) {
       console.error('Hoş geldin mesajı hatası:', error);
     }
   }
-  
+
   if (logSystem) await logSystem.guildMemberAdd(member, inviterId);
 });
 
 client.on(Events.GuildMemberRemove, async (member) => {
   if (logSystem) await logSystem.guildMemberRemove(member);
-  
+
   // Hoşçakal sistemi
   const guildData = await storage.getGuild(member.guild.id);
   if (guildData?.goodbyeChannel) {
@@ -215,10 +244,10 @@ client.on(Events.GuildMemberRemove, async (member) => {
           .replace(/{membercount}/g, member.guild.memberCount);
 
         const embed = new EmbedBuilder()
-          .setColor('#ff6b6b')
+          .setColor('#ed4245')
           .setTitle('👋 Güle Güle!')
           .setDescription(goodbyeText)
-          .setThumbnail(member.user.displayAvatarURL({ dynamic: true }))
+          .setThumbnail(member.user.displayAvatarURL({ extension: 'webp', forceStatic: false })) // A6
           .setTimestamp();
 
         await channel.send({ embeds: [embed] });
@@ -275,6 +304,7 @@ client.on(Events.GuildBanRemove, async (ban) => {
 
 client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
   if (logSystem) await logSystem.voiceStateUpdate(oldState, newState);
+  if (levelingSystem) levelingSystem.handleVoiceStateUpdate(oldState, newState);
 });
 
 client.on(Events.GuildUpdate, async (oldGuild, newGuild) => {
@@ -300,8 +330,9 @@ client.on(Events.InteractionCreate, async (interaction) => {
       return interaction.reply({ content: 'Talep sistemi yapılandırılmamış!', ephemeral: true });
     }
 
+    // userId ile açık ticket kontrolü (kullanıcı adına göre değil)
     const existingTicket = interaction.guild.channels.cache.find(
-      c => c.name === `talep-${interaction.user.username.toLowerCase().replace(/[^a-z0-9]/g, '')}`
+      c => c.topic === `ticket-owner:${interaction.user.id}`
     );
 
     if (existingTicket) {
@@ -309,10 +340,14 @@ client.on(Events.InteractionCreate, async (interaction) => {
     }
 
     try {
+      const cleanName = interaction.user.username.toLowerCase().replace(/[^a-z0-9]/g, '');
+      const channelName = `talep-${cleanName || interaction.user.id}`;
+
       const ticketChannel = await interaction.guild.channels.create({
-        name: `talep-${interaction.user.username.toLowerCase().replace(/[^a-z0-9]/g, '')}`,
+        name: channelName,
         type: ChannelType.GuildText,
         parent: guildData.ticketCategory,
+        topic: `ticket-owner:${interaction.user.id}`,
         permissionOverwrites: [
           {
             id: interaction.guild.id,
@@ -333,10 +368,10 @@ client.on(Events.InteractionCreate, async (interaction) => {
         .setColor('#00ff00')
         .setTitle('🎫 Yeni Destek Talebi')
         .setDescription('Lütfen sorununuzu detaylı bir şekilde açıklayın.\nBir yetkili en kısa sürede size yardımcı olacaktır.')
-        .addFields({ name: 'Kullanıcı', value: interaction.user.tag })
+        .addFields({ name: 'Kullanıcı', value: `${interaction.user.tag} (<@${interaction.user.id}>)` })
         .setTimestamp();
 
-      await ticketChannel.send({ 
+      await ticketChannel.send({
         content: `${interaction.user}${guildData.ticketSupportRole ? ` <@&${guildData.ticketSupportRole}>` : ''}`,
         embeds: [embed]
       });
@@ -350,6 +385,41 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
   // Talep kapatma butonu
   if (interaction.customId === 'close_ticket') {
+    const guildData = await storage.getGuild(interaction.guild.id);
+
+    // Transcript oluştur ve log kanalına gönder
+    try {
+      const messages = await interaction.channel.messages.fetch({ limit: 100 });
+      const sortedMessages = Array.from(messages.values()).reverse();
+
+      const transcriptLines = sortedMessages.map(m => {
+        const time = new Date(m.createdTimestamp).toLocaleString('tr-TR');
+        const content = m.content || (m.embeds.length ? '[Embed mesaj]' : '[Ek dosya]');
+        return `[${time}] ${m.author.tag}: ${content.slice(0, 300)}`;
+      }).join('\n');
+
+      const transcriptEmbed = new EmbedBuilder()
+        .setColor('#ff6b6b')
+        .setTitle('🎫 Ticket Transkripti')
+        .setDescription(`**Kanal:** ${interaction.channel.name}\n**Kapatan:** ${interaction.user.tag}\n**Toplam Mesaj:** ${sortedMessages.length}`)
+        .addFields({
+          name: 'Sohbet Geçmişi (Son 100 Mesaj)',
+          value: transcriptLines.slice(0, 4000) || 'Mesaj bulunamadı.'
+        })
+        .setTimestamp();
+
+      // Log kanalına gönder (ticketConfig veya genel log kanalı)
+      const logChannelId = guildData?.ticketLogChannel || guildData?.logChannel;
+      if (logChannelId) {
+        const logChannel = interaction.guild.channels.cache.get(logChannelId);
+        if (logChannel) {
+          await logChannel.send({ embeds: [transcriptEmbed] });
+        }
+      }
+    } catch (transcriptError) {
+      console.error('Ticket transcript oluşturma hatası:', transcriptError);
+    }
+
     const embed = new EmbedBuilder()
       .setColor('#ff0000')
       .setTitle('Talep Kapatılıyor')
@@ -357,7 +427,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
       .setTimestamp();
 
     await interaction.reply({ embeds: [embed] });
-    
+
     setTimeout(async () => {
       try {
         await interaction.channel.delete();
@@ -376,9 +446,9 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
     try {
       const member = await interaction.guild.members.fetch(interaction.user.id);
-      
+
       if (guildData.verificationRole) {
-        await member.roles.remove(guildData.verificationRole).catch(() => {});
+        await member.roles.remove(guildData.verificationRole).catch(() => { });
       }
       await member.roles.add(guildData.verifiedRole);
 
@@ -392,12 +462,12 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
 client.on(Events.MessageReactionAdd, async (reaction, user) => {
   if (user.bot) return;
-  
+
   try {
     if (reaction.partial) {
       await reaction.fetch();
     }
-    
+
     const reactionRole = await storage.getReactionRole(reaction.message.id, reaction.emoji.name);
     if (reactionRole) {
       const member = await reaction.message.guild.members.fetch(user.id);
@@ -413,12 +483,12 @@ client.on(Events.MessageReactionAdd, async (reaction, user) => {
 
 client.on(Events.MessageReactionRemove, async (reaction, user) => {
   if (user.bot) return;
-  
+
   try {
     if (reaction.partial) {
       await reaction.fetch();
     }
-    
+
     const reactionRole = await storage.getReactionRole(reaction.message.id, reaction.emoji.name);
     if (reactionRole) {
       const member = await reaction.message.guild.members.fetch(user.id);
@@ -432,48 +502,44 @@ client.on(Events.MessageReactionRemove, async (reaction, user) => {
   }
 });
 
-client.on(Events.InviteCreate, async (invite) => {
-  try {
-    const guildInvites = client.invites.get(invite.guild.id) || new Collection();
-    guildInvites.set(invite.code, invite.uses);
-    client.invites.set(invite.guild.id, guildInvites);
-  } catch (error) {
-    console.error('Invite create cache error:', error);
-  }
-});
-
-client.on(Events.InviteDelete, async (invite) => {
-  try {
-    const guildInvites = client.invites.get(invite.guild.id);
-    if (guildInvites) {
-      guildInvites.delete(invite.code);
-    }
-  } catch (error) {
-    console.error('Invite delete cache error:', error);
-  }
-});
+// A1: Merged InviteCreate cache update into the single handler above (lines ~295-301).
+// The logSystem.inviteCreate call AND cache update now both happen in one listener.
+// The duplicate listener block below has been removed to prevent double-processing.
 
 client.on(Events.MessageCreate, async (message) => {
   if (message.author.bot || !message.guild) return;
-  
-  // Prevent duplicate command processing
+
+  // Prevent duplicate command processing (A4: debug log only in DEBUG mode)
   if (message.content.startsWith(PREFIX) && isMessageProcessed(message.id)) {
-    console.log(`Duplicate message detected: ${message.id}`);
+    debug(`Duplicate message skipped: ${message.id}`);
     return;
   }
-  
-  const afk = await storage.getAfk(message.guild.id, message.author.id);
-  if (afk) {
-    await storage.removeAfk(message.guild.id, message.author.id);
-    const reply = await message.reply(`Tekrar hoş geldin! AFK durumun kaldırıldı. (<t:${Math.floor(new Date(afk.createdAt).getTime() / 1000)}:R> önce AFK oldunuz)`);
-    setTimeout(() => reply.delete().catch(() => {}), 5000);
-  }
-  
+
+  // AFK check
   const mentionedUsers = message.mentions.users;
   for (const [userId, user] of mentionedUsers) {
     const userAfk = await storage.getAfk(message.guild.id, userId);
     if (userAfk) {
-      message.reply(`${user.tag} şu anda AFK: ${userAfk.reason}`);
+      await message.reply(`${user.tag} şu anda AFK: ${userAfk.reason || 'Sebep belirtilmemiş'}`).catch(() => { }); // A2
+    }
+  }
+
+  const afkControl = await storage.getAfk(message.guild.id, message.author.id);
+  if (afkControl) {
+    await storage.removeAfk(message.guild.id, message.author.id);
+    message.reply(`Hoş geldin! AFK modundan çıktın.`).then(m => setTimeout(() => m.delete().catch(() => { }), 5000));
+  }
+
+  // Check chatgpt channel
+  const guildData = await storage.getGuild(message.guild.id);
+  if (guildData?.chatgptChannel === message.channel.id) {
+    if (!message.content.startsWith(PREFIX)) {
+      try {
+        await chatGPT.handleMessage(message);
+      } catch (error) {
+        console.error('ChatGPT reply error:', error);
+      }
+      return;
     }
   }
 
@@ -490,36 +556,59 @@ client.on(Events.MessageCreate, async (message) => {
       return;
     }
   }
-  
+
   const blocked = await checkAutomod(message, client, storage);
   if (blocked) return;
 
   if (levelingSystem) {
     await levelingSystem.handleMessage(message);
   }
-  
+
   const customCmd = await storage.getCustomCommand(message.guild.id, message.content.toLowerCase());
   if (customCmd) {
+    if (storage.incrementCommandUsage) await storage.incrementCommandUsage('custom_command');
     return message.reply(customCmd.response);
   }
-  
+
   if (!message.content.startsWith(PREFIX)) return;
-  
+
   const args = message.content.slice(PREFIX.length).trim().split(/ +/);
   const commandName = args.shift().toLowerCase();
-  
+
   const command = client.commands.get(commandName);
   if (!command) return;
-  
+
+  // G5: Global command cooldown logic
+  if (command.cooldown) {
+    if (!commandCooldowns.has(command.name)) {
+      commandCooldowns.set(command.name, new Collection());
+    }
+    const now = Date.now();
+    const timestamps = commandCooldowns.get(command.name);
+    const cooldownAmount = command.cooldown * 1000;
+
+    if (timestamps.has(message.author.id)) {
+      const expirationTime = timestamps.get(message.author.id) + cooldownAmount;
+      if (now < expirationTime) {
+        const timeLeft = (expirationTime - now) / 1000;
+        return message.reply(`⏳ Lütfen bu komutu tekrar kullanmadan önce **${timeLeft.toFixed(1)}** saniye bekleyin.`)
+          .then(m => setTimeout(() => m.delete().catch(() => { }), 3000));
+      }
+    }
+    timestamps.set(message.author.id, now);
+    setTimeout(() => timestamps.delete(message.author.id), cooldownAmount);
+  }
+
   if (command.permissions) {
     const hasPermission = message.member.permissions.has(command.permissions);
     if (!hasPermission) {
       return message.reply('Bu komutu kullanmak için yetkiniz yok!');
     }
   }
-  
+
   try {
     await command.execute(message, args, client, storage);
+    if (storage.incrementCommandUsage) await storage.incrementCommandUsage(commandName);
   } catch (error) {
     console.error('Komut hatası:', error);
     message.reply('Komut çalıştırılırken bir hata oluştu!');

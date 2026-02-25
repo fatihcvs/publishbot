@@ -8,9 +8,27 @@ class LogSystem {
 
   async getLogChannel(guildId, logType) {
     const guildData = await this.storage.getGuild(guildId);
-    const logConfig = guildData?.logConfig || {};
-    const logChannel = guildData?.logChannel;
-    
+    if (!guildData) return null;
+
+    const logConfig = guildData.logConfig || {};
+
+    // Fallback global channel
+    let baseChannelId = guildData.logChannel;
+
+    // Advanced Logging: Segregate log types
+    // 1. Message Logs (Message Delete, Update)
+    if (['messageDelete', 'messageUpdate'].includes(logType) && guildData.messageLogChannel) {
+      baseChannelId = guildData.messageLogChannel;
+    }
+    // 2. Member Logs (Join, Leave, Role Add/Remove, Nickname, Voice)
+    else if (['memberJoin', 'memberLeave', 'memberUpdate', 'voiceActivity'].includes(logType) && guildData.memberLogChannel) {
+      baseChannelId = guildData.memberLogChannel;
+    }
+    // 3. Mod Logs (Bans, Kicks, Warnings, Channel/Role Settings) - Kalan her şey buraya gidebilir
+    else if (guildData.modLogChannel) {
+      baseChannelId = guildData.modLogChannel;
+    }
+
     // Map internal log types to dashboard checkbox names
     const typeMapping = {
       'messageDelete': ['messageDelete'],
@@ -31,12 +49,12 @@ class LogSystem {
       'inviteCreate': ['invites', 'inviteCreate'],
       'inviteDelete': ['invites', 'inviteDelete']
     };
-    
+
     // Check if any of the mapped types are enabled
     const possibleTypes = typeMapping[logType] || [logType];
     let isEnabled = false;
-    let channelId = logChannel;
-    
+    let finalChannelId = baseChannelId;
+
     for (const type of possibleTypes) {
       const setting = logConfig[type];
       // Support both formats: boolean (new) and object with enabled/channel (old)
@@ -45,17 +63,18 @@ class LogSystem {
         break;
       } else if (setting && typeof setting === 'object' && setting.enabled) {
         isEnabled = true;
-        channelId = setting.channel || logChannel;
+        // Dashboard specific channel override for this specific event type (if set)
+        if (setting.channel) finalChannelId = setting.channel;
         break;
       }
     }
-    
-    if (!isEnabled || !channelId) return null;
-    
+
+    if (!isEnabled || !finalChannelId) return null;
+
     const guild = this.client.guilds.cache.get(guildId);
     if (!guild) return null;
-    
-    return guild.channels.cache.get(channelId);
+
+    return guild.channels.cache.get(finalChannelId);
   }
 
   async log(guildId, logType, embed) {
@@ -69,9 +88,46 @@ class LogSystem {
     }
   }
 
+  async messageDelete(message) {
+    // Prevent logging partial messages, DMs, or bot deletions (fixes H2 spam)
+    if (!message.guild || message.partial || message.author?.bot) return;
+
+    const embed = new EmbedBuilder()
+      .setColor('#ED4245')
+      .setTitle('Mesaj Silindi')
+      .setAuthor({ name: message.author.tag, iconURL: message.author.displayAvatarURL() })
+      .setDescription(`**${message.author}** tarafından <#${message.channel.id}> kanalında gönderilen mesaj silindi.`)
+      .addFields(
+        { name: 'Mesaj İçeriği', value: message.content || '*(İçerik yok veya Embed/Görsel)*' }
+      )
+      .setFooter({ text: `Kullanıcı ID: ${message.author.id} • Mesaj ID: ${message.id}` })
+      .setTimestamp();
+
+    await this.log(message.guild.id, 'messageDelete', embed);
+  }
+
+  async messageUpdate(oldMessage, newMessage) {
+    if (!oldMessage.guild || oldMessage.partial || newMessage.partial || oldMessage.author?.bot) return;
+    if (oldMessage.content === newMessage.content) return; // Ignore embed updates
+
+    const embed = new EmbedBuilder()
+      .setColor('#FEE75C')
+      .setTitle('Mesaj Düzenlendi')
+      .setAuthor({ name: oldMessage.author.tag, iconURL: oldMessage.author.displayAvatarURL() })
+      .setDescription(`**${oldMessage.author}** tarafından <#${oldMessage.channel.id}> kanalında gönderilen mesaj düzenlendi. [Mesaja Git](${newMessage.url})`)
+      .addFields(
+        { name: 'Eski Mesaj', value: oldMessage.content || '*(Boş)*' },
+        { name: 'Yeni Mesaj', value: newMessage.content || '*(Boş)*' }
+      )
+      .setFooter({ text: `Kullanıcı ID: ${oldMessage.author.id}` })
+      .setTimestamp();
+
+    await this.log(oldMessage.guild.id, 'messageUpdate', embed);
+  }
+
   async channelCreate(channel) {
     if (!channel.guild) return;
-    
+
     let executor = null;
     try {
       const auditLogs = await channel.guild.fetchAuditLogs({
@@ -82,10 +138,10 @@ class LogSystem {
       if (logEntry && logEntry.target.id === channel.id && Date.now() - logEntry.createdTimestamp < 5000) {
         executor = logEntry.executor;
       }
-    } catch (error) {}
+    } catch (error) { }
 
     const channelInfo = this.getChannelDetails(channel);
-    
+
     const embed = new EmbedBuilder()
       .setColor('#57F287')
       .setTitle('Kanal Oluşturuldu')
@@ -102,7 +158,7 @@ class LogSystem {
 
   async channelDelete(channel) {
     if (!channel.guild) return;
-    
+
     let executor = null;
     try {
       const auditLogs = await channel.guild.fetchAuditLogs({
@@ -113,10 +169,10 @@ class LogSystem {
       if (logEntry && logEntry.target.id === channel.id && Date.now() - logEntry.createdTimestamp < 5000) {
         executor = logEntry.executor;
       }
-    } catch (error) {}
+    } catch (error) { }
 
     const channelInfo = this.getChannelDetails(channel);
-    
+
     const embed = new EmbedBuilder()
       .setColor('#ED4245')
       .setTitle('Kanal Silindi')
@@ -133,8 +189,8 @@ class LogSystem {
 
   async channelUpdate(oldChannel, newChannel) {
     if (!newChannel.guild) return;
-    
-    const hasChanges = 
+
+    const hasChanges =
       oldChannel.name !== newChannel.name ||
       oldChannel.topic !== newChannel.topic ||
       oldChannel.nsfw !== newChannel.nsfw ||
@@ -143,9 +199,9 @@ class LogSystem {
       oldChannel.userLimit !== newChannel.userLimit ||
       oldChannel.rtcRegion !== newChannel.rtcRegion ||
       oldChannel.videoQualityMode !== newChannel.videoQualityMode;
-    
+
     if (!hasChanges) return;
-    
+
     let executor = null;
     try {
       const auditLogs = await newChannel.guild.fetchAuditLogs({
@@ -156,12 +212,12 @@ class LogSystem {
       if (logEntry && logEntry.target.id === newChannel.id && Date.now() - logEntry.createdTimestamp < 5000) {
         executor = logEntry.executor;
       }
-    } catch (error) {}
+    } catch (error) { }
 
     const channelEmoji = this.getChannelEmoji(newChannel.type);
     const oldInfo = this.getChannelDetailsForUpdate(oldChannel);
     const newInfo = this.getChannelDetailsForUpdate(newChannel, oldChannel);
-    
+
     const embed = new EmbedBuilder()
       .setColor('#FEE75C')
       .setTitle('Kanal Güncellendi')
@@ -175,7 +231,7 @@ class LogSystem {
 
     await this.log(newChannel.guild.id, 'channelUpdate', embed);
   }
-  
+
   getChannelEmoji(type) {
     const emojis = {
       0: '💬',   // Text
@@ -187,14 +243,14 @@ class LogSystem {
     };
     return emojis[type] || '📝';
   }
-  
+
   getChannelDetails(channel) {
     const emoji = this.getChannelEmoji(channel.type);
     const info = [
       `Tür: ${this.getChannelType(channel.type)}`,
       `İsim: ${emoji} ${channel.name}`
     ];
-    
+
     if (channel.topic) info.push(`Konu: ${channel.topic.slice(0, 50)}`);
     if (channel.nsfw !== undefined) info.push(`NSFW: ${channel.nsfw ? 'Evet' : 'Hayır'}`);
     if (channel.rateLimitPerUser) info.push(`Slow Mode: ${channel.rateLimitPerUser} saniye`);
@@ -202,10 +258,10 @@ class LogSystem {
     if (channel.userLimit !== undefined && channel.userLimit !== null) info.push(`Kullanıcı Limiti: ${channel.userLimit || 'Sınırsız'}`);
     if (channel.rtcRegion !== undefined) info.push(`RTC Bölgesi: ${channel.rtcRegion || 'Otomatik'}`);
     if (channel.videoQualityMode) info.push(`Video Kalitesi: ${channel.videoQualityMode === 1 ? 'Otomatik' : 'Full'}`);
-    
+
     return info;
   }
-  
+
   getChannelDetailsForUpdate(channel, oldChannel = null) {
     const info = [];
     const emoji = this.getChannelEmoji(channel.type);
@@ -213,9 +269,9 @@ class LogSystem {
       const changed = oldChannel && old !== cur;
       return `${changed ? '✅ ' : ''}${label}: **${value}**`;
     };
-    
+
     info.push(check(oldChannel?.name, channel.name, 'İsim', `${emoji} ${channel.name}`));
-    
+
     if (channel.bitrate !== undefined) {
       info.push(check(oldChannel?.bitrate, channel.bitrate, 'Bit Rate', `${channel.bitrate / 1000}kbps`));
     }
@@ -238,7 +294,7 @@ class LogSystem {
       const topicValue = channel.topic ? channel.topic.slice(0, 30) : 'Yok';
       info.push(check(oldChannel?.topic, channel.topic, 'Konu', topicValue));
     }
-    
+
     return info;
   }
 
@@ -253,7 +309,7 @@ class LogSystem {
       if (logEntry && logEntry.target.id === role.id && Date.now() - logEntry.createdTimestamp < 5000) {
         executor = logEntry.executor;
       }
-    } catch (error) {}
+    } catch (error) { }
 
     const roleInfo = [
       `İsim: **${role.name}**`,
@@ -287,7 +343,7 @@ class LogSystem {
       if (logEntry && logEntry.target.id === role.id && Date.now() - logEntry.createdTimestamp < 5000) {
         executor = logEntry.executor;
       }
-    } catch (error) {}
+    } catch (error) { }
 
     const roleInfo = [
       `İsim: **${role.name}**`,
@@ -310,14 +366,14 @@ class LogSystem {
   }
 
   async roleUpdate(oldRole, newRole) {
-    const hasChanges = 
+    const hasChanges =
       oldRole.name !== newRole.name ||
       oldRole.hexColor !== newRole.hexColor ||
       oldRole.hoist !== newRole.hoist ||
       oldRole.mentionable !== newRole.mentionable ||
       oldRole.icon !== newRole.icon ||
       oldRole.permissions.bitfield !== newRole.permissions.bitfield;
-    
+
     if (!hasChanges) return;
 
     let executor = null;
@@ -330,7 +386,7 @@ class LogSystem {
       if (logEntry && logEntry.target.id === newRole.id && Date.now() - logEntry.createdTimestamp < 5000) {
         executor = logEntry.executor;
       }
-    } catch (error) {}
+    } catch (error) { }
 
     const oldRoleInfo = [
       `İsim: **${oldRole.name}**`,
@@ -362,7 +418,7 @@ class LogSystem {
     if (oldRole.permissions.bitfield !== newRole.permissions.bitfield) {
       const addedPerms = newRole.permissions.toArray().filter(p => !oldRole.permissions.has(p));
       const removedPerms = oldRole.permissions.toArray().filter(p => oldRole.permissions.has(p) && !newRole.permissions.has(p));
-      
+
       if (addedPerms.length > 0 || removedPerms.length > 0) {
         let permChanges = '';
         if (addedPerms.length > 0) permChanges += `➕ ${addedPerms.slice(0, 5).join(', ')}${addedPerms.length > 5 ? ` +${addedPerms.length - 5} daha` : ''}\n`;
@@ -376,12 +432,12 @@ class LogSystem {
 
   async messageDelete(message) {
     if (!message.guild || message.author?.bot) return;
-    
+
     const embed = new EmbedBuilder()
       .setColor('#ED4245')
-      .setAuthor({ 
-        name: message.author?.tag || 'Bilinmiyor', 
-        iconURL: message.author?.displayAvatarURL({ dynamic: true }) 
+      .setAuthor({
+        name: message.author?.tag || 'Bilinmiyor',
+        iconURL: message.author?.displayAvatarURL({ dynamic: true })
       })
       .setTitle('🗑️ Mesaj Silindi')
       .setDescription(`<@${message.author?.id}> tarafından gönderilen mesaj **silindi**.`)
@@ -405,12 +461,12 @@ class LogSystem {
   async messageUpdate(oldMessage, newMessage) {
     if (!newMessage.guild || newMessage.author?.bot) return;
     if (oldMessage.content === newMessage.content) return;
-    
+
     const embed = new EmbedBuilder()
       .setColor('#FEE75C')
-      .setAuthor({ 
-        name: newMessage.author?.tag || 'Bilinmiyor', 
-        iconURL: newMessage.author?.displayAvatarURL({ dynamic: true }) 
+      .setAuthor({
+        name: newMessage.author?.tag || 'Bilinmiyor',
+        iconURL: newMessage.author?.displayAvatarURL({ dynamic: true })
       })
       .setTitle('✏️ Mesaj Düzenlendi')
       .setDescription(`<@${newMessage.author?.id}> mesajını **düzenledi**. [Mesaja Git](${newMessage.url})`)
@@ -429,12 +485,12 @@ class LogSystem {
   async guildMemberAdd(member) {
     const accountAge = Date.now() - member.user.createdTimestamp;
     const isNewAccount = accountAge < 7 * 24 * 60 * 60 * 1000; // 7 days
-    
+
     const embed = new EmbedBuilder()
       .setColor('#57F287')
-      .setAuthor({ 
-        name: member.user.tag, 
-        iconURL: member.user.displayAvatarURL({ dynamic: true }) 
+      .setAuthor({
+        name: member.user.tag,
+        iconURL: member.user.displayAvatarURL({ dynamic: true })
       })
       .setTitle('📥 Sunucuya Katıldı')
       .setDescription(`<@${member.id}> sunucuya **katıldı**!${isNewAccount ? '\n⚠️ *Yeni hesap!*' : ''}`)
@@ -453,12 +509,12 @@ class LogSystem {
 
   async guildMemberRemove(member) {
     const roles = member.roles.cache.filter(r => r.id !== member.guild.id).map(r => r.name);
-    
+
     const embed = new EmbedBuilder()
       .setColor('#ED4245')
-      .setAuthor({ 
-        name: member.user.tag, 
-        iconURL: member.user.displayAvatarURL({ dynamic: true }) 
+      .setAuthor({
+        name: member.user.tag,
+        iconURL: member.user.displayAvatarURL({ dynamic: true })
       })
       .setTitle('📤 Sunucudan Ayrıldı')
       .setDescription(`<@${member.id}> sunucudan **ayrıldı**.`)
@@ -482,9 +538,9 @@ class LogSystem {
     const hasNicknameChange = oldMember.nickname !== newMember.nickname;
     const addedRoles = newMember.roles.cache.filter(r => !oldMember.roles.cache.has(r.id));
     const removedRoles = oldMember.roles.cache.filter(r => !newMember.roles.cache.has(r.id));
-    
+
     if (!hasNicknameChange && addedRoles.size === 0 && removedRoles.size === 0) return;
-    
+
     let executor = null;
     try {
       if (hasNicknameChange) {
@@ -492,8 +548,8 @@ class LogSystem {
           type: AuditLogEvent.MemberUpdate,
           limit: 5
         });
-        const logEntry = auditLogs.entries.find(e => 
-          e.target.id === newMember.id && 
+        const logEntry = auditLogs.entries.find(e =>
+          e.target.id === newMember.id &&
           Date.now() - e.createdTimestamp < 5000
         );
         if (logEntry) executor = logEntry.executor;
@@ -502,38 +558,38 @@ class LogSystem {
           type: AuditLogEvent.MemberRoleUpdate,
           limit: 5
         });
-        const logEntry = auditLogs.entries.find(e => 
-          e.target.id === newMember.id && 
+        const logEntry = auditLogs.entries.find(e =>
+          e.target.id === newMember.id &&
           Date.now() - e.createdTimestamp < 5000
         );
         if (logEntry) executor = logEntry.executor;
       }
-    } catch (error) {}
+    } catch (error) { }
 
     const oldInfo = [];
     const newInfo = [];
-    
+
     oldInfo.push(`Takma Ad: ${oldMember.nickname || 'Yok'}`);
     newInfo.push(`${hasNicknameChange ? '✅' : ''} Takma Ad: ${newMember.nickname || 'Yok'}`);
-    
+
     const oldRoleNames = oldMember.roles.cache.filter(r => r.id !== oldMember.guild.id).map(r => r.name).slice(0, 5);
     const newRoleNames = newMember.roles.cache.filter(r => r.id !== newMember.guild.id).map(r => r.name).slice(0, 5);
-    
+
     if (oldRoleNames.length > 0) oldInfo.push(`Roller: ${oldRoleNames.join(', ')}`);
     if (newRoleNames.length > 0) newInfo.push(`${addedRoles.size > 0 || removedRoles.size > 0 ? '✅' : ''} Roller: ${newRoleNames.join(', ')}`);
-    
+
     if (addedRoles.size > 0) {
       newInfo.push(`➕ Eklenen: ${addedRoles.map(r => r.name).join(', ')}`);
     }
     if (removedRoles.size > 0) {
       newInfo.push(`➖ Kaldırılan: ${removedRoles.map(r => r.name).join(', ')}`);
     }
-    
+
     const embed = new EmbedBuilder()
       .setColor('#FEE75C')
-      .setAuthor({ 
-        name: newMember.user.tag, 
-        iconURL: newMember.user.displayAvatarURL({ dynamic: true }) 
+      .setAuthor({
+        name: newMember.user.tag,
+        iconURL: newMember.user.displayAvatarURL({ dynamic: true })
       })
       .setTitle('Üye Güncellendi')
       .setDescription(`<@${newMember.id}> güncellendi${executor ? ` <@${executor.id}> tarafından` : ''}`)
@@ -556,15 +612,15 @@ class LogSystem {
         type: AuditLogEvent.MemberBanAdd,
         limit: 5
       });
-      const logEntry = auditLogs.entries.find(e => 
-        e.target.id === ban.user.id && 
+      const logEntry = auditLogs.entries.find(e =>
+        e.target.id === ban.user.id &&
         Date.now() - e.createdTimestamp < 10000
       );
       if (logEntry) {
         executor = logEntry.executor;
         reason = logEntry.reason || reason;
       }
-    } catch (error) {}
+    } catch (error) { }
 
     const userInfo = [
       `Kullanıcı: ${ban.user.tag}`,
@@ -574,9 +630,9 @@ class LogSystem {
 
     const embed = new EmbedBuilder()
       .setColor('#ED4245')
-      .setAuthor({ 
-        name: ban.user.tag, 
-        iconURL: ban.user.displayAvatarURL({ dynamic: true }) 
+      .setAuthor({
+        name: ban.user.tag,
+        iconURL: ban.user.displayAvatarURL({ dynamic: true })
       })
       .setTitle('🔨 Kullanıcı Yasaklandı')
       .setDescription(`<@${ban.user.id}> sunucudan **yasaklandı**${executor ? ` <@${executor.id}> tarafından` : ''}`)
@@ -599,12 +655,12 @@ class LogSystem {
         type: AuditLogEvent.MemberBanRemove,
         limit: 5
       });
-      const logEntry = auditLogs.entries.find(e => 
-        e.target.id === ban.user.id && 
+      const logEntry = auditLogs.entries.find(e =>
+        e.target.id === ban.user.id &&
         Date.now() - e.createdTimestamp < 10000
       );
       if (logEntry) executor = logEntry.executor;
-    } catch (error) {}
+    } catch (error) { }
 
     const userInfo = [
       `Kullanıcı: ${ban.user.tag}`,
@@ -614,9 +670,9 @@ class LogSystem {
 
     const embed = new EmbedBuilder()
       .setColor('#57F287')
-      .setAuthor({ 
-        name: ban.user.tag, 
-        iconURL: ban.user.displayAvatarURL({ dynamic: true }) 
+      .setAuthor({
+        name: ban.user.tag,
+        iconURL: ban.user.displayAvatarURL({ dynamic: true })
       })
       .setTitle('✅ Yasak Kaldırıldı')
       .setDescription(`<@${ban.user.id}> yasağı **kaldırıldı**${executor ? ` <@${executor.id}> tarafından` : ''}`)
@@ -634,10 +690,10 @@ class LogSystem {
   async voiceStateUpdate(oldState, newState) {
     const member = newState.member || oldState.member;
     if (!member) return;
-    
+
     let title, color, description, channelInfo;
     const guildId = member.guild.id;
-    
+
     if (!oldState.channel && newState.channel) {
       title = '🔊 Kanala Giriş Yapıldı';
       color = '#57F287';
@@ -656,12 +712,12 @@ class LogSystem {
     } else {
       return;
     }
-    
+
     const embed = new EmbedBuilder()
       .setColor(color)
-      .setAuthor({ 
-        name: member.user.tag, 
-        iconURL: member.user.displayAvatarURL({ dynamic: true }) 
+      .setAuthor({
+        name: member.user.tag,
+        iconURL: member.user.displayAvatarURL({ dynamic: true })
       })
       .setTitle(title)
       .setDescription(description)
@@ -677,7 +733,7 @@ class LogSystem {
   }
 
   async guildUpdate(oldGuild, newGuild) {
-    const hasChanges = 
+    const hasChanges =
       oldGuild.name !== newGuild.name ||
       oldGuild.iconURL() !== newGuild.iconURL() ||
       oldGuild.bannerURL() !== newGuild.bannerURL() ||
@@ -687,9 +743,9 @@ class LogSystem {
       oldGuild.afkChannelId !== newGuild.afkChannelId ||
       oldGuild.afkTimeout !== newGuild.afkTimeout ||
       oldGuild.systemChannelId !== newGuild.systemChannelId;
-    
+
     if (!hasChanges) return;
-    
+
     let executor = null;
     try {
       const auditLogs = await newGuild.fetchAuditLogs({
@@ -700,11 +756,11 @@ class LogSystem {
       if (logEntry && Date.now() - logEntry.createdTimestamp < 5000) {
         executor = logEntry.executor;
       }
-    } catch (error) {}
+    } catch (error) { }
 
     const verificationLevels = ['Yok', 'Düşük', 'Orta', 'Yüksek', 'Çok Yüksek'];
     const contentFilters = ['Kapalı', 'Rolsüz Üyeler', 'Tüm Üyeler'];
-    
+
     const oldInfo = [
       `İsim: ${oldGuild.name}`,
       `İkon: ${oldGuild.iconURL() ? 'Var' : 'Yok'}`,
@@ -712,7 +768,7 @@ class LogSystem {
       `Doğrulama: ${verificationLevels[oldGuild.verificationLevel] || 'Bilinmiyor'}`,
       `İçerik Filtresi: ${contentFilters[oldGuild.explicitContentFilter] || 'Bilinmiyor'}`
     ];
-    
+
     const newInfo = [
       `${oldGuild.name !== newGuild.name ? '✅' : ''} İsim: ${newGuild.name}`,
       `${oldGuild.iconURL() !== newGuild.iconURL() ? '✅' : ''} İkon: ${newGuild.iconURL() ? 'Var' : 'Yok'}`,
@@ -720,7 +776,7 @@ class LogSystem {
       `${oldGuild.verificationLevel !== newGuild.verificationLevel ? '✅' : ''} Doğrulama: ${verificationLevels[newGuild.verificationLevel] || 'Bilinmiyor'}`,
       `${oldGuild.explicitContentFilter !== newGuild.explicitContentFilter ? '✅' : ''} İçerik Filtresi: ${contentFilters[newGuild.explicitContentFilter] || 'Bilinmiyor'}`
     ];
-    
+
     const embed = new EmbedBuilder()
       .setColor('#FEE75C')
       .setTitle('Sunucu Ayarları Güncellendi')
