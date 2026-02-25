@@ -295,6 +295,19 @@ Dashboard için gereken environment variables:
 - `POST /api/admin/import-data` - Production'a import (IMPORT_SECRET gerekli)
 - Import zaten veri olan tabloları atlar (güvenli)
 
+## OAuth Allowed Domains
+
+The Discord OAuth callback whitelist is configured in `src/web/server.js` under `ALLOWED_DOMAINS`:
+- `publisherbot.org`
+- `publishbot.replit.app` (deployed production)
+- `REPLIT_DEV_DOMAIN` (development)
+
+Make sure any new deployment domain is added both here and in Discord Developer Portal redirects.
+
+## CSP (Content Security Policy)
+
+Configured via `helmet` in `src/web/server.js`. CDN sources (`cdn.jsdelivr.net`, `cdnjs.cloudflare.com`, `fonts.googleapis.com`) are whitelisted for scripts, styles, and fonts.
+
 ## Teknolojiler
 
 - Node.js 20
