@@ -350,7 +350,7 @@
     <div class="modal" id="modal">
       <div class="modal-header">
         <h2 id="modalTitle">Ayarlar</h2>
-        <button class="modal-close" onclick="closeModal()">&times;</button>
+        <button class="modal-close" onclick="window.closeModal()">&times;</button>
       </div>
       <div class="modal-body" id="modalBody"></div>
       <div class="modal-footer" id="modalFooter"></div>
@@ -826,7 +826,7 @@
 
         showToast('Özellik devre dışı bırakıldı', 'success');
         renderFeatures();
-        closeModal();
+        window.closeModal();
       } catch (error) {
         showToast('Hata oluştu', 'error');
       }
@@ -1279,7 +1279,7 @@
           `;
           footerContent = `
             <button class="btn btn-outline" onclick="disableFeature('customcommands')">Devre Dışı Bırak</button>
-            <button class="btn btn-primary" onclick="closeModal()">Tamam</button>
+            <button class="btn btn-primary" onclick="window.closeModal()">Tamam</button>
           `;
           break;
 
@@ -1327,7 +1327,7 @@
           `;
           footerContent = `
             <button class="btn btn-outline" onclick="disableFeature('giveaway')">Devre Dışı Bırak</button>
-            <button class="btn btn-primary" onclick="closeModal()">Tamam</button>
+            <button class="btn btn-primary" onclick="window.closeModal()">Tamam</button>
           `;
           break;
 
@@ -1344,7 +1344,7 @@
           `;
           footerContent = `
             <button class="btn btn-outline" onclick="disableFeature('reminders')">Devre Dışı Bırak</button>
-            <button class="btn btn-primary" onclick="closeModal()">Tamam</button>
+            <button class="btn btn-primary" onclick="window.closeModal()">Tamam</button>
           `;
           break;
 
@@ -1393,7 +1393,7 @@
           `;
           footerContent = `
             <button class="btn btn-outline" onclick="disableFeature('statchannels')">Devre Dışı Bırak</button>
-            <button class="btn btn-primary" onclick="closeModal()">Tamam</button>
+            <button class="btn btn-primary" onclick="window.closeModal()">Tamam</button>
           `;
           break;
 
@@ -1409,7 +1409,7 @@
           `;
           footerContent = `
             <button class="btn btn-outline" onclick="disableFeature('polls')">Devre Dışı Bırak</button>
-            <button class="btn btn-primary" onclick="closeModal()">Tamam</button>
+            <button class="btn btn-primary" onclick="window.closeModal()">Tamam</button>
           `;
           break;
 
@@ -1426,7 +1426,7 @@
           `;
           footerContent = `
             <button class="btn btn-outline" onclick="disableFeature('embed')">Devre Dışı Bırak</button>
-            <button class="btn btn-primary" onclick="closeModal()">Tamam</button>
+            <button class="btn btn-primary" onclick="window.closeModal()">Tamam</button>
           `;
           break;
 
@@ -1448,7 +1448,7 @@
           `;
           footerContent = `
             <button class="btn btn-outline" onclick="disableFeature('achievements')">Devre Dışı Bırak</button>
-            <button class="btn btn-primary" onclick="closeModal()">Tamam</button>
+            <button class="btn btn-primary" onclick="window.closeModal()">Tamam</button>
           `;
           break;
 
@@ -1471,7 +1471,7 @@
           `;
           footerContent = `
             <button class="btn btn-outline" onclick="disableFeature('automation')">Devre Dışı Bırak</button>
-            <button class="btn btn-primary" onclick="closeModal()">Tamam</button>
+            <button class="btn btn-primary" onclick="window.closeModal()">Tamam</button>
           `;
           break;
 
@@ -1519,7 +1519,7 @@
           `;
           footerContent = `
             <button class="btn btn-outline" onclick="disableFeature('reactionroles')">Devre Dışı Bırak</button>
-            <button class="btn btn-primary" onclick="closeModal()">Tamam</button>
+            <button class="btn btn-primary" onclick="window.closeModal()">Tamam</button>
           `;
           break;
 
@@ -1671,7 +1671,7 @@
           `;
           footerContent = `
             <button class="btn btn-outline" onclick="disableFeature('${featureId}')">Devre Dışı Bırak</button>
-            <button class="btn btn-primary" onclick="closeModal()">Tamam</button>
+            <button class="btn btn-primary" onclick="window.closeModal()">Tamam</button>
           `;
           break;
 
@@ -1766,7 +1766,7 @@
           `;
           footerContent = `
             <button class="btn btn-outline" onclick="disableFeature('${featureId}')">Devre Dışı Bırak</button>
-            <button class="btn btn-primary" onclick="closeModal()">Tamam</button>
+            <button class="btn btn-primary" onclick="window.closeModal()">Tamam</button>
           `;
       }
 
@@ -1837,9 +1837,10 @@
       }
     }
 
-    function closeModal() {
-      document.getElementById('modalOverlay').classList.remove('active');
-    }
+    window.closeModal = function() {
+      const el = document.getElementById('modalOverlay');
+      if (el) el.classList.remove('active');
+    };
 
     async function saveWelcomeSettings() {
       const newSettings = {
@@ -2406,7 +2407,7 @@
           settings = { ...settings, ...newSettings };
           modules = newSettings.modules || modules;
           showToast('Ayarlar kaydedildi!', 'success');
-          closeModal();
+          window.closeModal();
           renderFeatures();
           updateStats();
         } else {
@@ -2418,12 +2419,12 @@
     }
 
     document.getElementById('modalOverlay').addEventListener('click', (e) => {
-      if (e.target.id === 'modalOverlay') closeModal();
+      if (e.target.id === 'modalOverlay') window.closeModal();
     });
 
-    // Esc key closes modal
+    //sc ses modal
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') closeModal();
+      if (e.key === 'Escape') window.closeModal();
     });
 
     init();
