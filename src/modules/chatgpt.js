@@ -2,7 +2,13 @@ const OpenAI = require('openai');
 const { isLetheGameQuestion, getLetheGameContext } = require('../lethe/gameKnowledge');
 
 // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+let openai = null;
+function getOpenAI() {
+  if (!openai && process.env.OPENAI_API_KEY) {
+    openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  }
+  return openai;
+}
 
 const ASSISTANT_SYSTEM_PROMPT = `Sen çok yetenekli ve yardımsever bir yapay zeka asistanısın. Discord'da insanlara her konuda yardım ediyorsun.
 
@@ -66,7 +72,7 @@ Lethe Game sorularını yanıtlarken:
 - Kısa ve öz cevaplar ver (Discord limiti var)`;
     }
 
-    const response = await openai.chat.completions.create({
+    const response = await getOpenAI().chat.completions.create({
       model: 'gpt-4o',
       messages: [
         { role: 'system', content: systemPrompt },
@@ -92,7 +98,7 @@ async function generateImage(prompt, userId) {
   }
 
   try {
-    const response = await openai.images.generate({
+    const response = await getOpenAI().images.generate({
       model: "dall-e-3",
       prompt: prompt,
       n: 1,
@@ -120,7 +126,7 @@ async function analyzeImage(imageUrl, userQuestion) {
   }
 
   try {
-    const response = await openai.chat.completions.create({
+    const response = await getOpenAI().chat.completions.create({
       model: "gpt-4o",
       messages: [
         {
