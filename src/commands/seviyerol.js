@@ -1,6 +1,6 @@
 const { EmbedBuilder, PermissionFlagsBits } = require('discord.js');
-const { db } = require('../../database/db');
-const { guilds } = require('../../../shared/schema');
+const { db } = require('../database/db');
+const { guilds } = require('../../shared/schema');
 const { eq } = require('drizzle-orm');
 
 module.exports = {

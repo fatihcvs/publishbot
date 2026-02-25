@@ -1,8 +1,8 @@
 const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
-const letheStorage = require('../lethe/letheStorage');
-const { adventureNpcs } = require('../lethe/seedData');
-const { db } = require('../database/db');
-const { userLetheProfile } = require('../../shared/schema');
+const letheStorage = require('../../lethe/letheStorage');
+const { adventureNpcs } = require('../../lethe/seedData');
+const { db } = require('../../database/db');
+const { userLetheProfile } = require('../../../shared/schema');
 const { eq, sql } = require('drizzle-orm');
 
 module.exports = {

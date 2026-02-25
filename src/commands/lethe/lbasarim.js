@@ -1,5 +1,5 @@
 const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
-const letheStorage = require('../lethe/letheStorage');
+const letheStorage = require('../../lethe/letheStorage');
 
 module.exports = {
     name: 'lbaşarım',

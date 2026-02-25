@@ -1,6 +1,6 @@
 const { EmbedBuilder } = require('discord.js');
-const { clanSystem } = require('../lethe/clanSystem');
-const { getOrCreateProfile, addCoins } = require('../lethe/letheStorage');
+const { clanSystem } = require('../../lethe/clanSystem');
+const { getOrCreateProfile, addCoins } = require('../../lethe/letheStorage');
 
 module.exports = {
     name: 'klan',

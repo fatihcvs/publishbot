@@ -1,6 +1,6 @@
 const { EmbedBuilder } = require('discord.js');
-const { db } = require('../../database/db');
-const { userProfiles } = require('../../../shared/schema');
+const { db } = require('../database/db');
+const { userProfiles } = require('../../shared/schema');
 const { eq, and } = require('drizzle-orm');
 
 module.exports = {

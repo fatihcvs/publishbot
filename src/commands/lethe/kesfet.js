@@ -1,9 +1,9 @@
 const { EmbedBuilder } = require('discord.js');
-const { getOrCreateProfile } = require('../lethe/letheStorage');
-const { db } = require('../database/db');
-const { userLetheProfile } = require('../../shared/schema');
+const { getOrCreateProfile } = require('../../lethe/letheStorage');
+const { db } = require('../../database/db');
+const { userLetheProfile } = require('../../../shared/schema');
 const { eq } = require('drizzle-orm');
-const { regions } = require('../lethe/seedData');
+const { regions } = require('../../lethe/seedData');
 
 module.exports = {
     name: 'keşfet',

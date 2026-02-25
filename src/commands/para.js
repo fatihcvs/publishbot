@@ -1,6 +1,6 @@
 const { EmbedBuilder } = require('discord.js');
-const { db } = require('../../database/db');
-const { userEconomy } = require('../../../shared/schema');
+const { db } = require('../database/db');
+const { userEconomy } = require('../../shared/schema');
 const { eq, and } = require('drizzle-orm');
 
 module.exports = {
@@ -13,7 +13,7 @@ module.exports = {
         const target = message.mentions.users.first() || message.author;
 
         // Check economy config or fallback to defaults
-        const [config] = await db.select().from(require('../../../shared/schema').economyConfig).where(eq(require('../../../shared/schema').economyConfig.guildId, message.guild.id));
+        const [config] = await db.select().from(require('../../shared/schema').economyConfig).where(eq(require('../../shared/schema').economyConfig.guildId, message.guild.id));
 
         if (config && !config.enabled) {
             return message.reply('❌ Bu sunucuda ekonomi sistemi kapalı.');

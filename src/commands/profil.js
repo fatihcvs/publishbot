@@ -1,7 +1,7 @@
 const { AttachmentBuilder } = require('discord.js');
 const { createCanvas, loadImage } = require('canvas');
-const { db } = require('../../database/db');
-const { userProfiles, userEconomy, userLevels } = require('../../../shared/schema');
+const { db } = require('../database/db');
+const { userProfiles, userEconomy, userLevels } = require('../../shared/schema');
 const { eq, and } = require('drizzle-orm');
 
 module.exports = {

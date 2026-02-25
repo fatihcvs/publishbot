@@ -1,6 +1,6 @@
 const { EmbedBuilder, PermissionFlagsBits } = require('discord.js');
-const { db } = require('../../database/db');
-const { polls } = require('../../../shared/schema');
+const { db } = require('../database/db');
+const { polls } = require('../../shared/schema');
 const { eq } = require('drizzle-orm');
 
 const numberEmojis = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟'];
