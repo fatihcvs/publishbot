@@ -36,6 +36,8 @@ app.use(helmet({
 const CORS_WHITELIST = [
   'https://publisherbot.org',
   'https://www.publisherbot.org',
+  'https://bot.thepublishers.info',
+  'https://publishbot.replit.app',
   'http://localhost:5000',
   'http://127.0.0.1:5000'
 ];
@@ -95,6 +97,7 @@ const DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET;
 // Allowed domains for OAuth callback (whitelist approach for security)
 const ALLOWED_DOMAINS = [
   'publisherbot.org',
+  'bot.thepublishers.info',
   'publishbot.replit.app',
   process.env.REPLIT_DEV_DOMAIN
 ].filter(Boolean);

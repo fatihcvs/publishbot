@@ -299,6 +299,7 @@ Dashboard için gereken environment variables:
 
 The Discord OAuth callback whitelist is configured in `src/web/server.js` under `ALLOWED_DOMAINS`:
 - `publisherbot.org`
+- `bot.thepublishers.info` (custom domain - primary)
 - `publishbot.replit.app` (deployed production)
 - `REPLIT_DEV_DOMAIN` (development)
 
