@@ -1,12 +1,11 @@
 const OpenAI = require('openai');
 const { isLetheGameQuestion, getLetheGameContext } = require('../lethe/gameKnowledge');
 
-// the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
+// Lazy initialization of OpenAI client to prevent fatal crash if API key is missing
 let openai = null;
-function getOpenAI() {
-  if (!openai && process.env.OPENAI_API_KEY) {
-    openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-  }
+function getOpenAIClient() {
+  if (!process.env.OPENAI_API_KEY) return null;
+  if (!openai) openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
   return openai;
 }
 
@@ -37,7 +36,7 @@ async function chat(userId, userMessage) {
     }
 
     const history = conversationHistory.get(userId);
-    
+
     history.push({ role: 'user', content: userMessage });
 
     while (history.length > 20) {
@@ -55,7 +54,7 @@ async function chat(userId, userMessage) {
     }
 
     let systemPrompt = ASSISTANT_SYSTEM_PROMPT;
-    
+
     if (isLetheGameQuestion(userMessage)) {
       const letheContext = getLetheGameContext();
       systemPrompt = `${ASSISTANT_SYSTEM_PROMPT}
@@ -72,7 +71,8 @@ Lethe Game sorularını yanıtlarken:
 - Kısa ve öz cevaplar ver (Discord limiti var)`;
     }
 
-    const response = await getOpenAI().chat.completions.create({
+    const ai = getOpenAIClient();
+    const response = await ai.chat.completions.create({
       model: 'gpt-4o',
       messages: [
         { role: 'system', content: systemPrompt },
@@ -98,7 +98,8 @@ async function generateImage(prompt, userId) {
   }
 
   try {
-    const response = await getOpenAI().images.generate({
+    const ai = getOpenAIClient();
+    const response = await ai.images.generate({
       model: "dall-e-3",
       prompt: prompt,
       n: 1,
@@ -106,16 +107,16 @@ async function generateImage(prompt, userId) {
       quality: "standard",
     });
 
-    return { 
-      success: true, 
+    return {
+      success: true,
       url: response.data[0].url,
       revisedPrompt: response.data[0].revised_prompt
     };
   } catch (error) {
     console.error('DALL-E error:', error);
-    return { 
-      success: false, 
-      error: error.message || "Görsel oluşturulurken bir hata oluştu!" 
+    return {
+      success: false,
+      error: error.message || "Görsel oluşturulurken bir hata oluştu!"
     };
   }
 }
@@ -126,7 +127,8 @@ async function analyzeImage(imageUrl, userQuestion) {
   }
 
   try {
-    const response = await getOpenAI().chat.completions.create({
+    const ai = getOpenAIClient();
+    const response = await ai.chat.completions.create({
       model: "gpt-4o",
       messages: [
         {
@@ -169,9 +171,9 @@ function getConversationLength(userId) {
   return conversationHistory.get(userId)?.length || 0;
 }
 
-module.exports = { 
-  chat, 
-  clearHistory, 
+module.exports = {
+  chat,
+  clearHistory,
   generateImage,
   analyzeImage,
   getConversationLength

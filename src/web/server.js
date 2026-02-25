@@ -17,6 +17,9 @@ if (!process.env.SESSION_SECRET) {
 
 const app = express();
 
+// Heroku, Replit vb. proxy arkasında çalıştığı için rate-limiter'ın gerçek IP'yi görmesini sağlar
+app.set('trust proxy', 1);
+
 // HTTP güvenlik başlıkları (CSP, XSS koruma vb.)
 app.use(helmet({
   contentSecurityPolicy: {
