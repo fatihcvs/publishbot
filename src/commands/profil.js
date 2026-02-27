@@ -1,8 +1,9 @@
-const { AttachmentBuilder } = require('discord.js');
+const { AttachmentBuilder, EmbedBuilder } = require('discord.js');
 const { createCanvas, loadImage } = require('canvas');
 const { db } = require('../database/db');
 const { userProfiles, userEconomy, userLevels } = require('../../shared/schema');
 const { eq, and } = require('drizzle-orm');
+const letheStorage = require('../lethe/letheStorage');
 
 module.exports = {
   name: 'profil',
@@ -122,7 +123,41 @@ module.exports = {
 
       // Generate Buffer & Send
       const attachment = new AttachmentBuilder(canvas.toBuffer(), { name: 'profil-karti.png' });
-      message.reply({ files: [attachment] });
+      await message.reply({ files: [attachment] });
+
+      // Lethe Game istatistikleri
+      try {
+        const letheProfile = await letheStorage.getProfile(target.id);
+        if (letheProfile) {
+          const { regions } = require('../lethe/seedData');
+          const regionName = regions?.find(r => r.id === letheProfile.currentRegionId)?.name || 'Zümrüt Ormanı';
+          const teamAnimals = letheProfile.team?.filter(Boolean) || [];
+          const rarityOrder = ['hidden', 'eternal', 'mythic', 'legendary', 'epic', 'rare', 'uncommon', 'common'];
+          const allAnimals = letheProfile.animals || [];
+          let highestRarity = 'common';
+          for (const r of rarityOrder) {
+            if (allAnimals.some(a => a.rarity === r)) { highestRarity = r; break; }
+          }
+          const rarityEmojis = { hidden: '❓', eternal: '👑', mythic: '🟧', legendary: '🟨', epic: '🟪', rare: '🔵', uncommon: '🟢', common: '⚪' };
+
+          const letheEmbed = new EmbedBuilder()
+            .setColor('#8b5cf6')
+            .setTitle(`🎮 ${target.username}'in Lethe Profili`)
+            .addFields(
+              { name: '🎯 Toplam Av', value: `${(letheProfile.totalHunts || 0).toLocaleString()}`, inline: true },
+              { name: '⭐ Lethe Seviye', value: `${letheProfile.level || 1}`, inline: true },
+              { name: '💰 Lethe Coin', value: `${(letheProfile.coins || 0).toLocaleString()}`, inline: true },
+              { name: '🗺️ Bölge', value: regionName, inline: true },
+              { name: '👥 Takım', value: teamAnimals.length > 0 ? `${teamAnimals.length}/3 hayvan` : 'Boş', inline: true },
+              { name: '💎 En Yüksek Nadirlik', value: `${rarityEmojis[highestRarity]} ${highestRarity}`, inline: true },
+              { name: '📦 Koleksiyon', value: `${allAnimals.length} hayvan`, inline: true },
+            )
+            .setFooter({ text: '!yardım lethe → Tüm Lethe komutları' })
+            .setTimestamp();
+
+          await message.channel.send({ embeds: [letheEmbed] });
+        }
+      } catch (_) { /* Lethe profil yoksa sessizce atla */ }
 
     } catch (error) {
       console.error('Profile display generic error:', error);
