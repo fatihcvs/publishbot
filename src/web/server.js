@@ -1903,6 +1903,255 @@ app.post('/api/admin/merge-guilds', isBotOwner, async (req, res) => {
   }
 });
 
+// ═══════════════════════════════════════════════════════════════
+// ─── LETHE GAME CANLI EDITÖRÜ ───────────────────────────────────
+// ═══════════════════════════════════════════════════════════════
+
+app.get('/api/admin/lethe/animals', isBotOwner, async (req, res) => {
+  try {
+    const { db } = require('../database/db');
+    const { letheAnimals } = require('../../shared/schema');
+    const list = await db.select().from(letheAnimals).orderBy(letheAnimals.rarity);
+    res.json(list);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.patch('/api/admin/lethe/animals/:id', isBotOwner, async (req, res) => {
+  const { id } = req.params;
+  const { name, baseHp, baseStr, baseDef, baseSpd, sellPrice, xpReward, rarity } = req.body;
+  try {
+    const { db } = require('../database/db');
+    const { letheAnimals } = require('../../shared/schema');
+    const { eq } = require('drizzle-orm');
+    const updates = {};
+    if (name !== undefined) updates.name = name;
+    if (baseHp !== undefined) updates.baseHp = parseInt(baseHp);
+    if (baseStr !== undefined) updates.baseStr = parseInt(baseStr);
+    if (baseDef !== undefined) updates.baseDef = parseInt(baseDef);
+    if (baseSpd !== undefined) updates.baseSpd = parseInt(baseSpd);
+    if (sellPrice !== undefined) updates.sellPrice = parseInt(sellPrice);
+    if (xpReward !== undefined) updates.xpReward = parseInt(xpReward);
+    if (rarity !== undefined) updates.rarity = rarity;
+    const [updated] = await db.update(letheAnimals).set(updates).where(eq(letheAnimals.animalId, id)).returning();
+    res.json({ success: true, animal: updated });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.get('/api/admin/lethe/bosses', isBotOwner, async (req, res) => {
+  try {
+    const { db } = require('../database/db');
+    const { letheBosses } = require('../../shared/schema');
+    const list = await db.select().from(letheBosses);
+    res.json(list);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.patch('/api/admin/lethe/bosses/:id', isBotOwner, async (req, res) => {
+  const { id } = req.params;
+  const { hp, reward, difficulty } = req.body;
+  try {
+    const { db } = require('../database/db');
+    const { letheBosses } = require('../../shared/schema');
+    const { eq } = require('drizzle-orm');
+    const updates = {};
+    if (hp !== undefined) updates.hp = parseInt(hp);
+    if (reward !== undefined) updates.reward = parseInt(reward);
+    if (difficulty !== undefined) updates.difficulty = difficulty;
+    const [updated] = await db.update(letheBosses).set(updates).where(eq(letheBosses.bossId, id)).returning();
+    res.json({ success: true, boss: updated });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.get('/api/admin/lethe/achievements', isBotOwner, async (req, res) => {
+  try {
+    const { db } = require('../database/db');
+    const { letheAchievements } = require('../../shared/schema');
+    const list = await db.select().from(letheAchievements);
+    res.json(list);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.post('/api/admin/lethe/achievements/grant', isBotOwner, async (req, res) => {
+  const { userId, achievementId } = req.body;
+  if (!userId || !achievementId) return res.status(400).json({ error: 'userId ve achievementId zorunlu' });
+  try {
+    const { db } = require('../database/db');
+    const { userLetheAchievements } = require('../../shared/schema');
+    await db.insert(userLetheAchievements).values({ visitorId: userId, achievementId, unlockedAt: new Date() }).onConflictDoNothing();
+    res.json({ success: true });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ═══════════════════════════════════════════════════════════════
+// ─── SUNUCU SNAPSHOT ───────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════
+
+const _snapshots = new Map();
+try {
+  const saved = storage.getGlobalData?.('guildSnapshots');
+  if (saved && typeof saved === 'object') {
+    for (const [k, v] of Object.entries(saved)) _snapshots.set(k, v);
+  }
+} catch (_) { }
+
+function saveSnapshotStore() {
+  try { const obj = {}; for (const [k, v] of _snapshots) obj[k] = v; storage.setGlobalData?.('guildSnapshots', obj); } catch (_) { }
+}
+
+app.get('/api/admin/guilds/:id/snapshots', isBotOwner, (req, res) => {
+  res.json((_snapshots.get(req.params.id) || []).map(s => ({ id: s.id, label: s.label, createdAt: s.createdAt })));
+});
+
+app.post('/api/admin/guilds/:id/snapshot', isBotOwner, (req, res) => {
+  const { id } = req.params;
+  const { label } = req.body;
+  try {
+    const data = storage.getGuildData(id) || {};
+    const snap = { id: Date.now(), label: label || new Date().toLocaleString('tr-TR'), createdAt: new Date().toISOString(), data: JSON.parse(JSON.stringify(data)) };
+    if (!_snapshots.has(id)) _snapshots.set(id, []);
+    const list = _snapshots.get(id);
+    list.unshift(snap);
+    if (list.length > 10) list.pop();
+    saveSnapshotStore();
+    res.json({ success: true, id: snap.id, label: snap.label, createdAt: snap.createdAt });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.post('/api/admin/guilds/:guildId/snapshots/:snapId/restore', isBotOwner, (req, res) => {
+  const { guildId, snapId } = req.params;
+  const snap = (_snapshots.get(guildId) || []).find(s => s.id === parseInt(snapId));
+  if (!snap) return res.status(404).json({ error: 'Snapshot bulunamadı' });
+  try { storage.setGuildData(guildId, snap.data); res.json({ success: true }); }
+  catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.get('/api/admin/guilds/:guildId/snapshots/:snapId/download', isBotOwner, (req, res) => {
+  const { guildId, snapId } = req.params;
+  const snap = (_snapshots.get(guildId) || []).find(s => s.id === parseInt(snapId));
+  if (!snap) return res.status(404).json({ error: 'Snapshot bulunamadı' });
+  res.setHeader('Content-Disposition', `attachment; filename="snap-${guildId}-${snapId}.json"`);
+  res.json(snap.data);
+});
+
+// ═══════════════════════════════════════════════════════════════
+// ─── PREMİUM SUNUCU YÖNETİMİ ───────────────────────────────────
+// ═══════════════════════════════════════════════════════════════
+
+const _premiumGuilds = new Map();
+try {
+  const saved = storage.getGlobalData?.('premiumGuilds');
+  if (saved && typeof saved === 'object') for (const [k, v] of Object.entries(saved)) _premiumGuilds.set(k, v);
+} catch (_) { }
+
+function savePremiumStore() {
+  try { const obj = {}; for (const [k, v] of _premiumGuilds) obj[k] = v; storage.setGlobalData?.('premiumGuilds', obj); } catch (_) { }
+}
+
+global._premiumHelper = {
+  isPremium(guildId) {
+    const p = _premiumGuilds.get(guildId);
+    if (!p) return false;
+    if (p.expiresAt && new Date(p.expiresAt) < new Date()) return false;
+    return true;
+  }
+};
+
+app.get('/api/admin/premium', isBotOwner, (req, res) => {
+  const guilds = [];
+  for (const [id, p] of _premiumGuilds) {
+    const expired = p.expiresAt && new Date(p.expiresAt) < new Date();
+    const guildInfo = discordClient?.guilds.cache.get(id);
+    guilds.push({ id, name: guildInfo?.name || id, ...p, expired });
+  }
+  guilds.sort((a, b) => new Date(b.addedAt) - new Date(a.addedAt));
+  res.json(guilds);
+});
+
+app.post('/api/admin/premium', isBotOwner, (req, res) => {
+  const { guildId, action, days } = req.body;
+  if (!guildId || !action) return res.status(400).json({ error: 'guildId ve action zorunlu' });
+  if (action === 'add') {
+    const expiresAt = days ? new Date(Date.now() + days * 86400000).toISOString() : null;
+    _premiumGuilds.set(guildId, { addedAt: new Date().toISOString(), expiresAt });
+    savePremiumStore();
+    res.json({ success: true, guildId, expiresAt });
+  } else if (action === 'remove') {
+    _premiumGuilds.delete(guildId);
+    savePremiumStore();
+    res.json({ success: true });
+  } else {
+    res.status(400).json({ error: 'Geçersiz action' });
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════
+// ─── KOMUT KULLANIM LOGLARI ─────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════
+
+const CMD_LOG_BUFFER = [];
+const CMD_LOG_MAX = 5000;
+
+global._cmdLogger = {
+  log(userId, guildId, guildName, cmd) {
+    CMD_LOG_BUFFER.push({ userId, guildId, guildName, cmd, time: new Date().toISOString() });
+    if (CMD_LOG_BUFFER.length > CMD_LOG_MAX) CMD_LOG_BUFFER.shift();
+  }
+};
+
+app.get('/api/admin/command-logs', isBotOwner, (req, res) => {
+  const { userId, guildId, cmd, limit = 200, format } = req.query;
+  let logs = [...CMD_LOG_BUFFER].reverse();
+  if (userId) logs = logs.filter(l => l.userId === userId);
+  if (guildId) logs = logs.filter(l => l.guildId === guildId);
+  if (cmd) logs = logs.filter(l => l.cmd?.toLowerCase().includes(cmd.toLowerCase()));
+  logs = logs.slice(0, parseInt(limit));
+  if (format === 'csv') {
+    const csv = ['userId,guildId,guildName,cmd,time', ...logs.map(l => `${l.userId},${l.guildId},"${(l.guildName || '').replace(/"/g, '""')}",${l.cmd},${l.time}`)].join('\n');
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename="cmd-logs.csv"');
+    return res.send(csv);
+  }
+  res.json(logs);
+});
+
+// ═══════════════════════════════════════════════════════════════
+// ─── GELİŞMİŞ ANALİTİK ─────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════
+
+app.get('/api/admin/analytics/heatmap', isBotOwner, (req, res) => {
+  const hours = Array(24).fill(0);
+  CMD_LOG_BUFFER.forEach(l => { const h = new Date(l.time).getHours(); hours[h]++; });
+  res.json({ hours });
+});
+
+app.get('/api/admin/analytics/top-guilds', isBotOwner, (req, res) => {
+  const counts = {};
+  CMD_LOG_BUFFER.forEach(l => {
+    if (!counts[l.guildId]) counts[l.guildId] = { guildId: l.guildId, name: l.guildName, count: 0 };
+    counts[l.guildId].count++;
+  });
+  res.json(Object.values(counts).sort((a, b) => b.count - a.count).slice(0, 10));
+});
+
+// ═══════════════════════════════════════════════════════════════
+// ─── GÜVENLİK / ERİŞİM LOGLARI ─────────────────────────────────
+// ═══════════════════════════════════════════════════════════════
+
+const SECURITY_LOG = [];
+const SECURITY_LOG_MAX = 500;
+
+app.use('/api/admin', (req, res, next) => {
+  if (req.user) {
+    SECURITY_LOG.unshift({ time: new Date().toISOString(), userId: req.user.id, username: req.user.username, path: req.path, method: req.method, ip: req.ip });
+    if (SECURITY_LOG.length > SECURITY_LOG_MAX) SECURITY_LOG.pop();
+  }
+  next();
+});
+
+app.get('/api/admin/security-logs', isBotOwner, (req, res) => {
+  res.json(SECURITY_LOG.slice(0, 100));
+});
+
 const PORT = 5000;
 
 function startServer() {

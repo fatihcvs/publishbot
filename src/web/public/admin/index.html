@@ -760,9 +760,25 @@
             <div class="sidebar-item" onclick="showSection('logs')"><i class="fas fa-terminal"></i> Canlı Loglar</div>
             <div class="sidebar-item" onclick="showSection('webhook')"><i class="fas fa-bell"></i> Webhook Bildirim
             </div>
+
+            <div class="sidebar-section-label">Lethe Game</div>
+            <div class="sidebar-item" onclick="showSection('lethe')"><i class="fas fa-paw"></i> Lethe Editörü</div>
+
+            <div class="sidebar-section-label">Sunucu</div>
+            <div class="sidebar-item" onclick="showSection('snapshot')"><i class="fas fa-camera"></i> Sunucu Snapshot
+            </div>
+            <div class="sidebar-item" onclick="showSection('premium')"><i class="fas fa-crown"></i> Premium Yönetimi
+            </div>
+
             <div class="sidebar-section-label">Veri</div>
             <div class="sidebar-item" onclick="showSection('analytics')"><i class="fas fa-chart-bar"></i> Analitik</div>
             <div class="sidebar-item" onclick="exportData()"><i class="fas fa-download"></i> Veri Dışa Aktar</div>
+
+            <div class="sidebar-section-label">Güvenlik</div>
+            <div class="sidebar-item" onclick="showSection('cmdlogs')"><i class="fas fa-terminal"></i> Komut Logları
+            </div>
+            <div class="sidebar-item" onclick="showSection('security')"><i class="fas fa-shield-halved"></i> Güvenlik
+                Logları</div>
 
             <div class="sidebar-section-label">Diğer</div>
             <div class="sidebar-item" onclick="window.location='/admin/apikeys'"><i class="fas fa-key"></i> API
@@ -1117,6 +1133,219 @@
             </div>
         </div>
 
+        <!-- LETHE GAME EDITÖRÜ -->
+        <div class="admin-section" id="sec-lethe">
+            <div class="page-header">
+                <h1>🐾 Lethe Game Editörü</h1>
+                <p>Hayvanlar, bosslar ve başarımları canlı olarak güncelle</p>
+            </div>
+            <div class="panel-card">
+                <h3><i class="fas fa-paw" style="color:#a855f7"></i> Hayvanlar &nbsp;<span id="animalCount"
+                        style="font-size:12px;color:var(--text-muted);"></span></h3>
+                <div style="display:flex;gap:10px;margin-bottom:12px;">
+                    <div class="cases-search" style="flex:1"><i class="fas fa-search"></i><input type="text"
+                            id="animalSearch" placeholder="Hayvan ara…" oninput="filterAnimals()"></div>
+                    <select class="form-input" id="animalRarityFilter" style="max-width:160px;"
+                        onchange="filterAnimals()">
+                        <option value="">Tüm Nadirlikler</option>
+                        <option value="common">Common</option>
+                        <option value="uncommon">Uncommon</option>
+                        <option value="rare">Rare</option>
+                        <option value="epic">Epic</option>
+                        <option value="legendary">Legendary</option>
+                        <option value="mythic">Mythic</option>
+                        <option value="hidden">Hidden</option>
+                        <option value="eternal">Eternal</option>
+                    </select>
+                </div>
+                <div style="overflow-x:auto;">
+                    <table class="codes-table" id="animalTable">
+                        <thead>
+                            <tr>
+                                <th>Emoji</th>
+                                <th>Ad</th>
+                                <th>Nadirlik</th>
+                                <th>HP</th>
+                                <th>STR</th>
+                                <th>DEF</th>
+                                <th>SPD</th>
+                                <th>Satış</th>
+                                <th>XP</th>
+                                <th>İşlem</th>
+                            </tr>
+                        </thead>
+                        <tbody id="animalTbody">
+                            <tr>
+                                <td colspan="10" style="text-align:center;padding:30px;color:var(--text-muted);">
+                                    Yükleniyor…</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="panel-card">
+                <h3><i class="fas fa-skull" style="color:var(--accent-red)"></i> Bosslar</h3>
+                <div style="overflow-x:auto;">
+                    <table class="codes-table" id="bossTable">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Ad</th>
+                                <th>HP</th>
+                                <th>Ödül (coin)</th>
+                                <th>Zorluk</th>
+                                <th>İşlem</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bossTbody">
+                            <tr>
+                                <td colspan="6" style="text-align:center;padding:30px;color:var(--text-muted);">
+                                    Yükleniyor…</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="panel-card">
+                <h3><i class="fas fa-trophy" style="color:#ffd700"></i> Başarım Ver</h3>
+                <div class="form-row">
+                    <div class="form-group"><label>Discord Kullanıcı ID</label><input class="form-input" id="achUserId"
+                            placeholder="123456789012345678"></div>
+                    <div class="form-group"><label>Başarım ID</label><input class="form-input" id="achId"
+                            placeholder="first_hunt"></div>
+                </div>
+                <button class="btn btn-green" onclick="grantAchievement()"><i class="fas fa-gift"></i> Başarım
+                    Ver</button>
+            </div>
+        </div>
+
+        <!-- SUNUCU SNAPSHOT -->
+        <div class="admin-section" id="sec-snapshot">
+            <div class="page-header">
+                <h1>📷 Sunucu Snapshot</h1>
+                <p>Sunucu ayarlarını yedekle ve geri yükle</p>
+            </div>
+            <div class="panel-card">
+                <h3><i class="fas fa-camera" style="color:var(--accent-blue)"></i> Yedek Al</h3>
+                <div class="form-row">
+                    <div class="form-group" style="flex:2"><label>Sunucu Seç</label>
+                        <select class="form-input" id="snapGuildSelect">
+                            <option>Yükleniyor…</option>
+                        </select>
+                    </div>
+                    <div class="form-group"><label>Etiket (opsiyonel)</label><input class="form-input" id="snapLabel"
+                            placeholder="Bakım öncesi"></div>
+                </div>
+                <button class="btn btn-primary" onclick="takeSnapshot()"><i class="fas fa-camera"></i> Yedek Al</button>
+            </div>
+            <div class="panel-card">
+                <h3><i class="fas fa-list"></i> Mevcut Yedekler</h3>
+                <div id="snapshotList">
+                    <p style="color:var(--text-muted);font-size:13px;">Sunucu seçin.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- PREMİUM YÖNETİMİ -->
+        <div class="admin-section" id="sec-premium">
+            <div class="page-header">
+                <h1>👑 Premium Sunucu Yönetimi</h1>
+                <p>Hangi sunucunun premium özelliklerine erişebileceğini yönet</p>
+            </div>
+            <div class="panel-card">
+                <h3><i class="fas fa-plus" style="color:var(--accent-green)"></i> Premium Ekle</h3>
+                <div class="form-row">
+                    <div class="form-group"><label>Sunucu ID</label><input class="form-input" id="premGuildId"
+                            placeholder="123456789012345678"></div>
+                    <div class="form-group"><label>Süre (gün, boş = süresiz)</label><input class="form-input"
+                            id="premDays" type="number" min="1" placeholder="30"></div>
+                </div>
+                <button class="btn btn-primary" onclick="addPremium()"><i class="fas fa-crown"></i> Premium
+                    Ekle</button>
+            </div>
+            <div class="panel-card">
+                <h3><i class="fas fa-list"></i> Premium Sunucular</h3>
+                <div id="premiumList">
+                    <div class="empty-state"><i class="fas fa-spinner fa-spin"></i></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- KOMUT LOGLARI -->
+        <div class="admin-section" id="sec-cmdlogs">
+            <div class="page-header">
+                <h1>📝 Komut Logları</h1>
+                <p>Hangi kullanıcı hangi sunucuda ne yazdı</p>
+            </div>
+            <div class="panel-card">
+                <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
+                    <div class="form-group"><label>Kullanıcı ID</label><input class="form-input" id="clUserId"
+                            placeholder="isteğe bağlı"></div>
+                    <div class="form-group"><label>Sunucu ID</label><input class="form-input" id="clGuildId"
+                            placeholder="isteğe bağlı"></div>
+                    <div class="form-group"><label>Komut</label><input class="form-input" id="clCmd"
+                            placeholder="avla, bakiye…"></div>
+                </div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                    <button class="btn btn-primary" onclick="loadCmdLogs()"><i class="fas fa-search"></i> Ara</button>
+                    <button class="btn"
+                        style="background:rgba(87,242,135,0.1);color:#57f287;border:1px solid rgba(87,242,135,0.3);"
+                        onclick="exportCmdLogs()"><i class="fas fa-download"></i> CSV İndir</button>
+                </div>
+                <div style="overflow-x:auto;margin-top:14px;">
+                    <table class="codes-table" id="cmdLogTable">
+                        <thead>
+                            <tr>
+                                <th>Zaman</th>
+                                <th>Kullanıcı ID</th>
+                                <th>Sunucu</th>
+                                <th>Komut</th>
+                            </tr>
+                        </thead>
+                        <tbody id="cmdLogTbody">
+                            <tr>
+                                <td colspan="4" style="text-align:center;padding:30px;color:var(--text-muted);">Arama
+                                    yapın…</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- GÜVENLİK LOGLARI -->
+        <div class="admin-section" id="sec-security">
+            <div class="page-header">
+                <h1>🛡️ Güvenlik Logları</h1>
+                <p>Admin paneli erişim geçmişi</p>
+            </div>
+            <div class="panel-card">
+                <div style="display:flex;gap:10px;margin-bottom:14px;">
+                    <button class="btn btn-primary btn-sm" onclick="loadSecurityLogs()"><i class="fas fa-refresh"></i>
+                        Yenile</button>
+                </div>
+                <div style="overflow-x:auto;">
+                    <table class="codes-table" id="secLogTable">
+                        <thead>
+                            <tr>
+                                <th>Zaman</th>
+                                <th>Kullanıcı</th>
+                                <th>IP</th>
+                                <th>Metod</th>
+                                <th>Endpoint</th>
+                            </tr>
+                        </thead>
+                        <tbody id="secLogTbody">
+                            <tr>
+                                <td colspan="5" style="text-align:center;padding:30px;color:var(--text-muted);">
+                                    Yükleniyor…</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
         <!-- WEBHOOK BİLDİRİM -->
         <div class="admin-section" id="sec-webhook">
             <div class="page-header">
@@ -1194,6 +1423,10 @@
             loadAnalytics();
             loadWebhookCfg();
             loadScheduled();
+            loadLethe();
+            loadPremium();
+            loadSecurityLogs();
+            populateSnapGuilds();
         }
 
         // ── Section navigation ───────────────────────────────────────────────────────
@@ -1562,9 +1795,195 @@
             else toast('Hata', 'error');
         }
         async function cancelScheduled(id) {
-            await fetch(`/ api / admin / broadcast / scheduled / ${id}`, { method: 'DELETE' });
+            await fetch(`/api/admin/broadcast/scheduled/${id}`, { method: 'DELETE' });
             toast('İptal edildi', 'info');
             loadScheduled();
+        }
+
+        // ── Lethe Editörü ────────────────────────────────────────────────────────
+        let _allAnimals = [];
+        async function loadLethe() {
+            try {
+                [_allAnimals] = await Promise.all([
+                    fetch('/api/admin/lethe/animals').then(r => r.json()),
+                ]);
+                renderAnimals(_allAnimals);
+                document.getElementById('animalCount').textContent = `(${_allAnimals.length} hayvan)`;
+                const bosses = await fetch('/api/admin/lethe/bosses').then(r => r.json()).catch(() => []);
+                document.getElementById('bossTbody').innerHTML = bosses.map(b => `
+                <tr>
+                  <td><code>${b.bossId}</code></td>
+                  <td>${b.name || b.bossId}</td>
+                  <td><input type="number" value="${b.hp || 0}" id="bossHp_${b.bossId}" style="width:80px;background:var(--bg-tertiary);color:var(--text-primary);border:1px solid var(--border-color);border-radius:6px;padding:4px 8px;font-size:12px;"></td>
+                  <td><input type="number" value="${b.reward || 0}" id="bossReward_${b.bossId}" style="width:100px;background:var(--bg-tertiary);color:var(--text-primary);border:1px solid var(--border-color);border-radius:6px;padding:4px 8px;font-size:12px;"></td>
+                  <td><input value="${b.difficulty || ''}" id="bossDiff_${b.bossId}" style="width:90px;background:var(--bg-tertiary);color:var(--text-primary);border:1px solid var(--border-color);border-radius:6px;padding:4px 8px;font-size:12px;"></td>
+                  <td><button class="btn btn-primary btn-sm" onclick="saveBoss('${b.bossId}')"><i class="fas fa-save"></i></button></td>
+                </tr>`).join('');
+            } catch (e) { console.error(e); }
+        }
+        function renderAnimals(list) {
+            const rarityColors = { common: '#aaa', uncommon: '#4caf50', rare: '#2196f3', epic: '#9c27b0', legendary: '#ff9800', mythic: '#f44336', hidden: '#000', eternal: '#e91e63' };
+            document.getElementById('animalTbody').innerHTML = list.length ? list.map(a => `
+            <tr>
+              <td>${a.emoji || '❓'}</td>
+              <td><input value="${a.name}" id="aName_${a.animalId}" style="width:120px;background:var(--bg-tertiary);color:var(--text-primary);border:1px solid var(--border-color);border-radius:6px;padding:3px 7px;font-size:12px;"></td>
+              <td><span style="color:${rarityColors[a.rarity] || '#fff'};font-weight:700;font-size:11px;">${a.rarity}</span></td>
+              <td><input type="number" value="${a.baseHp}" id="aHp_${a.animalId}" style="width:60px;background:var(--bg-tertiary);color:var(--text-primary);border:1px solid var(--border-color);border-radius:6px;padding:3px 5px;font-size:12px;"></td>
+              <td><input type="number" value="${a.baseStr}" id="aStr_${a.animalId}" style="width:55px;background:var(--bg-tertiary);color:var(--text-primary);border:1px solid var(--border-color);border-radius:6px;padding:3px 5px;font-size:12px;"></td>
+              <td><input type="number" value="${a.baseDef}" id="aDef_${a.animalId}" style="width:55px;background:var(--bg-tertiary);color:var(--text-primary);border:1px solid var(--border-color);border-radius:6px;padding:3px 5px;font-size:12px;"></td>
+              <td><input type="number" value="${a.baseSpd}" id="aSpd_${a.animalId}" style="width:55px;background:var(--bg-tertiary);color:var(--text-primary);border:1px solid var(--border-color);border-radius:6px;padding:3px 5px;font-size:12px;"></td>
+              <td><input type="number" value="${a.sellPrice}" id="aSell_${a.animalId}" style="width:70px;background:var(--bg-tertiary);color:var(--text-primary);border:1px solid var(--border-color);border-radius:6px;padding:3px 5px;font-size:12px;"></td>
+              <td><input type="number" value="${a.xpReward}" id="aXp_${a.animalId}" style="width:60px;background:var(--bg-tertiary);color:var(--text-primary);border:1px solid var(--border-color);border-radius:6px;padding:3px 5px;font-size:12px;"></td>
+              <td><button class="btn btn-primary btn-sm" onclick="saveAnimal('${a.animalId}')"><i class="fas fa-save"></i></button></td>
+            </tr>`).join('') : '<tr><td colspan="10" style="text-align:center;padding:30px;color:var(--text-muted);">Hayvan bulunamadı</td></tr>';
+        }
+        function filterAnimals() {
+            const q = document.getElementById('animalSearch').value.toLowerCase();
+            const r = document.getElementById('animalRarityFilter').value;
+            renderAnimals(_allAnimals.filter(a => {
+                const matchQ = !q || a.name?.toLowerCase().includes(q) || a.animalId?.includes(q);
+                const matchR = !r || a.rarity === r;
+                return matchQ && matchR;
+            }));
+        }
+        async function saveAnimal(id) {
+            const body = {
+                name: document.getElementById('aName_' + id)?.value,
+                baseHp: document.getElementById('aHp_' + id)?.value,
+                baseStr: document.getElementById('aStr_' + id)?.value,
+                baseDef: document.getElementById('aDef_' + id)?.value,
+                baseSpd: document.getElementById('aSpd_' + id)?.value,
+                sellPrice: document.getElementById('aSell_' + id)?.value,
+                xpReward: document.getElementById('aXp_' + id)?.value,
+            };
+            const r = await fetch(`/api/admin/lethe/animals/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+            if (r.ok) toast('Hayvan güncellendi ✅', 'success');
+            else { const d = await r.json(); toast(d.error || 'Hata', 'error'); }
+        }
+        async function saveBoss(id) {
+            const body = {
+                hp: document.getElementById('bossHp_' + id)?.value,
+                reward: document.getElementById('bossReward_' + id)?.value,
+                difficulty: document.getElementById('bossDiff_' + id)?.value,
+            };
+            const r = await fetch(`/api/admin/lethe/bosses/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+            if (r.ok) toast('Boss güncellendi ✅', 'success');
+            else { const d = await r.json(); toast(d.error || 'Hata', 'error'); }
+        }
+        async function grantAchievement() {
+            const userId = document.getElementById('achUserId').value.trim();
+            const achievementId = document.getElementById('achId').value.trim();
+            if (!userId || !achievementId) return toast('Tüm alanlar zorunlu', 'error');
+            const r = await fetch('/api/admin/lethe/achievements/grant', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId, achievementId }) });
+            if (r.ok) toast('Başarım verildi! 🏆', 'success');
+            else { const d = await r.json(); toast(d.error || 'Hata', 'error'); }
+        }
+
+        // ── Snapshot ─────────────────────────────────────────────────────────────
+        async function populateSnapGuilds() {
+            const guilds = await fetch('/api/admin/guilds').then(r => r.json()).catch(() => []);
+            const sel = document.getElementById('snapGuildSelect');
+            if (!sel) return;
+            sel.innerHTML = guilds.map(g => `<option value="${g.id}">${g.name}</option>`).join('');
+            sel.addEventListener('change', () => loadSnapshots(sel.value));
+            if (guilds.length) loadSnapshots(guilds[0].id);
+        }
+        async function loadSnapshots(guildId) {
+            if (!guildId) return;
+            const list = await fetch(`/api/admin/guilds/${guildId}/snapshots`).then(r => r.json()).catch(() => []);
+            const el = document.getElementById('snapshotList');
+            el.innerHTML = list.length ? list.map(s => `
+              <div class="sched-item">
+                <div class="sched-title">${s.label}</div>
+                <div class="sched-time"><i class="fas fa-clock"></i> ${new Date(s.createdAt).toLocaleString('tr-TR')}</div>
+                <a class="btn btn-sm" style="background:rgba(87,242,135,0.15);color:#57f287;border:1px solid rgba(87,242,135,0.3);" href="/api/admin/guilds/${guildId}/snapshots/${s.id}/download" target="_blank"><i class="fas fa-download"></i></a>
+                <button class="btn btn-primary btn-sm" onclick="restoreSnapshot('${guildId}',${s.id})"><i class="fas fa-rotate-left"></i></button>
+              </div>`).join('') : '<p style="color:var(--text-muted);font-size:13px;">Henüz yedek yok.</p>';
+        }
+        async function takeSnapshot() {
+            const guildId = document.getElementById('snapGuildSelect').value;
+            const label = document.getElementById('snapLabel').value.trim();
+            if (!guildId) return toast('Sunucu seçin', 'error');
+            const r = await fetch(`/api/admin/guilds/${guildId}/snapshot`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ label }) });
+            if (r.ok) { toast('Yedek alındı ✅', 'success'); loadSnapshots(guildId); }
+            else toast('Hata', 'error');
+        }
+        async function restoreSnapshot(guildId, snapId) {
+            if (!confirm('Bu yedeği geri yüklemek istediğinize emin misiniz?')) return;
+            const r = await fetch(`/api/admin/guilds/${guildId}/snapshots/${snapId}/restore`, { method: 'POST' });
+            if (r.ok) toast('Yedek geri yüklendi ✅', 'success');
+            else toast('Hata', 'error');
+        }
+
+        // ── Premium ──────────────────────────────────────────────────────────────
+        async function loadPremium() {
+            const list = await fetch('/api/admin/premium').then(r => r.json()).catch(() => []);
+            const el = document.getElementById('premiumList');
+            if (!el) return;
+            el.innerHTML = list.length ? list.map(p => `
+              <div class="sched-item">
+                <div class="sched-title">${p.name} <code style="font-size:11px;color:var(--text-muted);">${p.id}</code></div>
+                <div class="sched-time">${p.expiresAt ? (p.expired ? '⚠️ Süresi Doldu' : '⏰ ' + new Date(p.expiresAt).toLocaleDateString('tr-TR')) : '∞ Süresiz'}</div>
+                <span class="badge ${p.expired ? 'badge-red' : 'badge-green'}">${p.expired ? 'Pasif' : 'Aktif'}</span>
+                <button class="btn btn-red btn-sm" onclick="removePremium('${p.id}')"><i class="fas fa-times"></i></button>
+              </div>`).join('') : '<p style="color:var(--text-muted);font-size:13px;">Premium sunucu yok.</p>';
+        }
+        async function addPremium() {
+            const guildId = document.getElementById('premGuildId').value.trim();
+            const days = document.getElementById('premDays').value || null;
+            if (!guildId) return toast('Sunucu ID zorunlu', 'error');
+            const r = await fetch('/api/admin/premium', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ guildId, action: 'add', days: days ? parseInt(days) : null }) });
+            if (r.ok) { toast('Premium eklendi 👑', 'success'); loadPremium(); }
+            else { const d = await r.json(); toast(d.error || 'Hata', 'error'); }
+        }
+        async function removePremium(guildId) {
+            if (!confirm('Premium kaldırılacak!')) return;
+            const r = await fetch('/api/admin/premium', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ guildId, action: 'remove' }) });
+            if (r.ok) { toast('Premium kaldırıldı', 'info'); loadPremium(); }
+            else toast('Hata', 'error');
+        }
+
+        // ── Komut Logları ─────────────────────────────────────────────────────────
+        function buildCmdLogParams() {
+            const p = new URLSearchParams({ limit: 200 });
+            const uid = document.getElementById('clUserId')?.value.trim();
+            const gid = document.getElementById('clGuildId')?.value.trim();
+            const cmd = document.getElementById('clCmd')?.value.trim();
+            if (uid) p.set('userId', uid);
+            if (gid) p.set('guildId', gid);
+            if (cmd) p.set('cmd', cmd);
+            return p;
+        }
+        async function loadCmdLogs() {
+            const logs = await fetch('/api/admin/command-logs?' + buildCmdLogParams()).then(r => r.json()).catch(() => []);
+            const tbody = document.getElementById('cmdLogTbody');
+            tbody.innerHTML = logs.length ? logs.map(l => `
+              <tr>
+                <td style="font-size:11px;color:var(--text-muted);">${new Date(l.time).toLocaleString('tr-TR')}</td>
+                <td><code style="font-size:12px;">${l.userId}</code></td>
+                <td style="font-size:12px;">${l.guildName || l.guildId}</td>
+                <td><code style="color:var(--accent-blue);font-size:12px;">!${l.cmd}</code></td>
+              </tr>`).join('') : '<tr><td colspan="4" style="text-align:center;padding:30px;color:var(--text-muted);">Sonuç bulunamadı</td></tr>';
+        }
+        function exportCmdLogs() {
+            const p = buildCmdLogParams();
+            p.set('format', 'csv');
+            window.open('/api/admin/command-logs?' + p, '_blank');
+        }
+
+        // ── Güvenlik Logları ─────────────────────────────────────────────────────
+        async function loadSecurityLogs() {
+            const logs = await fetch('/api/admin/security-logs').then(r => r.json()).catch(() => []);
+            const tbody = document.getElementById('secLogTbody');
+            if (!tbody) return;
+            tbody.innerHTML = logs.length ? logs.map(l => `
+              <tr>
+                <td style="font-size:11px;color:var(--text-muted);">${new Date(l.time).toLocaleString('tr-TR')}</td>
+                <td><code style="font-size:12px;">${l.username || l.userId}</code></td>
+                <td style="font-size:12px;color:var(--text-muted);">${l.ip}</td>
+                <td><span class="badge ${l.method === 'GET' ? 'badge-blue' : 'badge-yellow'}">${l.method}</span></td>
+                <td style="font-size:12px;">${l.path}</td>
+              </tr>`).join('') : '<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text-muted);">Henüz log yok</td></tr>';
         }
 
         init();
