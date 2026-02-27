@@ -340,14 +340,6 @@ class DatabaseStorage {
     return totalXp;
   }
 
-  async getLeaderboard(guildId, limit = 10) {
-    if (!db) return [];
-    return db.select().from(userLevels)
-      .where(eq(userLevels.guildId, guildId))
-      .orderBy(desc(userLevels.xp))
-      .limit(limit);
-  }
-
   async getUserRank(guildId, userId) {
     if (!db) return null;
     const result = await db.execute(sql`
@@ -1386,6 +1378,40 @@ class JSONStorage {
       .map(([inviter_id, invite_count]) => ({ inviter_id, invite_count }))
       .sort((a, b) => b.invite_count - a.invite_count)
       .slice(0, limit);
+  }
+
+  // ─── Compatibility wrappers for server.js admin endpoints ───────────────────
+
+  /** Alias: same as getGuild — used by snapshot/premium endpoints */
+  async getGuildData(guildId) {
+    return this.getGuild(guildId);
+  }
+
+  /** Alias: same as upsertGuild — used by snapshot/premium endpoints */
+  async setGuildData(guildId, data) {
+    return this.upsertGuild(guildId, data);
+  }
+
+  /** Get a global key-value entry from a dedicated JSON file */
+  getGlobalData(key) {
+    try {
+      const filePath = require('path').join(__dirname, '../../data', `_global_${key}.json`);
+      if (!require('fs').existsSync(filePath)) return null;
+      return JSON.parse(require('fs').readFileSync(filePath, 'utf8'));
+    } catch { return null; }
+  }
+
+  /** Set a global key-value entry to a dedicated JSON file */
+  setGlobalData(key, value) {
+    try {
+      const dataDir = require('path').join(__dirname, '../../data');
+      if (!require('fs').existsSync(dataDir)) require('fs').mkdirSync(dataDir, { recursive: true });
+      require('fs').writeFileSync(
+        require('path').join(dataDir, `_global_${key}.json`),
+        JSON.stringify(value, null, 2),
+        'utf8'
+      );
+    } catch (e) { console.error('[Storage] setGlobalData error:', e); }
   }
 }
 

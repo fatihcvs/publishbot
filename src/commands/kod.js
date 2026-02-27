@@ -122,16 +122,21 @@ module.exports = {
                     ]
                 });
             } else if (result.rewardType === 'animal') {
-                // Hayvan ödülü — letheStorage ile ekle
-                const letheStorage = require('../lethe/letheStorage');
-                const profile = await letheStorage.getOrCreateProfile(userId);
-
-                // Mevcut envantere hayvan ekle (basit yöntem: avla mantığı)
-                const { userAnimals, letheAnimals } = require('../../shared/schema');
+                // Hayvan ödülü — profil yoksa oluştur
+                const { userAnimals, letheAnimals, userLetheProfile } = require('../../shared/schema');
                 const [animalDef] = await db.select().from(letheAnimals)
                     .where(eq(letheAnimals.id, result.rewardAnimal)).limit(1);
 
                 if (!animalDef) throw new Error('Hayvan tanımı bulunamadı');
+
+                // Ensure profile exists
+                const [existingProfile] = await db.select().from(userLetheProfile)
+                    .where(eq(userLetheProfile.visitorId, userId)).limit(1);
+                if (!existingProfile) {
+                    await db.insert(userLetheProfile).values({
+                        visitorId: userId, coins: 0, level: 1, xp: 0
+                    }).onConflictDoNothing();
+                }
 
                 await db.insert(userAnimals).values({
                     visitorId: userId,

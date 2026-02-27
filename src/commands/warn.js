@@ -42,7 +42,7 @@ module.exports = {
         await target.kick(`AutoPunish: ${warningCount} uyarı`);
         await storage.addModCase(message.guild.id, 'kick', target.id, client.user.id, `Otomatik kick: ${warningCount} uyarı`);
         autoPunishment = `🦵 Otomatik Kick (${warningCount} uyarı)`;
-      } else if (warningCount >= 3) {
+      } else if (warningCount >= 3 && target.moderatable) {
         // 10 dakika mute
         const muteDuration = 10 * 60 * 1000;
         await target.timeout(muteDuration, `AutoPunish: ${warningCount} uyarı`);

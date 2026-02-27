@@ -54,8 +54,15 @@ const commandCooldowns = new Collection(); // Global cooldown tracker
 const processedMessages = new Set();
 const MESSAGE_CACHE_TIMEOUT = 5000; // 5 seconds
 
+const MAX_PROCESSED_MESSAGES = 2000;
+
 function isMessageProcessed(messageId) {
   if (processedMessages.has(messageId)) return true;
+  // Prevent unbounded growth
+  if (processedMessages.size >= MAX_PROCESSED_MESSAGES) {
+    const firstKey = processedMessages.values().next().value;
+    processedMessages.delete(firstKey);
+  }
   processedMessages.add(messageId);
   // Guaranteed cleanup regardless of any error
   setTimeout(() => { try { processedMessages.delete(messageId); } catch (_) { } }, MESSAGE_CACHE_TIMEOUT);
@@ -140,11 +147,11 @@ client.on(Events.GuildMemberAdd, async (member) => {
   // PHASE 1: Anti-Raid System
   if (antiRaidSystem) {
     const isRaidOrNew = await antiRaidSystem.checkRaid(member);
-    if (isRaidOrNew) return; // Eğer üye cezalandırıldıysa geri kalanı çalıştırma
+    if (isRaidOrNew) return;
   }
 
   const guildData = await storage.getGuild(member.guild.id);
-  console.log(`[MemberAdd] Guild data autoRole: "${guildData?.autoRole}" (type: ${typeof guildData?.autoRole})`);
+  debug(`[MemberAdd] Guild data autoRole: "${guildData?.autoRole}" (type: ${typeof guildData?.autoRole})`);
 
   let inviterId = null;
   let usedInviteCode = null;
@@ -532,14 +539,16 @@ client.on(Events.MessageCreate, async (message) => {
     message.reply(`Hoş geldin! AFK modundan çıktın.`).then(m => setTimeout(() => m.delete().catch(() => { }), 5000));
   }
 
-  // Check chatgpt channel
+  // Check chatgpt channel — chatGPT is the `chat` function
   const guildData = await storage.getGuild(message.guild.id);
   if (guildData?.chatgptChannel === message.channel.id) {
     if (!message.content.startsWith(PREFIX)) {
       try {
-        await chatGPT.handleMessage(message);
+        await message.channel.sendTyping();
+        const response = await chatGPT(message.author.id, message.content);
+        await message.reply(response.slice(0, 1999));
       } catch (error) {
-        console.error('ChatGPT reply error:', error);
+        console.error('ChatGPT channel error:', error);
       }
       return;
     }
@@ -551,9 +560,9 @@ client.on(Events.MessageCreate, async (message) => {
       try {
         await message.channel.sendTyping();
         const response = await chatGPT(message.author.id, userMessage);
-        await message.reply(response);
+        await message.reply(response.slice(0, 1999));
       } catch (error) {
-        console.error('ChatGPT reply error:', error);
+        console.error('ChatGPT mention error:', error);
       }
       return;
     }
@@ -566,16 +575,17 @@ client.on(Events.MessageCreate, async (message) => {
     await levelingSystem.handleMessage(message);
   }
 
-  const customCmd = await storage.getCustomCommand(message.guild.id, message.content.toLowerCase());
-  if (customCmd) {
-    if (storage.incrementCommandUsage) await storage.incrementCommandUsage('custom_command');
-    return message.reply(customCmd.response);
-  }
-
   if (!message.content.startsWith(PREFIX)) return;
 
   const args = message.content.slice(PREFIX.length).trim().split(/ +/);
   const commandName = args.shift().toLowerCase();
+
+  // Custom commands checked first (after prefix guard)
+  const customCmd = await storage.getCustomCommand(message.guild.id, commandName);
+  if (customCmd) {
+    if (storage.incrementCommandUsage) await storage.incrementCommandUsage('custom_command');
+    return message.reply(customCmd.response);
+  }
 
   const command = client.commands.get(commandName);
   if (!command) return;
@@ -611,9 +621,13 @@ client.on(Events.MessageCreate, async (message) => {
   try {
     await command.execute(message, args, client, storage);
     if (storage.incrementCommandUsage) await storage.incrementCommandUsage(commandName);
+    // Log command usage for admin panel analytics
+    if (global._cmdLogger) {
+      global._cmdLogger.log(message.author.id, message.guild.id, message.guild.name, commandName);
+    }
   } catch (error) {
     console.error('Komut hatası:', error);
-    message.reply('Komut çalıştırılırken bir hata oluştu!');
+    message.reply('Komut çalıştırılırken bir hata oluştu!').catch(() => { });
   }
 });
 

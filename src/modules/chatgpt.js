@@ -24,6 +24,19 @@ Temel kuralların:
 Cevaplarını kullanıcının sorusuna göre ayarla - kısa sorulara kısa, detaylı sorulara detaylı cevap ver. Discord mesaj limiti nedeniyle çok uzun cevaplardan kaçın (maksimum 1900 karakter).`;
 
 const conversationHistory = new Map();
+const conversationLastActivity = new Map();
+const CONVERSATION_TTL_MS = 60 * 60 * 1000; // 1 saat
+
+// Eski konuşmaları temizle — memory leak önleme
+setInterval(() => {
+  const now = Date.now();
+  for (const [userId, lastTime] of conversationLastActivity) {
+    if (now - lastTime > CONVERSATION_TTL_MS) {
+      conversationHistory.delete(userId);
+      conversationLastActivity.delete(userId);
+    }
+  }
+}, 30 * 60 * 1000); // Her 30 dakikada bir
 
 async function chat(userId, userMessage) {
   if (!process.env.OPENAI_API_KEY) {
@@ -36,6 +49,7 @@ async function chat(userId, userMessage) {
     }
 
     const history = conversationHistory.get(userId);
+    conversationLastActivity.set(userId, Date.now());
 
     history.push({ role: 'user', content: userMessage });
 
