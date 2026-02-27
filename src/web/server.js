@@ -362,6 +362,421 @@ app.get('/api/admin/bot-status', isBotOwner, (req, res) => {
   });
 });
 
+// ─── Admin Panel HTML Sayfaları ─────────────────────────────────────────────
+app.get('/admin', isBotOwner, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'admin', 'index.html'));
+});
+
+// ─── GET /api/admin/overview — Bot genel durumu ─────────────────────────────
+app.get('/api/admin/overview', isBotOwner, (req, res) => {
+  const uptimeMs = process.uptime() * 1000;
+  const memBytes = process.memoryUsage();
+  const guildCount = discordClient ? discordClient.guilds.cache.size : 0;
+  const userCount = discordClient
+    ? discordClient.guilds.cache.reduce((acc, g) => acc + (g.memberCount || 0), 0)
+    : 0;
+  const ping = discordClient?.ws?.ping || 0;
+
+  // Son 5 vaka (tüm sunuculardan)
+  let recentCases = [];
+  try {
+    const allGuildIds = discordClient ? Array.from(discordClient.guilds.cache.keys()) : [];
+    for (const gid of allGuildIds.slice(0, 20)) {
+      const data = storage.getGuildData(gid);
+      const cases = data?.cases || [];
+      recentCases.push(...cases.map(c => ({ ...c, guildId: gid })));
+    }
+    recentCases.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    recentCases = recentCases.slice(0, 5);
+  } catch (_) { }
+
+  res.json({
+    uptime: uptimeMs,
+    memory: {
+      rss: Math.round(memBytes.rss / 1024 / 1024),
+      heapUsed: Math.round(memBytes.heapUsed / 1024 / 1024),
+      heapTotal: Math.round(memBytes.heapTotal / 1024 / 1024)
+    },
+    ping,
+    guildCount,
+    userCount,
+    nodeVersion: process.version,
+    recentCases
+  });
+});
+
+// ─── GET /api/admin/guilds — Tüm sunucu listesi ─────────────────────────────
+app.get('/api/admin/guilds', isBotOwner, (req, res) => {
+  if (!discordClient) return res.json([]);
+  const guilds = discordClient.guilds.cache.map(g => ({
+    id: g.id,
+    name: g.name,
+    memberCount: g.memberCount,
+    icon: g.iconURL({ size: 64 }) || null,
+    ownerId: g.ownerId,
+    joinedAt: g.joinedAt
+  }));
+  guilds.sort((a, b) => b.memberCount - a.memberCount);
+  res.json(guilds);
+});
+
+// ─── POST /api/admin/guilds/:id/leave — Sunucudan çık ───────────────────────
+app.post('/api/admin/guilds/:id/leave', isBotOwner, async (req, res) => {
+  const { id } = req.params;
+  if (!discordClient) return res.status(503).json({ error: 'Bot not ready' });
+  try {
+    const guild = discordClient.guilds.cache.get(id);
+    if (!guild) return res.status(404).json({ error: 'Guild not found' });
+    await guild.leave();
+    res.json({ success: true, guildId: id });
+  } catch (err) {
+    console.error('[Admin] guild.leave error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── GET /api/admin/guilds/:id/data — Ham ayarları görüntüle ────────────────
+app.get('/api/admin/guilds/:id/data', isBotOwner, (req, res) => {
+  const { id } = req.params;
+  try {
+    const data = storage.getGuildData(id);
+    res.json(data || {});
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── Kara Liste ─────────────────────────────────────────────────────────────
+// In-memory store; in production replace with storage.getBlacklist() etc.
+const _blacklist = { users: [], guilds: [] };
+try {
+  const bl = storage.getGlobalData?.('blacklist');
+  if (bl) { _blacklist.users = bl.users || []; _blacklist.guilds = bl.guilds || []; }
+} catch (_) { }
+
+function saveBlacklist() {
+  try { storage.setGlobalData?.('blacklist', _blacklist); } catch (_) { }
+}
+
+app.get('/api/admin/blacklist', isBotOwner, (req, res) => {
+  res.json(_blacklist);
+});
+
+app.post('/api/admin/blacklist', isBotOwner, (req, res) => {
+  const { type, id, reason, action } = req.body; // type: 'user'|'guild', action: 'add'|'remove'
+  if (!type || !id || !action) return res.status(400).json({ error: 'type, id ve action zorunlu' });
+  const list = type === 'guild' ? _blacklist.guilds : _blacklist.users;
+  if (action === 'add') {
+    if (!list.find(e => e.id === id)) {
+      list.push({ id, reason: reason || '', addedAt: new Date().toISOString() });
+      saveBlacklist();
+    }
+    return res.json({ success: true, action: 'added' });
+  }
+  if (action === 'remove') {
+    const idx = list.findIndex(e => e.id === id);
+    if (idx !== -1) { list.splice(idx, 1); saveBlacklist(); }
+    return res.json({ success: true, action: 'removed' });
+  }
+  res.status(400).json({ error: 'action must be add or remove' });
+});
+
+// ─── POST /api/admin/broadcast — Tüm sunuculara mesaj ───────────────────────
+app.post('/api/admin/broadcast', isBotOwner, async (req, res) => {
+  const { message, title, color, guildIds } = req.body;
+  if (!message) return res.status(400).json({ error: 'message zorunlu' });
+  if (!discordClient) return res.status(503).json({ error: 'Bot not ready' });
+
+  const targets = guildIds?.length
+    ? guildIds.map(id => discordClient.guilds.cache.get(id)).filter(Boolean)
+    : Array.from(discordClient.guilds.cache.values());
+
+  const results = { success: 0, failed: 0, errors: [] };
+
+  for (const guild of targets) {
+    try {
+      // En uygun kanalı bul: system channel veya ilk metin kanalı
+      const channel = guild.systemChannel ||
+        guild.channels.cache.find(c => c.type === 0 && c.permissionsFor(guild.members.me)?.has('SendMessages'));
+      if (!channel) { results.failed++; continue; }
+
+      await channel.send({
+        embeds: [{
+          title: title || '📢 Duyuru',
+          description: message,
+          color: color ? parseInt(color.replace('#', ''), 16) : 0x5865f2,
+          timestamp: new Date().toISOString(),
+          footer: { text: 'Publisher Bot' }
+        }]
+      });
+      results.success++;
+    } catch (err) {
+      results.failed++;
+      results.errors.push({ guildId: guild.id, error: err.message });
+    }
+  }
+  res.json(results);
+});
+
+// ─── GET /api/admin/analytics — Global komut istatistikleri ─────────────────
+app.get('/api/admin/analytics', isBotOwner, (req, res) => {
+  try {
+    const guildIds = discordClient ? Array.from(discordClient.guilds.cache.keys()) : [];
+    const cmdUsage = {};
+    let totalHunts = 0, totalBattles = 0, totalUsers = 0;
+    const topLethe = [];
+
+    for (const gid of guildIds) {
+      const data = storage.getGuildData(gid);
+      // Command usage stats
+      if (data?.commandUsage) {
+        for (const [cmd, count] of Object.entries(data.commandUsage)) {
+          cmdUsage[cmd] = (cmdUsage[cmd] || 0) + count;
+        }
+      }
+      // Lethe game stats
+      if (data?.economy) {
+        for (const [uid, econ] of Object.entries(data.economy)) {
+          const hunts = econ.totalHunts || 0;
+          const battles = econ.totalBattles || 0;
+          totalHunts += hunts;
+          totalBattles += battles;
+          totalUsers++;
+          topLethe.push({ userId: uid, guildId: gid, hunts, battles, coins: econ.coins || 0 });
+        }
+      }
+    }
+
+    topLethe.sort((a, b) => b.hunts - a.hunts);
+
+    const topCmds = Object.entries(cmdUsage)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 15)
+      .map(([cmd, count]) => ({ cmd, count }));
+
+    res.json({
+      topCommands: topCmds,
+      lethe: { totalHunts, totalBattles, totalUsers, top10: topLethe.slice(0, 10) }
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── GET /api/admin/export — Tüm veri JSON export ───────────────────────────
+app.get('/api/admin/export', isBotOwner, (req, res) => {
+  try {
+    const guildIds = discordClient ? Array.from(discordClient.guilds.cache.keys()) : [];
+    const exportData = {};
+    for (const gid of guildIds) {
+      exportData[gid] = storage.getGuildData(gid) || {};
+    }
+    res.setHeader('Content-Disposition', `attachment; filename="publisher-export-${Date.now()}.json"`);
+    res.setHeader('Content-Type', 'application/json');
+    res.json({ exportedAt: new Date().toISOString(), guilds: exportData });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── POST /api/admin/bot-presence — Presence (online/idle/dnd) değiştir ─────
+app.post('/api/admin/bot-presence', isBotOwner, (req, res) => {
+  const { status } = req.body; // online|idle|dnd|invisible
+  const allowed = ['online', 'idle', 'dnd', 'invisible'];
+  if (!allowed.includes(status)) return res.status(400).json({ error: 'Geçersiz status' });
+  if (!discordClient?.isReady()) return res.status(503).json({ error: 'Bot not ready' });
+  try {
+    discordClient.user.setStatus(status);
+    res.json({ success: true, status });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── Redeem Code Sistemi ─────────────────────────────────────────────────────
+// In-memory store (kalıcı olması için storage'a da yazılıyor)
+const _redeemCodes = new Map();
+
+// Başlangıçta storage'dan kodları yükle
+try {
+  const saved = storage.getGlobalData?.('redeemCodes');
+  if (saved && typeof saved === 'object') {
+    for (const [code, data] of Object.entries(saved)) {
+      _redeemCodes.set(code, data);
+    }
+  }
+} catch (_) { }
+
+function saveRedeemCodes() {
+  try {
+    const obj = {};
+    for (const [k, v] of _redeemCodes) obj[k] = v;
+    storage.setGlobalData?.('redeemCodes', obj);
+  } catch (_) { }
+}
+
+// Global bridge — !kod bot komutu bu helper ile koda erişir
+global._redeemCodesHelper = {
+  useCode(code, userId) {
+    const c = _redeemCodes.get(code?.toUpperCase()?.trim());
+    if (!c || !c.active) return 'not_found';
+    if (c.expiresAt && new Date(c.expiresAt) < new Date()) return 'expired';
+    if (c.maxUses !== null && c.usedCount >= c.maxUses) return 'limit_reached';
+    if (c.usedBy.includes(userId)) return 'already_used';
+    c.usedCount++;
+    c.usedBy.push(userId);
+    if (c.maxUses !== null && c.usedCount >= c.maxUses) c.active = false;
+    saveRedeemCodes();
+    return c;
+  },
+  getCode(code) { return _redeemCodes.get(code?.toUpperCase()?.trim()); }
+};
+
+// GET /api/admin/codes — Tüm kodları listele
+app.get('/api/admin/codes', isBotOwner, (req, res) => {
+  const list = [];
+  for (const [code, data] of _redeemCodes) {
+    list.push({ code, ...data });
+  }
+  list.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  res.json(list);
+});
+
+// POST /api/admin/codes — Yeni kod oluştur
+app.post('/api/admin/codes', isBotOwner, (req, res) => {
+  const { code, rewardType, rewardValue, rewardAnimal, maxUses, expiresIn, note } = req.body;
+  // rewardType: 'coins' | 'animal'
+  if (!code || !rewardType) return res.status(400).json({ error: 'code ve rewardType zorunlu' });
+  if (rewardType === 'coins' && (!rewardValue || isNaN(rewardValue) || rewardValue <= 0)) {
+    return res.status(400).json({ error: 'coins için rewardValue gerekli' });
+  }
+  if (rewardType === 'animal' && !rewardAnimal) {
+    return res.status(400).json({ error: 'animal için rewardAnimal gerekli' });
+  }
+
+  const normalizedCode = code.toUpperCase().trim();
+  if (_redeemCodes.has(normalizedCode)) {
+    return res.status(409).json({ error: 'Bu kod zaten mevcut' });
+  }
+
+  const expiresAt = expiresIn
+    ? new Date(Date.now() + expiresIn * 60 * 1000).toISOString()
+    : null;
+
+  const codeData = {
+    rewardType,
+    rewardValue: rewardType === 'coins' ? parseInt(rewardValue) : 0,
+    rewardAnimal: rewardType === 'animal' ? rewardAnimal : null,
+    maxUses: maxUses ? parseInt(maxUses) : null,  // null = sınırsız
+    usedCount: 0,
+    usedBy: [],
+    expiresAt,
+    note: note || '',
+    createdAt: new Date().toISOString(),
+    active: true
+  };
+
+  _redeemCodes.set(normalizedCode, codeData);
+  saveRedeemCodes();
+  res.json({ success: true, code: normalizedCode, ...codeData });
+});
+
+// DELETE /api/admin/codes/:code — Kodu sil/devre dışı bırak
+app.delete('/api/admin/codes/:code', isBotOwner, (req, res) => {
+  const code = req.params.code.toUpperCase();
+  if (!_redeemCodes.has(code)) return res.status(404).json({ error: 'Kod bulunamadı' });
+  _redeemCodes.delete(code);
+  saveRedeemCodes();
+  res.json({ success: true });
+});
+
+// PATCH /api/admin/codes/:code — Kodu aktif/pasif yap
+app.patch('/api/admin/codes/:code', isBotOwner, (req, res) => {
+  const code = req.params.code.toUpperCase();
+  const codeData = _redeemCodes.get(code);
+  if (!codeData) return res.status(404).json({ error: 'Kod bulunamadı' });
+  codeData.active = req.body.active !== undefined ? !!req.body.active : !codeData.active;
+  saveRedeemCodes();
+  res.json({ success: true, active: codeData.active });
+});
+
+// POST /api/redeem — Bot komutundan çağrılır (kullanıcı kodu kullanır)
+app.post('/api/redeem', isAuthenticated, async (req, res) => {
+  const { code, userId } = req.body;
+  if (!code || !userId) return res.status(400).json({ error: 'code ve userId zorunlu' });
+
+  const normalizedCode = code.toUpperCase().trim();
+  const codeData = _redeemCodes.get(normalizedCode);
+
+  if (!codeData || !codeData.active) {
+    return res.status(404).json({ error: 'Geçersiz veya pasif kod' });
+  }
+  if (codeData.expiresAt && new Date(codeData.expiresAt) < new Date()) {
+    return res.status(410).json({ error: 'Bu kodun süresi dolmuş' });
+  }
+  if (codeData.maxUses !== null && codeData.usedCount >= codeData.maxUses) {
+    return res.status(410).json({ error: 'Bu kod maksimum kullanım limitine ulaştı' });
+  }
+  if (codeData.usedBy.includes(userId)) {
+    return res.status(409).json({ error: 'Bu kodu zaten kullandınız' });
+  }
+
+  codeData.usedCount++;
+  codeData.usedBy.push(userId);
+  if (codeData.maxUses !== null && codeData.usedCount >= codeData.maxUses) {
+    codeData.active = false;
+  }
+  saveRedeemCodes();
+  res.json({ success: true, rewardType: codeData.rewardType, rewardValue: codeData.rewardValue, rewardAnimal: codeData.rewardAnimal });
+});
+
+// Redeem kodları dışarıya erişilebilir kıl (bot komutu için)
+function getRedeemCode(code) { return _redeemCodes.get(code?.toUpperCase()?.trim()); }
+function useRedeemCode(code, userId) {
+  const c = _redeemCodes.get(code?.toUpperCase()?.trim());
+  if (!c) return null;
+  if (!c.active) return null;
+  if (c.expiresAt && new Date(c.expiresAt) < new Date()) return null;
+  if (c.maxUses !== null && c.usedCount >= c.maxUses) return null;
+  if (c.usedBy.includes(userId)) return null;
+  c.usedCount++;
+  c.usedBy.push(userId);
+  if (c.maxUses !== null && c.usedCount >= c.maxUses) c.active = false;
+  saveRedeemCodes();
+  return c;
+}
+
+// ─── POST /api/admin/broadcast-admins — Sadece admin kanallarına mesaj ────────
+app.post('/api/admin/broadcast-admins', isBotOwner, async (req, res) => {
+  const { message, title, color } = req.body;
+  if (!message) return res.status(400).json({ error: 'message zorunlu' });
+  if (!discordClient) return res.status(503).json({ error: 'Bot not ready' });
+
+  const results = { success: 0, failed: 0, errors: [] };
+
+  for (const guild of discordClient.guilds.cache.values()) {
+    try {
+      // Guild owner'ı DM ile bul
+      const owner = await guild.fetchOwner().catch(() => null);
+      if (!owner) { results.failed++; continue; }
+
+      await owner.send({
+        embeds: [{
+          title: title || '📢 Bot Sahibinden Duyuru',
+          description: message,
+          color: color ? parseInt(color.replace('#', ''), 16) : 0xeb459e,
+          timestamp: new Date().toISOString(),
+          footer: { text: `Publisher Bot — ${guild.name} sunucusu için mesaj` }
+        }]
+      });
+      results.success++;
+    } catch (err) {
+      results.failed++;
+      results.errors.push({ guildId: guild.id, error: err.message });
+    }
+  }
+  res.json(results);
+});
 
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));

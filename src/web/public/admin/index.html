@@ -1,0 +1,1248 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Publisher Bot — Admin Paneli</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+    <link href="/css/dashboard.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            margin: 0;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* ── Sidebar ── */
+        .admin-sidebar {
+            width: 240px;
+            min-height: 100vh;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            z-index: 100;
+            overflow-y: auto;
+        }
+
+        .admin-sidebar-logo {
+            padding: 24px 20px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .admin-sidebar-logo .logo-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #5865f2, #eb459e);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: #fff;
+            flex-shrink: 0;
+        }
+
+        .admin-sidebar-logo h2 {
+            font-size: 14px;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .admin-sidebar-logo p {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin: 2px 0 0;
+        }
+
+        .sidebar-nav {
+            padding: 12px 0;
+            flex: 1;
+        }
+
+        .sidebar-section-label {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+            padding: 12px 20px 6px;
+        }
+
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 20px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.15s;
+            border-left: 3px solid transparent;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .sidebar-item:hover {
+            background: rgba(88, 101, 242, 0.08);
+            color: var(--text-primary);
+        }
+
+        .sidebar-item.active {
+            color: var(--accent-blue);
+            border-left-color: var(--accent-blue);
+            background: rgba(88, 101, 242, 0.1);
+        }
+
+        .sidebar-item i {
+            width: 18px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .sidebar-bottom {
+            padding: 16px 20px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sidebar-bottom img {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+        }
+
+        .sidebar-bottom .sb-name {
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .sidebar-bottom .sb-tag {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .owner-badge-small {
+            margin-left: auto;
+            background: linear-gradient(135deg, rgba(88, 101, 242, 0.25), rgba(235, 69, 158, 0.2));
+            border: 1px solid rgba(88, 101, 242, 0.4);
+            color: #a8b4ff;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 20px;
+        }
+
+        /* ── Main ── */
+        .admin-main {
+            margin-left: 240px;
+            flex: 1;
+            padding: 32px;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .page-header {
+            margin-bottom: 28px;
+        }
+
+        .page-header h1 {
+            font-size: 24px;
+            font-weight: 800;
+            margin: 0 0 4px;
+        }
+
+        .page-header p {
+            color: var(--text-muted);
+            font-size: 13px;
+            margin: 0;
+        }
+
+        /* ── Section ── */
+        .admin-section {
+            display: none;
+        }
+
+        .admin-section.active {
+            display: block;
+            animation: fadeInUp 0.25s ease;
+        }
+
+        /* ── Stat cards ── */
+        .overview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+
+        .ov-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 20px;
+            transition: border-color 0.2s;
+        }
+
+        .ov-card:hover {
+            border-color: rgba(88, 101, 242, 0.4);
+        }
+
+        .ov-card .ov-icon {
+            font-size: 22px;
+            margin-bottom: 10px;
+        }
+
+        .ov-card .ov-val {
+            font-size: 26px;
+            font-weight: 800;
+        }
+
+        .ov-card .ov-lbl {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        /* ── Panel card ── */
+        .panel-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+
+        .panel-card h3 {
+            font-size: 15px;
+            font-weight: 700;
+            margin: 0 0 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* ── Form helpers ── */
+        .form-row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 14px;
+        }
+
+        .form-group {
+            flex: 1;
+            min-width: 160px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .form-input {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 9px 13px;
+            color: var(--text-primary);
+            font-size: 13px;
+            font-family: inherit;
+            transition: border-color 0.2s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+        }
+
+        select.form-input option {
+            background: var(--bg-secondary);
+        }
+
+        textarea.form-input {
+            resize: vertical;
+            min-height: 90px;
+        }
+
+        /* ── Buttons ── */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 18px;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .btn:active {
+            transform: scale(0.97);
+        }
+
+        .btn-primary {
+            background: var(--accent-blue);
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-blue-hover);
+        }
+
+        .btn-red {
+            background: rgba(237, 66, 69, 0.15);
+            color: #ed4245;
+            border: 1px solid rgba(237, 66, 69, 0.35);
+        }
+
+        .btn-red:hover {
+            background: rgba(237, 66, 69, 0.25);
+        }
+
+        .btn-green {
+            background: rgba(87, 242, 135, 0.15);
+            color: #57f287;
+            border: 1px solid rgba(87, 242, 135, 0.35);
+        }
+
+        .btn-green:hover {
+            background: rgba(87, 242, 135, 0.25);
+        }
+
+        .btn-sm {
+            padding: 5px 12px;
+            font-size: 12px;
+        }
+
+        /* ── Codes table ── */
+        .codes-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .codes-table th {
+            padding: 8px 12px;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 11px;
+            text-transform: uppercase;
+        }
+
+        .codes-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--border-color);
+            vertical-align: middle;
+        }
+
+        .codes-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .codes-table tr:hover td {
+            background: var(--bg-hover);
+        }
+
+        .code-tag {
+            font-family: monospace;
+            background: var(--bg-tertiary);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .badge-green {
+            background: rgba(87, 242, 135, 0.15);
+            color: #57f287;
+        }
+
+        .badge-red {
+            background: rgba(237, 66, 69, 0.15);
+            color: #ed4245;
+        }
+
+        .badge-yellow {
+            background: rgba(250, 166, 26, 0.15);
+            color: #faa61a;
+        }
+
+        .badge-blue {
+            background: rgba(88, 101, 242, 0.15);
+            color: var(--accent-blue);
+        }
+
+        /* ── Guild list ── */
+        .guild-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .guild-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 16px;
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-md);
+            transition: background 0.15s;
+        }
+
+        .guild-item:hover {
+            background: var(--bg-hover);
+        }
+
+        .guild-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            background: var(--bg-hover);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 15px;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .guild-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .guild-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .guild-name {
+            font-weight: 600;
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .guild-sub {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        /* ── Blacklist ── */
+        .bl-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-sm);
+            margin-bottom: 6px;
+        }
+
+        .bl-id {
+            font-family: monospace;
+            font-size: 12px;
+            color: var(--text-secondary);
+            flex: 1;
+        }
+
+        .bl-reason {
+            font-size: 12px;
+            color: var(--text-muted);
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* ── Log/activity ── */
+        .recent-case {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .recent-case:last-child {
+            border-bottom: none;
+        }
+
+        /* ── Presence buttons ── */
+        .presence-btn {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            border: 1px solid var(--border-color);
+            background: transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .presence-btn:hover {
+            border-color: rgba(88, 101, 242, 0.4);
+            color: var(--text-primary);
+        }
+
+        .presence-btn.active-presence {
+            border-color: var(--accent-green);
+            color: var(--accent-green);
+            background: rgba(35, 209, 96, 0.1);
+        }
+
+        .presence-btn.idle-presence {
+            border-color: var(--accent-yellow);
+            color: var(--accent-yellow);
+            background: rgba(255, 221, 87, 0.1);
+        }
+
+        .presence-btn.dnd-presence {
+            border-color: var(--accent-red);
+            color: var(--accent-red);
+            background: rgba(255, 56, 96, 0.1);
+        }
+
+        .presence-btn.invisible-presence {
+            border-color: var(--text-muted);
+            color: var(--text-muted);
+            background: rgba(107, 110, 115, 0.1);
+        }
+
+        /* ── Toast ── */
+        .toast-stack {
+            position: fixed;
+            bottom: 28px;
+            right: 28px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 9999;
+            pointer-events: none;
+        }
+
+        .toast-item2 {
+            pointer-events: all;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 12px 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            font-weight: 500;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+            transform: translateX(120px);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(.4, 0, .2, 1);
+        }
+
+        .toast-item2.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        .toast-item2.success {
+            border-left: 3px solid #57f287;
+        }
+
+        .toast-item2.error {
+            border-left: 3px solid #ed4245;
+        }
+
+        .toast-item2.info {
+            border-left: 3px solid var(--accent-blue);
+        }
+
+        @media (max-width: 768px) {
+            .admin-sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s;
+            }
+
+            .admin-sidebar.open {
+                transform: translateX(0);
+            }
+
+            .admin-main {
+                margin-left: 0;
+                padding: 20px;
+            }
+
+            .overview-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Sidebar -->
+    <aside class="admin-sidebar" id="adminSidebar">
+        <div class="admin-sidebar-logo">
+            <div class="logo-icon"><i class="fas fa-robot"></i></div>
+            <div>
+                <h2>Publisher Bot</h2>
+                <p>Admin Paneli</p>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="sidebar-section-label">Genel</div>
+            <div class="sidebar-item active" onclick="showSection('overview')"><i class="fas fa-chart-pie"></i> Genel
+                Bakış</div>
+            <div class="sidebar-item" onclick="showSection('botstatus')"><i class="fas fa-robot"></i> Bot Durumu</div>
+
+            <div class="sidebar-section-label">Yönetim</div>
+            <div class="sidebar-item" onclick="showSection('guilds')"><i class="fas fa-server"></i> Sunucular</div>
+            <div class="sidebar-item" onclick="showSection('blacklist')"><i class="fas fa-ban"></i> Kara Liste</div>
+
+            <div class="sidebar-section-label">Araçlar</div>
+            <div class="sidebar-item" onclick="showSection('codes')"><i class="fas fa-ticket"></i> Ödül Kodları</div>
+            <div class="sidebar-item" onclick="showSection('broadcast')"><i class="fas fa-bullhorn"></i> Toplu Duyuru
+            </div>
+            <div class="sidebar-section-label">Veri</div>
+            <div class="sidebar-item" onclick="showSection('analytics')"><i class="fas fa-chart-bar"></i> Analitik</div>
+            <div class="sidebar-item" onclick="exportData()"><i class="fas fa-download"></i> Veri Dışa Aktar</div>
+
+            <div class="sidebar-section-label">Diğer</div>
+            <div class="sidebar-item" onclick="window.location='/admin/apikeys'"><i class="fas fa-key"></i> API
+                Anahtarları</div>
+            <div class="sidebar-item" onclick="window.location='/dashboard'"><i class="fas fa-arrow-left"></i>
+                Dashboard'a Dön</div>
+        </nav>
+
+        <div class="sidebar-bottom">
+            <img src="" alt="" id="sidebarAvatar">
+            <div>
+                <div class="sb-name" id="sidebarName">Yükleniyor</div>
+                <div class="sb-tag">Bot Sahibi</div>
+            </div>
+            <span class="owner-badge-small"><i class="fas fa-crown"></i></span>
+        </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="admin-main">
+
+        <!-- GENEL BAKIŞ -->
+        <div class="admin-section active" id="sec-overview">
+            <div class="page-header">
+                <h1>🏠 Genel Bakış</h1>
+                <p>Botun anlık durumu ve genel istatistikler</p>
+            </div>
+            <div class="overview-grid" id="overviewGrid">
+                <div class="ov-card">
+                    <div class="ov-icon">⚡</div>
+                    <div class="ov-val" id="ovPing">-</div>
+                    <div class="ov-lbl">WebSocket Ping</div>
+                </div>
+                <div class="ov-card">
+                    <div class="ov-icon">🌐</div>
+                    <div class="ov-val" id="ovGuilds">-</div>
+                    <div class="ov-lbl">Sunucu</div>
+                </div>
+                <div class="ov-card">
+                    <div class="ov-icon">👥</div>
+                    <div class="ov-val" id="ovUsers">-</div>
+                    <div class="ov-lbl">Toplam Üye</div>
+                </div>
+                <div class="ov-card">
+                    <div class="ov-icon">🕐</div>
+                    <div class="ov-val" id="ovUptime">-</div>
+                    <div class="ov-lbl">Uptime</div>
+                </div>
+                <div class="ov-card">
+                    <div class="ov-icon">💾</div>
+                    <div class="ov-val" id="ovRam">-</div>
+                    <div class="ov-lbl">RAM Kullanımı</div>
+                </div>
+                <div class="ov-card">
+                    <div class="ov-icon">🟢</div>
+                    <div class="ov-val" id="ovNode">-</div>
+                    <div class="ov-lbl">Node.js</div>
+                </div>
+            </div>
+            <div class="panel-card">
+                <h3><i class="fas fa-gavel" style="color:var(--accent-red)"></i> Son Moderasyon Vakaları</h3>
+                <div id="recentCasesList">
+                    <div class="empty-state"><i class="fas fa-spinner fa-spin"></i>
+                        <h3>Yükleniyor…</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BOT DURUMU -->
+        <div class="admin-section" id="sec-botstatus">
+            <div class="page-header">
+                <h1>🤖 Bot Durumu</h1>
+                <p>Aktivite ve presence ayarları</p>
+            </div>
+            <div class="panel-card">
+                <h3><i class="fas fa-circle" style="color:var(--accent-green)"></i> Mevcut Durum</h3>
+                <div id="currentBotStatus" style="font-size:14px;color:var(--text-secondary);margin-bottom:20px;">
+                    Yükleniyor…</div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Aktivite Tipi</label>
+                        <select class="form-input" id="actType">
+                            <option value="3">👀 İzliyor</option>
+                            <option value="2">🎵 Dinliyor</option>
+                            <option value="0">🎮 Oynuyor</option>
+                            <option value="5">🏆 Rekabet Ediyor</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="flex:2">
+                        <label>Aktivite Metni</label>
+                        <input class="form-input" type="text" id="actText" placeholder="!yardım | publisherbot.org"
+                            maxlength="128">
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="saveBotStatus()"><i class="fas fa-save"></i> Aktiviteyi
+                    Kaydet</button>
+            </div>
+            <div class="panel-card">
+                <h3><i class="fas fa-wifi"></i> Presence Durumu</h3>
+                <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:4px;">
+                    <button class="presence-btn" onclick="setPresence('online')">🟢 Çevrimiçi</button>
+                    <button class="presence-btn" onclick="setPresence('idle')">🌙 Boşta</button>
+                    <button class="presence-btn" onclick="setPresence('dnd')">⛔ Rahatsız Etmeyin</button>
+                    <button class="presence-btn" onclick="setPresence('invisible')">⚫ Görünmez</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- SUNUCULAR -->
+        <div class="admin-section" id="sec-guilds">
+            <div class="page-header">
+                <h1>🌐 Sunucular</h1>
+                <p>Botun bulunduğu tüm sunucular</p>
+            </div>
+            <div class="panel-card">
+                <div style="display:flex;gap:10px;margin-bottom:16px;">
+                    <div class="cases-search" style="flex:1"><i class="fas fa-search"></i><input type="text"
+                            id="guildSearch" placeholder="Sunucu ara…" oninput="filterGuilds()"></div>
+                </div>
+                <div class="guild-list" id="guildList">
+                    <div class="empty-state"><i class="fas fa-spinner fa-spin"></i>
+                        <h3>Yükleniyor…</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- KARA LİSTE -->
+        <div class="admin-section" id="sec-blacklist">
+            <div class="page-header">
+                <h1>🚫 Kara Liste</h1>
+                <p>Kullanıcı ve sunucu kara listesi</p>
+            </div>
+            <div class="panel-card">
+                <h3><i class="fas fa-user-slash" style="color:var(--accent-red)"></i> Kullanıcı Kara Listesi</h3>
+                <div class="form-row">
+                    <div class="form-group" style="flex:1"><label>Discord ID</label><input class="form-input"
+                            id="blUserId" placeholder="123456789012345678"></div>
+                    <div class="form-group" style="flex:2"><label>Sebep</label><input class="form-input"
+                            id="blUserReason" placeholder="Sebep…"></div>
+                </div>
+                <button class="btn btn-red" onclick="addBlacklist('user')"><i class="fas fa-ban"></i> Kara Listeye
+                    Ekle</button>
+                <div id="blUserList" style="margin-top:16px;"></div>
+            </div>
+            <div class="panel-card">
+                <h3><i class="fas fa-server" style="color:var(--accent-orange)"></i> Sunucu Kara Listesi</h3>
+                <div class="form-row">
+                    <div class="form-group" style="flex:1"><label>Sunucu ID</label><input class="form-input"
+                            id="blGuildId" placeholder="123456789012345678"></div>
+                    <div class="form-group" style="flex:2"><label>Sebep</label><input class="form-input"
+                            id="blGuildReason" placeholder="Sebep…"></div>
+                </div>
+                <button class="btn btn-red" onclick="addBlacklist('guild')"><i class="fas fa-ban"></i> Kara Listeye
+                    Ekle</button>
+                <div id="blGuildList" style="margin-top:16px;"></div>
+            </div>
+        </div>
+
+        <!-- ÖDÜL KODLARI -->
+        <div class="admin-section" id="sec-codes">
+            <div class="page-header">
+                <h1>🎁 Ödül Kodları</h1>
+                <p>Lethe Game için kullanım kodu oluştur ve yönet. Kullanıcılar <code
+                        style="background:var(--bg-tertiary);padding:1px 6px;border-radius:4px;">!kod KOD</code>
+                    komutuyla kullanabilir.</p>
+            </div>
+            <div class="panel-card">
+                <h3><i class="fas fa-plus" style="color:var(--accent-green)"></i> Yeni Kod Oluştur</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Kod (büyük harf önerilir)</label>
+                        <input class="form-input" id="codeInput" placeholder="PUBLISHER100"
+                            style="font-family:monospace;letter-spacing:0.05em;"
+                            oninput="this.value=this.value.toUpperCase()">
+                    </div>
+                    <div class="form-group">
+                        <label>Ödül Tipi</label>
+                        <select class="form-input" id="codeRewardType" onchange="toggleRewardFields()">
+                            <option value="coins">💰 Para (Coin)</option>
+                            <option value="animal">🦁 Hayvan</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row" id="coinsRewardRow">
+                    <div class="form-group">
+                        <label>Miktar</label>
+                        <input class="form-input" id="codeRewardValue" type="number" min="1" placeholder="100000">
+                    </div>
+                </div>
+                <div class="form-row" id="animalRewardRow" style="display:none">
+                    <div class="form-group">
+                        <label>Hayvan ID (letheAnimals tablosundan)</label>
+                        <input class="form-input" id="codeRewardAnimal" placeholder="örn: wolf_alpha">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Kullanım Limiti <span style="color:var(--text-muted)">(boş = sınırsız)</span></label>
+                        <input class="form-input" id="codeMaxUses" type="number" min="1" placeholder="100">
+                    </div>
+                    <div class="form-group">
+                        <label>Süre (dakika) <span style="color:var(--text-muted)">(boş = süresiz)</span></label>
+                        <input class="form-input" id="codeExpiresIn" type="number" min="1" placeholder="1440">
+                    </div>
+                    <div class="form-group">
+                        <label>Not (opsiyonel)</label>
+                        <input class="form-input" id="codeNote" placeholder="Açıklama…">
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="createCode()"><i class="fas fa-plus"></i> Kodu Oluştur</button>
+            </div>
+            <div class="panel-card">
+                <h3><i class="fas fa-list"></i> Mevcut Kodlar</h3>
+                <div style="overflow-x:auto;">
+                    <table class="codes-table" id="codesTable">
+                        <thead>
+                            <tr>
+                                <th>Kod</th>
+                                <th>Tip</th>
+                                <th>Ödül</th>
+                                <th>Kullanım</th>
+                                <th>Süre</th>
+                                <th>Durum</th>
+                                <th>İşlem</th>
+                            </tr>
+                        </thead>
+                        <tbody id="codesTbody">
+                            <tr>
+                                <td colspan="7" style="text-align:center;padding:40px;color:var(--text-muted);">
+                                    Yükleniyor…</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TOPLU DUYURU -->
+        <div class="admin-section" id="sec-broadcast">
+            <div class="page-header">
+                <h1>📢 Toplu Duyuru</h1>
+                <p>Tüm sunuculara veya sunucu sahiplerine mesaj gönder</p>
+            </div>
+            <div class="panel-card">
+                <h3><i class="fas fa-bullhorn" style="color:var(--accent-blue)"></i> Mesaj Oluştur</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Başlık</label>
+                        <input class="form-input" id="broadTitle" placeholder="📢 Duyuru">
+                    </div>
+                    <div class="form-group">
+                        <label>Renk</label>
+                        <input class="form-input" type="color" id="broadColor" value="#5865f2"
+                            style="height:40px;padding:4px;">
+                    </div>
+                </div>
+                <div class="form-group" style="margin-bottom:14px;">
+                    <label>Mesaj</label>
+                    <textarea class="form-input" id="broadMsg"
+                        placeholder="Sunuculara gönderilecek duyuru mesajı…"></textarea>
+                </div>
+                <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                    <button class="btn btn-primary" onclick="sendBroadcast('general')"><i
+                            class="fas fa-paper-plane"></i> Tüm Sunuculara Gönder</button>
+                    <button class="btn"
+                        style="background:rgba(235,69,158,0.15);color:#eb459e;border:1px solid rgba(235,69,158,0.35);"
+                        onclick="sendBroadcast('admins')">
+                        <i class="fas fa-user-shield"></i> Sunucu Sahiplerine DM Gönder
+                    </button>
+                </div>
+                <div id="broadResult" style="margin-top:16px;"></div>
+            </div>
+        </div>
+
+        <!-- ANALİTİK -->
+        <div class="admin-section" id="sec-analytics">
+            <div class="page-header">
+                <h1>📊 Analitik</h1>
+                <p>Global komut istatistikleri ve Lethe Game verileri</p>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+                <div class="panel-card">
+                    <h3><i class="fas fa-terminal" style="color:var(--accent-blue)"></i> En Çok Kullanılan Komutlar</h3>
+                    <div id="topCmds">
+                        <div class="empty-state"><i class="fas fa-spinner fa-spin"></i></div>
+                    </div>
+                </div>
+                <div class="panel-card">
+                    <h3><i class="fas fa-gamepad" style="color:var(--accent-purple)"></i> Lethe Game İstatistikleri</h3>
+                    <div id="letheStats">
+                        <div class="empty-state"><i class="fas fa-spinner fa-spin"></i></div>
+                    </div>
+                </div>
+            </div>
+            <div class="panel-card">
+                <h3><i class="fas fa-trophy" style="color:#ffd700)"></i> Lethe Game Top 10 (Av)</h3>
+                <div id="letheTop10">
+                    <div class="empty-state"><i class="fas fa-spinner fa-spin"></i></div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Toast container -->
+    <div class="toast-stack" id="toastStack"></div>
+
+    <script>
+        const BOT_OWNER_ID = '259442832576741377';
+        let _guildsData = [];
+
+        // ── Auth check ───────────────────────────────────────────────────────────────
+        async function init() {
+            try {
+                const r = await fetch('/api/user');
+                if (!r.ok) return (window.location.href = '/');
+                const u = await r.json();
+                if (u.id !== BOT_OWNER_ID) return (window.location.href = '/dashboard');
+                document.getElementById('sidebarName').textContent = u.username || 'Admin';
+                document.getElementById('sidebarAvatar').src = u.avatar
+                    ? `https://cdn.discordapp.com/avatars/${u.id}/${u.avatar}.png`
+                    : 'https://cdn.discordapp.com/embed/avatars/0.png';
+            } catch { window.location.href = '/'; }
+
+            loadOverview();
+            loadBotStatus();
+            loadGuilds();
+            loadBlacklist();
+            loadCodes();
+            loadAnalytics();
+        }
+
+        // ── Section navigation ───────────────────────────────────────────────────────
+        function showSection(id) {
+            document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.sidebar-item').forEach(s => s.classList.remove('active'));
+            document.getElementById('sec-' + id)?.classList.add('active');
+            event?.currentTarget?.classList.add('active');
+        }
+
+        // ── Toast ────────────────────────────────────────────────────────────────────
+        function toast(msg, type = 'info') {
+            const stack = document.getElementById('toastStack');
+            const el = document.createElement('div');
+            el.className = `toast-item2 ${type}`;
+            const icons = { success: 'fa-check-circle', error: 'fa-circle-exclamation', info: 'fa-info-circle' };
+            el.innerHTML = `<i class="fas ${icons[type] || icons.info}"></i> ${msg}`;
+            stack.appendChild(el);
+            requestAnimationFrame(() => el.classList.add('show'));
+            setTimeout(() => { el.classList.remove('show'); setTimeout(() => el.remove(), 300); }, 4000);
+        }
+
+        // ── Overview ─────────────────────────────────────────────────────────────────
+        async function loadOverview() {
+            try {
+                const d = await fetch('/api/admin/overview').then(r => r.json());
+                document.getElementById('ovPing').textContent = d.ping + ' ms';
+                document.getElementById('ovGuilds').textContent = d.guildCount.toLocaleString('tr-TR');
+                document.getElementById('ovUsers').textContent = d.userCount.toLocaleString('tr-TR');
+                document.getElementById('ovUptime').textContent = fmtUptime(d.uptime);
+                document.getElementById('ovRam').textContent = d.memory.heapUsed + ' MB';
+                document.getElementById('ovNode').textContent = d.nodeVersion;
+
+                const caseColors = { ban: '#ed4245', kick: '#ff9f43', mute: '#b366f9', warn: '#faa61a', unmute: '#57f287', unban: '#57f287' };
+                document.getElementById('recentCasesList').innerHTML = d.recentCases?.length
+                    ? d.recentCases.map(c => `
+          <div class="recent-case">
+            <span class="badge" style="background:${caseColors[c.type] || 'var(--bg-tertiary)'}22;color:${caseColors[c.type] || 'var(--text-muted)'};">${c.type?.toUpperCase()}</span>
+            <div style="flex:1"><div style="font-size:13px;font-weight:600;">${c.userId}</div><div style="font-size:12px;color:var(--text-muted);">${c.reason || '-'}</div></div>
+            <div style="font-size:11px;color:var(--text-muted);">${new Date(c.createdAt).toLocaleDateString('tr-TR')}</div>
+          </div>`).join('')
+                    : '<div class="empty-state"><i class="fas fa-check-circle"></i><h3>Vaka Yok</h3><p>Son moderasyon vakası bulunmuyor.</p></div>';
+            } catch (e) { console.error(e); }
+        }
+
+        function fmtUptime(ms) {
+            const s = Math.floor(ms / 1000), m = Math.floor(s / 60), h = Math.floor(m / 60), d = Math.floor(h / 24);
+            if (d > 0) return `${d}g ${h % 24}s`;
+            if (h > 0) return `${h}s ${m % 60}d`;
+            return `${m}d`;
+        }
+
+        // ── Bot Status ────────────────────────────────────────────────────────────────
+        async function loadBotStatus() {
+            try {
+                const d = await fetch('/api/admin/bot-status').then(r => r.json());
+                document.getElementById('currentBotStatus').innerHTML =
+                    `<i class="fas fa-circle" style="color:var(--accent-green);font-size:9px;"></i>&nbsp; <strong>${d.typeName}</strong> ${d.text || '<em style="color:var(--text-muted)">boş</em>'}`;
+                document.getElementById('actText').value = d.text || '';
+                document.getElementById('actType').value = d.type ?? 3;
+            } catch { }
+        }
+
+        async function saveBotStatus() {
+            const text = document.getElementById('actText').value.trim();
+            const type = document.getElementById('actType').value;
+            const r = await fetch('/api/admin/bot-status', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text, type }) });
+            if (r.ok) { toast('Aktivite güncellendi!', 'success'); loadBotStatus(); }
+            else { const d = await r.json(); toast(d.error || 'Hata', 'error'); }
+        }
+
+        async function setPresence(status) {
+            const r = await fetch('/api/admin/bot-presence', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status }) });
+            if (r.ok) toast(`Presence: ${status} olarak ayarlandı`, 'success');
+            else toast('Presence değiştirilemedi', 'error');
+        }
+
+        // ── Guilds ────────────────────────────────────────────────────────────────────
+        async function loadGuilds() {
+            _guildsData = await fetch('/api/admin/guilds').then(r => r.json()).catch(() => []);
+            renderGuilds(_guildsData);
+        }
+
+        function renderGuilds(list) {
+            const el = document.getElementById('guildList');
+            if (!list.length) { el.innerHTML = '<div class="empty-state"><i class="fas fa-server"></i><h3>Sunucu Yok</h3></div>'; return; }
+            el.innerHTML = list.map(g => `
+      <div class="guild-item">
+        <div class="guild-icon">${g.icon ? `<img src="${g.icon}" alt="">` : g.name.charAt(0)}</div>
+        <div class="guild-info">
+          <div class="guild-name">${g.name}</div>
+          <div class="guild-sub"><i class="fas fa-users"></i> ${(g.memberCount || 0).toLocaleString('tr-TR')} üye &nbsp;·&nbsp; <code style="font-size:11px;">${g.id}</code></div>
+        </div>
+        <button class="btn btn-red btn-sm" onclick="leaveGuild('${g.id}','${g.name.replace(/'/g, '\\\'')}')" title="Sunucudan çık"><i class="fas fa-sign-out-alt"></i></button>
+      </div>`).join('');
+        }
+
+        function filterGuilds() {
+            const q = document.getElementById('guildSearch').value.toLowerCase();
+            renderGuilds(_guildsData.filter(g => g.name.toLowerCase().includes(q) || g.id.includes(q)));
+        }
+
+        async function leaveGuild(id, name) {
+            if (!confirm(`"${name}" sunucusundan çıkmak istediğinize emin misiniz?`)) return;
+            const r = await fetch(`/api/admin/guilds/${id}/leave`, { method: 'POST' });
+            if (r.ok) { toast(`${name} sunucusundan çıkıldı`, 'success'); loadGuilds(); }
+            else { const d = await r.json(); toast(d.error || 'Hata', 'error'); }
+        }
+
+        // ── Blacklist ─────────────────────────────────────────────────────────────────
+        async function loadBlacklist() {
+            const d = await fetch('/api/admin/blacklist').then(r => r.json()).catch(() => ({ users: [], guilds: [] }));
+            renderBL('blUserList', d.users, 'user');
+            renderBL('blGuildList', d.guilds, 'guild');
+        }
+
+        function renderBL(elId, list, type) {
+            const el = document.getElementById(elId);
+            if (!list.length) { el.innerHTML = '<p style="color:var(--text-muted);font-size:13px;">Kara liste boş.</p>'; return; }
+            el.innerHTML = list.map(e => `
+      <div class="bl-item">
+        <code class="bl-id">${e.id}</code>
+        <span class="bl-reason">${e.reason || '-'}</span>
+        <span style="font-size:11px;color:var(--text-muted);">${new Date(e.addedAt).toLocaleDateString('tr-TR')}</span>
+        <button class="btn btn-red btn-sm" onclick="removeBlacklist('${type}','${e.id}')"><i class="fas fa-times"></i></button>
+      </div>`).join('');
+        }
+
+        async function addBlacklist(type) {
+            const id = document.getElementById(type === 'user' ? 'blUserId' : 'blGuildId').value.trim();
+            const reason = document.getElementById(type === 'user' ? 'blUserReason' : 'blGuildReason').value.trim();
+            if (!id) return toast('ID boş olamaz', 'error');
+            const r = await fetch('/api/admin/blacklist', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type, id, reason, action: 'add' }) });
+            if (r.ok) { toast('Kara listeye eklendi', 'success'); loadBlacklist(); }
+            else toast('Hata', 'error');
+        }
+
+        async function removeBlacklist(type, id) {
+            const r = await fetch('/api/admin/blacklist', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type, id, action: 'remove' }) });
+            if (r.ok) { toast('Kara listeden çıkarıldı', 'success'); loadBlacklist(); }
+            else toast('Hata', 'error');
+        }
+
+        // ── Redeem Codes ──────────────────────────────────────────────────────────────
+        function toggleRewardFields() {
+            const t = document.getElementById('codeRewardType').value;
+            document.getElementById('coinsRewardRow').style.display = t === 'coins' ? 'flex' : 'none';
+            document.getElementById('animalRewardRow').style.display = t === 'animal' ? 'flex' : 'none';
+        }
+
+        async function loadCodes() {
+            const list = await fetch('/api/admin/codes').then(r => r.json()).catch(() => []);
+            const tbody = document.getElementById('codesTbody');
+            if (!list.length) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text-muted);">Henüz kod yok.</td></tr>'; return; }
+            tbody.innerHTML = list.map(c => {
+                const expires = c.expiresAt ? new Date(c.expiresAt).toLocaleString('tr-TR') : '−';
+                const statusBadge = !c.active ? '<span class="badge badge-red">Pasif</span>'
+                    : (c.expiresAt && new Date(c.expiresAt) < new Date()) ? '<span class="badge badge-yellow">Süresi Doldu</span>'
+                        : '<span class="badge badge-green">Aktif</span>';
+                const reward = c.rewardType === 'coins' ? `💰 ${(c.rewardValue || 0).toLocaleString('tr-TR')} coin` : `🦁 ${c.rewardAnimal}`;
+                const uses = c.maxUses !== null ? `${c.usedCount}/${c.maxUses}` : `${c.usedCount}/∞`;
+                return `<tr>
+        <td><span class="code-tag">${c.code}</span> ${c.note ? `<span style="font-size:11px;color:var(--text-muted);">(${c.note})</span>` : ''}</td>
+        <td><span class="badge badge-blue">${c.rewardType}</span></td>
+        <td>${reward}</td>
+        <td>${uses}</td>
+        <td style="font-size:11px;color:var(--text-muted);">${expires}</td>
+        <td>${statusBadge}</td>
+        <td style="display:flex;gap:6px;">
+          <button class="btn btn-sm" style="background:rgba(88,101,242,0.15);color:var(--accent-blue);border:1px solid rgba(88,101,242,0.3);" onclick="toggleCode('${c.code}')">
+            <i class="fas ${c.active ? 'fa-pause' : 'fa-play'}"></i>
+          </button>
+          <button class="btn btn-red btn-sm" onclick="deleteCode('${c.code}')"><i class="fas fa-trash"></i></button>
+        </td>
+      </tr>`;
+            }).join('');
+        }
+
+        async function createCode() {
+            const code = document.getElementById('codeInput').value.trim();
+            const rewardType = document.getElementById('codeRewardType').value;
+            const rewardValue = document.getElementById('codeRewardValue').value;
+            const rewardAnimal = document.getElementById('codeRewardAnimal').value.trim();
+            const maxUses = document.getElementById('codeMaxUses').value;
+            const expiresIn = document.getElementById('codeExpiresIn').value;
+            const note = document.getElementById('codeNote').value.trim();
+            if (!code) return toast('Kod boş olamaz', 'error');
+            const r = await fetch('/api/admin/codes', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code, rewardType, rewardValue, rewardAnimal, maxUses: maxUses || null, expiresIn: expiresIn || null, note })
+            });
+            const d = await r.json();
+            if (r.ok) { toast(`${d.code} kodu oluşturuldu`, 'success'); loadCodes(); document.getElementById('codeInput').value = ''; }
+            else toast(d.error || 'Hata', 'error');
+        }
+
+        async function deleteCode(code) {
+            if (!confirm(`"${code}" kodunu silmek istediğinize emin misiniz?`)) return;
+            const r = await fetch(`/api/admin/codes/${code}`, { method: 'DELETE' });
+            if (r.ok) { toast('Kod silindi', 'success'); loadCodes(); }
+            else toast('Hata', 'error');
+        }
+
+        async function toggleCode(code) {
+            const r = await fetch(`/api/admin/codes/${code}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+            const d = await r.json();
+            if (r.ok) { toast(`Kod ${d.active ? 'aktif' : 'pasif'} yapıldı`, 'success'); loadCodes(); }
+            else toast('Hata', 'error');
+        }
+
+        // ── Broadcast ─────────────────────────────────────────────────────────────────
+        async function sendBroadcast(mode) {
+            const title = document.getElementById('broadTitle').value.trim();
+            const message = document.getElementById('broadMsg').value.trim();
+            const color = document.getElementById('broadColor').value;
+            if (!message) return toast('Mesaj boş olamaz', 'error');
+            const endpoint = mode === 'admins' ? '/api/admin/broadcast-admins' : '/api/admin/broadcast';
+            const r = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title, message, color }) });
+            const d = await r.json();
+            if (r.ok) {
+                toast(`Gönderildi: ${d.success} başarı, ${d.failed} hata`, d.failed > 0 ? 'info' : 'success');
+                document.getElementById('broadResult').innerHTML = `
+        <div style="background:var(--bg-tertiary);border-radius:8px;padding:12px;font-size:13px;margin-top:8px;">
+          ✅ Başarılı: <strong>${d.success}</strong> &nbsp;|&nbsp; ❌ Başarısız: <strong>${d.failed}</strong>
+          ${d.errors?.length ? '<details style="margin-top:8px;"><summary style="cursor:pointer;color:var(--text-muted);">Hata detayları</summary><pre style="font-size:11px;margin:8px 0 0;">' + JSON.stringify(d.errors, null, 2) + '</pre></details>' : ''}
+        </div>`;
+            } else toast(d.error || 'Hata', 'error');
+        }
+
+        // ── Analytics ─────────────────────────────────────────────────────────────────
+        async function loadAnalytics() {
+            try {
+                const d = await fetch('/api/admin/analytics').then(r => r.json());
+                document.getElementById('topCmds').innerHTML = d.topCommands?.length
+                    ? d.topCommands.map((c, i) => `
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border-color);">
+            <span style="color:var(--text-muted);min-width:22px;font-size:13px;">${i + 1}.</span>
+            <code style="flex:1;font-size:13px;">!${c.cmd}</code>
+            <span style="font-weight:700;color:var(--accent-blue);">${c.count.toLocaleString('tr-TR')}</span>
+          </div>`).join('')
+                    : '<div class="empty-state"><i class="fas fa-terminal"></i><h3>Veri Yok</h3></div>';
+
+                const l = d.lethe;
+                document.getElementById('letheStats').innerHTML = `
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="ov-card"><div class="ov-icon">🏹</div><div class="ov-val">${(l.totalHunts || 0).toLocaleString('tr-TR')}</div><div class="ov-lbl">Toplam Av</div></div>
+          <div class="ov-card"><div class="ov-icon">⚔️</div><div class="ov-val">${(l.totalBattles || 0).toLocaleString('tr-TR')}</div><div class="ov-lbl">Toplam Savaş</div></div>
+          <div class="ov-card" style="grid-column:1/-1;"><div class="ov-icon">👤</div><div class="ov-val">${(l.totalUsers || 0).toLocaleString('tr-TR')}</div><div class="ov-lbl">Aktif Oyuncu</div></div>
+        </div>`;
+
+                document.getElementById('letheTop10').innerHTML = l.top10?.length
+                    ? l.top10.map((p, i) => `
+          <div class="lb-item">
+            <div class="lb-rank">${i + 1}</div>
+            <div class="lb-info"><div class="lb-name"><code>${p.userId}</code></div><div class="lb-sub">🏹 ${(p.hunts || 0).toLocaleString()} av · ⚔️ ${(p.battles || 0).toLocaleString()} savaş · 💰 ${(p.coins || 0).toLocaleString()} coin</div></div>
+          </div>`).join('')
+                    : '<div class="empty-state"><i class="fas fa-gamepad"></i><h3>Veri Yok</h3></div>';
+            } catch (e) { console.error(e); }
+        }
+
+        // ── Export ────────────────────────────────────────────────────────────────────
+        function exportData() {
+            window.open('/api/admin/export', '_blank');
+            toast('Veri dışa aktarılıyor…', 'info');
+        }
+
+        init();
+    </script>
+</body>
+
+</html>
