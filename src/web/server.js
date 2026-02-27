@@ -367,6 +367,185 @@ app.get('/admin', isBotOwner, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'admin', 'index.html'));
 });
 
+// ─── Canlı Log Sistemi ───────────────────────────────────────────────────────
+const LOG_BUFFER = [];
+const LOG_MAX = 300;
+
+const _origConsole = { log: console.log, warn: console.warn, error: console.error, info: console.info };
+['log', 'warn', 'error', 'info'].forEach(level => {
+  console[level] = (...args) => {
+    _origConsole[level](...args);
+    const entry = {
+      level,
+      time: new Date().toISOString(),
+      msg: args.map(a => (typeof a === 'object' ? JSON.stringify(a) : String(a))).join(' ')
+    };
+    LOG_BUFFER.push(entry);
+    if (LOG_BUFFER.length > LOG_MAX) LOG_BUFFER.shift();
+  };
+});
+
+app.get('/api/admin/logs', isBotOwner, (req, res) => {
+  const { level, limit = 100 } = req.query;
+  let logs = [...LOG_BUFFER].reverse();
+  if (level && level !== 'all') logs = logs.filter(l => l.level === level);
+  res.json(logs.slice(0, parseInt(limit)));
+});
+
+// ─── Kullanıcı Profil Görüntüleyici / Düzenleyici ────────────────────────────
+app.get('/api/admin/user/:id', isBotOwner, async (req, res) => {
+  const { id } = req.params;
+  try {
+    const { db } = require('../database/db');
+    const { userLetheProfile, userEconomy } = require('../../shared/schema');
+    const { eq } = require('drizzle-orm');
+
+    const [lethe] = await db.select().from(userLetheProfile)
+      .where(eq(userLetheProfile.visitorId, id)).limit(1);
+
+    // Tüm sunuculardaki ekonomi bakiyesi
+    const ecoRows = await db.select().from(userEconomy)
+      .where(eq(userEconomy.userId, id));
+
+    // Botun bulunduğu sunucularda bu kullanıcı var mı?
+    const guilds = discordClient
+      ? discordClient.guilds.cache
+        .filter(g => g.members.cache.has(id))
+        .map(g => ({ id: g.id, name: g.name }))
+      : [];
+
+    res.json({
+      userId: id,
+      lethe: lethe || null,
+      economy: ecoRows,
+      guilds
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/admin/user/:id', isBotOwner, async (req, res) => {
+  const { id } = req.params;
+  const { action, amount, guildId } = req.body;
+  // action: 'add_coins' | 'remove_coins' | 'set_level' | 'reset_lethe'
+  try {
+    const { db } = require('../database/db');
+    const { userLetheProfile, userEconomy } = require('../../shared/schema');
+    const { eq, and } = require('drizzle-orm');
+
+    if (action === 'add_coins' || action === 'remove_coins') {
+      const delta = action === 'add_coins' ? Math.abs(amount) : -Math.abs(amount);
+      const [p] = await db.select().from(userLetheProfile).where(eq(userLetheProfile.visitorId, id)).limit(1);
+      if (p) {
+        await db.update(userLetheProfile).set({ coins: Math.max(0, (p.coins || 0) + delta) }).where(eq(userLetheProfile.visitorId, id));
+      } else {
+        await db.insert(userLetheProfile).values({ visitorId: id, coins: Math.max(0, delta), level: 1, xp: 0 });
+      }
+    } else if (action === 'set_level') {
+      await db.update(userLetheProfile).set({ level: parseInt(amount), xp: 0 }).where(eq(userLetheProfile.visitorId, id));
+    } else if (action === 'reset_lethe') {
+      await db.update(userLetheProfile).set({ coins: 0, level: 1, xp: 0 }).where(eq(userLetheProfile.visitorId, id));
+    } else if (action === 'add_guild_coins' && guildId) {
+      const [row] = await db.select().from(userEconomy).where(and(eq(userEconomy.userId, id), eq(userEconomy.guildId, guildId))).limit(1);
+      if (row) {
+        await db.update(userEconomy).set({ balance: Math.max(0, (row.balance || 0) + parseInt(amount)) }).where(and(eq(userEconomy.userId, id), eq(userEconomy.guildId, guildId)));
+      }
+    }
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── Sunucu Başına Komut Devre Dışı ─────────────────────────────────────────
+app.get('/api/admin/guilds/:id/disabled-cmds', isBotOwner, (req, res) => {
+  try {
+    const data = storage.getGuildData(req.params.id);
+    res.json({ disabledCommands: data?.disabledCommands || [] });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.post('/api/admin/guilds/:id/disabled-cmds', isBotOwner, (req, res) => {
+  const { cmd, action } = req.body; // action: 'disable' | 'enable'
+  if (!cmd || !action) return res.status(400).json({ error: 'cmd ve action zorunlu' });
+  try {
+    const data = storage.getGuildData(req.params.id) || {};
+    if (!data.disabledCommands) data.disabledCommands = [];
+    if (action === 'disable' && !data.disabledCommands.includes(cmd)) {
+      data.disabledCommands.push(cmd);
+    } else if (action === 'enable') {
+      data.disabledCommands = data.disabledCommands.filter(c => c !== cmd);
+    }
+    storage.setGuildData(req.params.id, data);
+    res.json({ success: true, disabledCommands: data.disabledCommands });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ─── Webhook Bildirimleri ─────────────────────────────────────────────────────
+let _webhookConfig = { url: '', events: { botCrash: true, newGuild: true, blacklist: true, dailySummary: false } };
+try { const s = storage.getGlobalData?.('webhookConfig'); if (s) _webhookConfig = s; } catch (_) { }
+
+app.get('/api/admin/webhook-config', isBotOwner, (req, res) => res.json(_webhookConfig));
+app.post('/api/admin/webhook-config', isBotOwner, (req, res) => {
+  const { url, events } = req.body;
+  if (url !== undefined) _webhookConfig.url = url;
+  if (events) _webhookConfig.events = { ..._webhookConfig.events, ...events };
+  try { storage.setGlobalData?.('webhookConfig', _webhookConfig); } catch (_) { }
+  res.json({ success: true, config: _webhookConfig });
+});
+
+async function sendWebhookNotification(eventType, content) {
+  if (!_webhookConfig.url || !_webhookConfig.events[eventType]) return;
+  try {
+    await fetch(_webhookConfig.url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ embeds: [{ ...content, timestamp: new Date().toISOString(), footer: { text: 'Publisher Bot Admin' } }] })
+    });
+  } catch (err) { _origConsole.error('[Webhook]', err.message); }
+}
+
+// ─── Zamanlanmış Duyurular ────────────────────────────────────────────────────
+const _scheduledBroadcasts = [];
+try { const s = storage.getGlobalData?.('scheduledBroadcasts'); if (Array.isArray(s)) _scheduledBroadcasts.push(...s); } catch (_) { }
+
+function saveScheduled() { try { storage.setGlobalData?.('scheduledBroadcasts', _scheduledBroadcasts); } catch (_) { } }
+
+setInterval(async () => {
+  const now = new Date();
+  for (let i = _scheduledBroadcasts.length - 1; i >= 0; i--) {
+    const br = _scheduledBroadcasts[i];
+    if (!br.active || new Date(br.scheduledAt) > now) continue;
+    br.active = false;
+    saveScheduled();
+    if (!discordClient) continue;
+    for (const guild of discordClient.guilds.cache.values()) {
+      try {
+        const ch = guild.systemChannel || guild.channels.cache.find(c => c.type === 0 && c.permissionsFor(guild.members.me)?.has('SendMessages'));
+        if (ch) await ch.send({ embeds: [{ title: br.title || '📢 Duyuru', description: br.message, color: 0x5865f2, timestamp: new Date().toISOString() }] });
+      } catch (_) { }
+    }
+  }
+}, 60000); // Her dakika kontrol
+
+app.get('/api/admin/broadcast/scheduled', isBotOwner, (req, res) => res.json(_scheduledBroadcasts));
+app.post('/api/admin/broadcast/schedule', isBotOwner, (req, res) => {
+  const { title, message, scheduledAt } = req.body;
+  if (!message || !scheduledAt) return res.status(400).json({ error: 'message ve scheduledAt zorunlu' });
+  const entry = { id: Date.now(), title, message, scheduledAt, active: true, createdAt: new Date().toISOString() };
+  _scheduledBroadcasts.push(entry);
+  saveScheduled();
+  res.json({ success: true, ...entry });
+});
+app.delete('/api/admin/broadcast/scheduled/:id', isBotOwner, (req, res) => {
+  const idx = _scheduledBroadcasts.findIndex(b => b.id === parseInt(req.params.id));
+  if (idx === -1) return res.status(404).json({ error: 'Bulunamadı' });
+  _scheduledBroadcasts.splice(idx, 1);
+  saveScheduled();
+  res.json({ success: true });
+});
+
 // ─── GET /api/admin/overview — Bot genel durumu ─────────────────────────────
 app.get('/api/admin/overview', isBotOwner, (req, res) => {
   const uptimeMs = process.uptime() * 1000;
