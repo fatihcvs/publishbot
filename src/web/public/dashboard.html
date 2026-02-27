@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="tr">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,7 +8,90 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
   <link href="/css/dashboard.css" rel="stylesheet">
+  <style>
+    .admin-banner {
+      display: none;
+      max-width: 900px;
+      margin: 0 auto 28px;
+      background: linear-gradient(135deg, rgba(88, 101, 242, 0.15) 0%, rgba(235, 69, 158, 0.12) 100%);
+      border: 1px solid rgba(88, 101, 242, 0.35);
+      border-radius: 16px;
+      padding: 20px 24px;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .admin-banner-icon {
+      width: 52px;
+      height: 52px;
+      flex-shrink: 0;
+      background: linear-gradient(135deg, #5865f2, #eb459e);
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      color: #fff;
+    }
+
+    .admin-banner-text {
+      flex: 1;
+    }
+
+    .admin-banner-text h3 {
+      margin: 0 0 4px;
+      font-size: 16px;
+      font-weight: 700;
+      background: linear-gradient(90deg, #5865f2, #eb459e);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .admin-banner-text p {
+      margin: 0;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .admin-banner-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: linear-gradient(135deg, #5865f2, #eb459e);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 10px 20px;
+      border-radius: 10px;
+      text-decoration: none;
+      white-space: nowrap;
+      transition: opacity 0.2s, transform 0.15s;
+      box-shadow: 0 4px 16px rgba(88, 101, 242, 0.35);
+    }
+
+    .admin-banner-btn:hover {
+      opacity: 0.88;
+      transform: translateY(-1px);
+    }
+
+    .admin-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: linear-gradient(135deg, rgba(88, 101, 242, 0.2), rgba(235, 69, 158, 0.15));
+      border: 1px solid rgba(88, 101, 242, 0.4);
+      color: #a8b4ff;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 20px;
+      margin-bottom: 6px;
+      display: inline-flex;
+    }
+  </style>
 </head>
+
 <body>
   <div class="guild-select-page">
     <header class="guild-select-header">
@@ -35,31 +119,45 @@
         </div>
       </div>
     </header>
-    
+
     <div class="guild-select-content">
+
+      <!-- Bot Sahibine Özel Admin Banner -->
+      <div class="admin-banner" id="adminBanner">
+        <div class="admin-banner-icon"><i class="fas fa-crown"></i></div>
+        <div class="admin-banner-text">
+          <div class="admin-badge"><i class="fas fa-crown"></i> BOT SAHİBİ</div>
+          <h3>Admin Paneli</h3>
+          <p>Bot genelinde ayarlar, anan istatistikler, odel kodları, loglar ve daha fazlasını yönet.</p>
+        </div>
+        <a href="/admin" class="admin-banner-btn"><i class="fas fa-shield-halved"></i> Admin Paneline Git</a>
+      </div>
+
       <h1 class="guild-select-title">Sunucularınız</h1>
       <p class="guild-select-subtitle">Yönetmek istediğiniz sunucuyu seçin</p>
-      
+
       <div class="loading-container" id="loadingContainer">
         <div class="loading-spinner"></div>
         <p>Sunucular yükleniyor...</p>
       </div>
-      
+
       <div class="guilds-grid" id="guildsGrid" style="display: none;"></div>
-      
+
       <div id="noGuilds" style="display: none; text-align: center; padding: 60px 20px;">
-        <div style="width: 80px; height: 80px; margin: 0 auto 20px; border-radius: 50%; background: var(--bg-card); display: flex; align-items: center; justify-content: center;">
+        <div
+          style="width: 80px; height: 80px; margin: 0 auto 20px; border-radius: 50%; background: var(--bg-card); display: flex; align-items: center; justify-content: center;">
           <i class="fas fa-server" style="font-size: 32px; color: var(--text-muted);"></i>
         </div>
         <h3 style="margin-bottom: 8px;">Sunucu Bulunamadı</h3>
-        <p style="color: var(--text-secondary); max-width: 400px; margin: 0 auto 24px;">Publisher Bot'un bulunduğu ve yönetim yetkiniz olan sunucu yok.</p>
+        <p style="color: var(--text-secondary); max-width: 400px; margin: 0 auto 24px;">Publisher Bot'un bulunduğu ve
+          yönetim yetkiniz olan sunucu yok.</p>
         <a href="#" id="inviteBtn" class="btn btn-primary">
           <i class="fas fa-plus"></i> Botu Sunucuya Ekle
         </a>
       </div>
     </div>
   </div>
-  
+
   <script>
     function toggleTheme() {
       const html = document.documentElement;
@@ -67,11 +165,11 @@
       const newTheme = currentTheme === 'light' ? 'dark' : 'light';
       html.setAttribute('data-theme', newTheme);
       localStorage.setItem('theme', newTheme);
-      
+
       const icon = document.querySelector('.theme-toggle i');
       icon.className = newTheme === 'light' ? 'fas fa-sun' : 'fas fa-moon';
     }
-    
+
     function loadSavedTheme() {
       const savedTheme = localStorage.getItem('theme') || 'dark';
       document.documentElement.setAttribute('data-theme', savedTheme);
@@ -80,8 +178,9 @@
         icon.className = savedTheme === 'light' ? 'fas fa-sun' : 'fas fa-moon';
       }
     }
-    
+
     async function init() {
+      const BOT_OWNER_ID = '259442832576741377';
       try {
         const userRes = await fetch('/api/user');
         if (!userRes.ok) {
@@ -90,10 +189,16 @@
         }
         const user = await userRes.json();
         document.getElementById('username').textContent = user.username;
-        document.getElementById('userAvatar').src = user.avatar 
+        document.getElementById('userAvatar').src = user.avatar
           ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`
           : 'https://cdn.discordapp.com/embed/avatars/0.png';
-        
+
+        // Bot sahibiyse admin banner'ı göster
+        if (user.id === BOT_OWNER_ID) {
+          const banner = document.getElementById('adminBanner');
+          if (banner) banner.style.display = 'flex';
+        }
+
         loadSavedTheme();
         await loadGuilds();
         await loadInviteUrl();
@@ -102,27 +207,27 @@
         window.location.href = '/';
       }
     }
-    
+
     async function loadGuilds() {
       try {
         const res = await fetch('/api/guilds');
         const guilds = await res.json();
-        
+
         document.getElementById('loadingContainer').style.display = 'none';
-        
+
         if (guilds.length === 0) {
           document.getElementById('noGuilds').style.display = 'block';
           return;
         }
-        
+
         const container = document.getElementById('guildsGrid');
         container.style.display = 'grid';
-        
+
         container.innerHTML = guilds.map(guild => {
-          const iconUrl = guild.icon 
+          const iconUrl = guild.icon
             ? `https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png`
             : null;
-          
+
           return `
             <a href="/dashboard/${guild.id}" class="guild-card">
               <div class="guild-card-icon">
@@ -143,7 +248,7 @@
         `;
       }
     }
-    
+
     async function loadInviteUrl() {
       try {
         const res = await fetch('/api/invite');
@@ -153,8 +258,9 @@
         console.error('Invite URL error:', error);
       }
     }
-    
+
     init();
   </script>
 </body>
+
 </html>
