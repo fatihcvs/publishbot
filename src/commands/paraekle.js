@@ -3,14 +3,19 @@ const { db } = require('../database/db');
 const { userEconomy, economyConfig } = require('../../shared/schema');
 const { eq, and } = require('drizzle-orm');
 
+const BOT_OWNER_ID = process.env.BOT_OWNER_ID || '259442832576741377';
+
 module.exports = {
     name: 'paraekle',
     aliases: ['addmoney', 'givemoney'],
-    description: 'Belirtilen kullanıcıya sunucu parası ekler.',
-    permissions: [PermissionFlagsBits.ManageGuild], // Admin only
+    description: 'Belirtilen kullanıcıya sunucu parası ekler. (Bot sahibi)',
+    permissions: [PermissionFlagsBits.ManageGuild],
     usage: '!paraekle [@kullanıcı] [miktar]',
 
     async execute(message, args, client) {
+        if (message.author.id !== BOT_OWNER_ID) {
+            return message.reply('🔒 Bu komutu yalnızca **bot sahibi** kullanabilir.');
+        }
         const target = message.mentions.users.first() || message.guild.members.cache.get(args[0])?.user;
         if (!target) return message.reply('❌ Lütfen para eklenecek kullanıcıyı etiketleyin.');
 

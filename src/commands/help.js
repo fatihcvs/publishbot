@@ -133,10 +133,107 @@ module.exports = {
       return message.reply({ embeds: [embed] });
     }
 
-    if (category === 'oyun' || category === 'game' || category === 'istatistik') {
+    if (category === 'lethe' || category === 'oyun' || category === 'game') {
+      const embed = new EmbedBuilder()
+        .setColor('#8b5cf6')
+        .setTitle('🎮 Lethe Game Komutları')
+        .setDescription('Publisher Bot\'un hayvan koleksiyon oyunu! `publisherbot.org/lethe-game` → Tam rehber')
+        .addFields(
+          {
+            name: '🏹 Avlanma & Koleksiyon',
+            value: [
+              '`!avla` / `!a` — Hayvan avla (15sn)',
+              '`!koleksiyon` / `!k` — Koleksiyonunu gör',
+              '`!sezon` — Aktif sezonu gör',
+              '`!sezon tüm` — Tüm sezon hayvanları',
+              '`!ad <id> <isim>` — Hayvana isim ver',
+              '`!sat <id>` / `!sat hepsi` — Hayvan sat',
+            ].join('\n'),
+            inline: false
+          },
+          {
+            name: '🗺️ Bölge & Profil',
+            value: [
+              '`!bölge` — Mevcut bölgeni gör',
+              '`!bölge git <isim>` — Bölge değiştir',
+              '`!profil` / `!pr` — Oyun profilini gör',
+              '`!bakiye` / `!p` — Altın ve taşlar',
+            ].join('\n'),
+            inline: false
+          },
+          {
+            name: '⚔️ Savaş & Boss',
+            value: [
+              '`!savaş` / `!s` — PvE savaş',
+              '`!boss` / `!b` — Boss savaşı (3/3 takım)',
+              '`!düello @kişi` / `!d` — PvP düello',
+              '`!raid başlat <boss>` — Co-op raid',
+              '`!raid katıl` · `!raid saldır`',
+            ].join('\n'),
+            inline: false
+          },
+          {
+            name: '👥 Takım',
+            value: [
+              '`!takım` / `!t` — Takımı gör',
+              '`!takımekle <id>` / `!te` — Ekle',
+              '`!takımçıkar <slot>` / `!tc` — Çıkar',
+            ].join('\n'),
+            inline: true
+          },
+          {
+            name: '🛡️ Klan',
+            value: [
+              '`!klan kur <isim> <etiket>`',
+              '`!klan katıl <etiket>`',
+              '`!klan bilgi` · `!klan üyeler`',
+              '`!klan sırala`',
+            ].join('\n'),
+            inline: true
+          },
+          {
+            name: '💰 Ekonomi & Mağaza',
+            value: [
+              '`!günlük` — Günlük ödül (streak!)',
+              '`!çalış` — Para kazan (30dk)',
+              '`!mağaza` / `!m` — Mağazayı gör',
+              '`!al <kategori> <id>` — Eşya al',
+              '`!envanter` / `!e` — Envanteri gör',
+              '`!kuşan <hayvan> <eşya>` — Ekipman tak',
+              '`!sandık [aç <id>]` — Sandık aç',
+            ].join('\n'),
+            inline: false
+          },
+          {
+            name: '📊 İstatistik & Sıralama',
+            value: [
+              '`!siralama coins/level/hunts` — Sıralama',
+              '`!başarım` / `!achievement` — Başarımlar',
+              '`!görev` — Günlük/haftalık görevler',
+              '`!etkinlik` — Aktif etkinlikler',
+            ].join('\n'),
+            inline: false
+          },
+          {
+            name: '⚗️ Evrim & Eğitim',
+            value: [
+              '`!evrim <id1> <id2> <id3>` — 3 hayvanı birleştir',
+              '`!eğit <id>` — Hayvanı eğit (1saat)',
+              '`!takas @kişi hayvan:<id>` — Takas teklifi',
+              '`!hediye @kişi <miktar>` — Hediye gönder',
+            ].join('\n'),
+            inline: false
+          }
+        )
+        .setFooter({ text: '📖 Tam rehber: publisherbot.org/lethe-game' })
+        .setTimestamp();
+      return message.reply({ embeds: [embed] });
+    }
+
+    if (category === 'istatistik' || category === 'stat') {
       const embed = new EmbedBuilder()
         .setColor('#1b2838')
-        .setTitle('🎮 Oyun & Film Komutları')
+        .setTitle('📊 İstatistik & Oyun Komutları')
         .setDescription('Steam, Valorant, LOL istatistikleri ve film/dizi bilgileri')
         .addFields(
           { name: '!steam <Oyun Adı>', value: 'Steam\'de oyun arar — fiyat, puan, tür, yayın tarihi' },
@@ -152,7 +249,7 @@ module.exports = {
 
     const embed = new EmbedBuilder()
       .setColor('#5865F2')
-      .setTitle('Publisher Bot - Komutlar')
+      .setTitle('Publisher Bot — Komutlar')
       .setDescription('Detaylı yardım için: `!yardım <kategori>`')
       .addFields(
         { name: '🛡️ Moderasyon', value: '`!yardım mod`', inline: true },
@@ -162,11 +259,12 @@ module.exports = {
         { name: '📈 Seviye', value: '`!yardım seviye`', inline: true },
         { name: '🎉 Eğlence', value: '`!yardım eğlence`', inline: true },
         { name: '🤖 Yapay Zeka', value: '`!yardım ai`', inline: true },
+        { name: '📊 İstatistik', value: '`!yardım stat`', inline: true },
+        { name: '🎮 Lethe Game', value: '`!yardım lethe`', inline: true },
         { name: '📝 Özel Komutlar', value: '`!komutekle` `!komutsil` `!komutlar`', inline: false },
-        { name: '👀 Bilgi', value: '`!sunucu` `!kullanıcı` `!avatar` `!ping`', inline: false },
-        { name: '🎮 Oyun & Film', value: '`!yardım oyun`', inline: true }
+        { name: '👀 Bilgi', value: '`!sunucu` `!kullanıcı` `!avatar` `!ping`', inline: false }
       )
-      .setFooter({ text: 'Publisher Bot | Dashboard: /dashboard' })
+      .setFooter({ text: 'Publisher Bot | Dashboard: publisherbot.org' })
       .setTimestamp();
 
     await message.reply({ embeds: [embed] });

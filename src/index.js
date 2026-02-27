@@ -47,6 +47,8 @@ client.storage = storage;
 client.invites = new Collection();
 
 const PREFIX = '!';
+const commandCooldowns = new Collection(); // Global cooldown tracker
+
 
 // Prevent duplicate command processing (A3 — safe cleanup guaranteed)
 const processedMessages = new Set();
