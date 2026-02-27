@@ -26,6 +26,8 @@ app.use(helmet({
     directives: {
       defaultSrc: ["'self'"],
       scriptSrc: ["'self'", "'unsafe-inline'", 'https://cdnjs.cloudflare.com', 'https://cdn.jsdelivr.net', 'https://fonts.googleapis.com'],
+      // Allow inline onclick/onchange attributes (admin panel uses them extensively)
+      scriptSrcAttr: ["'unsafe-inline'"],
       styleSrc: ["'self'", "'unsafe-inline'", 'https://cdnjs.cloudflare.com', 'https://cdn.jsdelivr.net', 'https://fonts.googleapis.com'],
       fontSrc: ["'self'", 'https://fonts.gstatic.com', 'https://cdnjs.cloudflare.com'],
       imgSrc: ["'self'", 'data:', 'https://cdn.discordapp.com', 'https://i.imgur.com'],
@@ -698,45 +700,33 @@ app.post('/api/admin/broadcast', isBotOwner, async (req, res) => {
 });
 
 // ─── GET /api/admin/analytics — Global komut istatistikleri ─────────────────
-app.get('/api/admin/analytics', isBotOwner, (req, res) => {
+app.get('/api/admin/analytics', isBotOwner, async (req, res) => {
   try {
-    const guildIds = discordClient ? Array.from(discordClient.guilds.cache.keys()) : [];
-    const cmdUsage = {};
-    let totalHunts = 0, totalBattles = 0, totalUsers = 0;
-    const topLethe = [];
+    // Top commands from DB
+    const dbCmds = await storage.getCommandUsages().catch(() => []);
+    const topCommands = dbCmds.slice(0, 15).map(r => ({ cmd: r.commandName, count: r.usageCount }));
 
-    for (const gid of guildIds) {
-      const data = storage.getGuildData(gid);
-      // Command usage stats
-      if (data?.commandUsage) {
-        for (const [cmd, count] of Object.entries(data.commandUsage)) {
-          cmdUsage[cmd] = (cmdUsage[cmd] || 0) + count;
-        }
+    // Lethe stats — safe defaults if not available
+    let lethe = { totalHunts: 0, totalBattles: 0, totalUsers: 0, top10: [] };
+    try {
+      const { db } = require('../database/db');
+      if (db) {
+        const { userLetheProfile } = require('../../shared/schema');
+        const { sql, desc } = require('drizzle-orm');
+        const [usersRow] = await db.select({ count: sql`count(*)` }).from(userLetheProfile);
+        lethe.totalUsers = parseInt(usersRow?.count || 0);
+        const top10rows = await db.select().from(userLetheProfile).orderBy(desc(userLetheProfile.coins)).limit(10);
+        lethe.top10 = top10rows.map(p => ({
+          userId: p.visitorId,
+          coins: p.coins || 0,
+          level: p.level || 1,
+          hunts: p.totalHunts || 0,
+          battles: p.totalBattles || 0
+        }));
       }
-      // Lethe game stats
-      if (data?.economy) {
-        for (const [uid, econ] of Object.entries(data.economy)) {
-          const hunts = econ.totalHunts || 0;
-          const battles = econ.totalBattles || 0;
-          totalHunts += hunts;
-          totalBattles += battles;
-          totalUsers++;
-          topLethe.push({ userId: uid, guildId: gid, hunts, battles, coins: econ.coins || 0 });
-        }
-      }
-    }
+    } catch (_) { /* lethe veritabanı erişimi isteğe bağlı */ }
 
-    topLethe.sort((a, b) => b.hunts - a.hunts);
-
-    const topCmds = Object.entries(cmdUsage)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 15)
-      .map(([cmd, count]) => ({ cmd, count }));
-
-    res.json({
-      topCommands: topCmds,
-      lethe: { totalHunts, totalBattles, totalUsers, top10: topLethe.slice(0, 10) }
-    });
+    res.json({ topCommands, lethe });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
