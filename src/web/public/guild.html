@@ -51,7 +51,7 @@
           style="display:none; background:linear-gradient(135deg,rgba(88,101,242,0.15),rgba(235,69,158,0.1)); border:1px solid rgba(88,101,242,0.25);">
           <i class="fas fa-key" style="color:#eb459e;"></i>
           <span
-            style="background:linear-gradient(90deg,#5865f2,#eb459e);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">API
+            style="background:linear-gradient(90deg,#5865f2,#eb459e);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;">API
             Anahtarları</span>
         </a>
       </nav>
@@ -194,13 +194,17 @@
             <i class="fas fa-moon"></i>
             <span>Tema</span>
           </button>
-          <a href="#" class="premium-button">
-            <i class="fas fa-crown"></i>
-            <span>Premium</span>
-          </a>
-          <div class="user-menu" id="userMenu">
-            <img src="" alt="" class="user-avatar" id="userAvatar">
-            <i class="fas fa-chevron-down"></i>
+          <div class="user-display" id="userDisplayBtn" onclick="toggleUserDropdown()">
+            <img src="" alt="" class="user-avatar" id="userAvatar"
+              style="width:36px;height:36px;border-radius:50%;border:2px solid var(--border-color);">
+            <span class="user-display-name" id="userDisplayName"></span>
+            <i class="fas fa-chevron-down" style="font-size:11px;color:var(--text-muted);"></i>
+            <div class="user-dropdown" id="userDropdown">
+              <a href="/"><i class="fas fa-home"></i>Ana Sayfa</a>
+              <a href="/dashboard"><i class="fas fa-server"></i>Sunucular</a>
+              <div class="divider"></div>
+              <a href="/auth/logout"><i class="fas fa-sign-out-alt"></i>Çıkış Yap</a>
+            </div>
           </div>
         </div>
       </header>
@@ -216,12 +220,12 @@
             <div class="stat-card">
               <div class="stat-icon"><i class="fas fa-users"></i></div>
               <div class="stat-value" id="statMembers">-</div>
-              <div class="stat-label">Toplam Uye</div>
+              <div class="stat-label">Toplam Üye</div>
             </div>
             <div class="stat-card green">
               <div class="stat-icon"><i class="fas fa-user-check"></i></div>
               <div class="stat-value" id="statOnline">-</div>
-              <div class="stat-label">Cevrimici</div>
+              <div class="stat-label">Çevrimiçi</div>
             </div>
             <div class="stat-card purple">
               <div class="stat-icon"><i class="fas fa-hashtag"></i></div>
@@ -231,7 +235,12 @@
             <div class="stat-card orange">
               <div class="stat-icon"><i class="fas fa-toggle-on"></i></div>
               <div class="stat-value" id="statModules">-</div>
-              <div class="stat-label">Aktif Modul</div>
+              <div class="stat-label">Aktif Modül</div>
+            </div>
+            <div class="stat-card cyan">
+              <div class="stat-icon"><i class="fas fa-user-tag"></i></div>
+              <div class="stat-value" id="statRoles">-</div>
+              <div class="stat-label">Rol</div>
             </div>
           </div>
 
@@ -293,14 +302,26 @@
         </div>
 
         <div id="leaderboardPage" style="display: none;">
-          <h2 class="section-title">Liderlik Tablosu</h2>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">
+            <h2 class="section-title" style="margin:0;">Liderlik Tablosu</h2>
+            <select class="form-select" id="lbTypeFilter" onchange="loadLeaderboard()"
+              style="width:auto;padding:8px 14px;">
+              <option value="xp">XP Sıralaması</option>
+              <option value="coins">Altın Sıralaması</option>
+            </select>
+          </div>
           <div id="leaderboardContent"></div>
         </div>
 
         <div id="modcasesPage" style="display: none;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+          <div
+            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; gap:12px; flex-wrap:wrap;">
             <h2 class="section-title" style="margin: 0;">Moderasyon Vakaları</h2>
-            <div style="display: flex; gap: 8px;">
+            <div style="display: flex; gap: 8px; flex-wrap:wrap; align-items:center;">
+              <div class="cases-search">
+                <i class="fas fa-search"></i>
+                <input type="text" id="caseSearch" placeholder="Kullanıcı veya sebep ara..." oninput="filterCases()">
+              </div>
               <select class="form-select" id="caseTypeFilter" onchange="loadModCases()"
                 style="width: auto; padding: 8px 12px;">
                 <option value="">Tüm Tipler</option>
@@ -314,10 +335,10 @@
             </div>
           </div>
           <div id="modcasesContent">
-            <div
-              style="display: flex; flex-direction: column; align-items: center; padding: 40px; color: var(--text-muted);">
-              <div class="loading-spinner"></div>
-              <p style="margin-top: 12px;">Vakalar yükleniyor...</p>
+            <div class="empty-state">
+              <i class="fas fa-spinner fa-spin"></i>
+              <h3>Yükleniyor...</h3>
+              <p>Moderasyon vakaları getiriliyor.</p>
             </div>
           </div>
         </div>
@@ -345,7 +366,7 @@
           <!-- Bot Owner Only: Bot Durumu Paneli -->
           <div id="botStatusPanel" style="display:none; max-width:600px; margin-top:24px;">
             <h2 class="section-title">🤖 Bot Durumu <span
-                style="font-size:12px;background:linear-gradient(90deg,#5865f2,#eb459e);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:700;">BOT
+                style="font-size:12px;background:linear-gradient(90deg,#5865f2,#eb459e);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;font-weight:700;">BOT
                 SAHİBİ</span></h2>
             <div class="feature-card">
               <div id="currentStatusDisplay"
@@ -493,15 +514,19 @@
     function updateStats() {
       if (!guildData) return;
 
-      document.getElementById('statMembers').textContent = guildData.memberCount || '-';
+      document.getElementById('statMembers').textContent = (guildData.memberCount || 0).toLocaleString('tr-TR');
       const channelCount = Array.isArray(guildData.channels) ? guildData.channels.length : Object.keys(guildData.channels || {}).length;
       document.getElementById('statChannels').textContent = channelCount || '-';
 
       const activeModules = Object.values(modules).filter(v => v === true).length;
       document.getElementById('statModules').textContent = activeModules;
 
-      const onlineCount = guildData.presenceCount || Math.floor((guildData.memberCount || 0) * 0.3);
+      const onlineCount = guildData.presenceCount || '-';
       document.getElementById('statOnline').textContent = onlineCount;
+
+      const roleCount = Array.isArray(guildData.roles) ? guildData.roles.length : '-';
+      const roleEl = document.getElementById('statRoles');
+      if (roleEl) roleEl.textContent = roleCount;
     }
 
     function showToast(message, type = 'success') {
@@ -513,7 +538,7 @@
       toast.innerHTML = `
         <i class="toast-icon fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-times-circle' : 'fa-info-circle'}"></i>
         <div class="toast-content">
-          <div class="toast-title">${type === 'success' ? 'Basarili' : type === 'error' ? 'Hata' : 'Bilgi'}</div>
+          <div class="toast-title">${type === 'success' ? 'Başarılı' : type === 'error' ? 'Hata' : 'Bilgi'}</div>
           <div class="toast-message">${message}</div>
         </div>
         <button class="toast-close" onclick="this.parentElement.remove()"><i class="fas fa-times"></i></button>
@@ -588,6 +613,9 @@
         document.getElementById('userAvatar').src = user.avatar
           ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`
           : 'https://cdn.discordapp.com/embed/avatars/0.png';
+        const nameEl = document.getElementById('userDisplayName');
+        if (nameEl) nameEl.textContent = user.username || '';
+        window._currentUser = user;
 
         const guildRes = await fetch(`/api/guild/${guildId}`);
         if (!guildRes.ok) {
@@ -736,133 +764,194 @@
         if (el) el.style.display = 'none';
       });
 
+      const titles = {
+        features: 'Kontrol Paneli',
+        leaderboard: 'Liderlik Tablosu',
+        modcases: 'Mod Vakaları',
+        settings: 'Ayarlar'
+      };
+      document.getElementById('pageTitle').textContent = titles[page] || 'Kontrol Paneli';
+
+      const show = (id) => {
+        const el = document.getElementById(id);
+        if (el) { el.style.display = 'block'; el.classList.remove('page-fade'); void el.offsetWidth; el.classList.add('page-fade'); }
+      };
+
       if (page === 'features') {
-        document.getElementById('pageTitle').textContent = 'Özellikler';
-        document.getElementById('featuresPage').style.display = 'block';
+        show('featuresPage');
       } else if (page === 'leaderboard') {
-        document.getElementById('pageTitle').textContent = 'Sıralama';
-        document.getElementById('leaderboardPage').style.display = 'block';
+        show('leaderboardPage');
         loadLeaderboard();
       } else if (page === 'modcases') {
-        document.getElementById('pageTitle').textContent = 'Mod Vakaları';
-        document.getElementById('modcasesPage').style.display = 'block';
+        show('modcasesPage');
         loadModCases();
       } else if (page === 'settings') {
-        document.getElementById('pageTitle').textContent = 'Ayarlar';
-        document.getElementById('settingsPage').style.display = 'block';
+        show('settingsPage');
       }
     }
 
+    function toggleUserDropdown() {
+      const dd = document.getElementById('userDropdown');
+      if (dd) dd.classList.toggle('open');
+    }
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('#userDisplayBtn')) {
+        const dd = document.getElementById('userDropdown');
+        if (dd) dd.classList.remove('open');
+      }
+    });
+
     async function loadLeaderboard() {
       const container = document.getElementById('leaderboardContent');
-      container.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;padding:40px;color:var(--text-muted);"><div class="loading-spinner"></div><p style="margin-top:12px;">Yükleniyor...</p></div>';
+      container.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><h3>Yükleniyor…</h3><p>Sıralama verileri getiriliyor.</p></div>';
       try {
         const res = await fetch(`/api/guild/${guildId}/leaderboard`);
         const data = await res.json();
 
         if (!Array.isArray(data) || data.length === 0) {
-          container.innerHTML = '<div class="feature-card"><p style="color:var(--text-muted);">Henüz sıralama verisi yok. Üyeler mesaj gönderdikçe burada görünecek.</p></div>';
+          container.innerHTML = '<div class="empty-state"><i class="fas fa-trophy"></i><h3>Henüz Sıralama Yok</h3><p>Üyeler mesaj gönderdikçe burada görünecek.</p></div>';
           return;
         }
 
-        const rankColors = ['var(--accent-yellow)', '#C0C0C0', 'var(--accent-orange)'];
-        container.innerHTML = data.map((user, index) => {
-          const currentXp = user.currentLevelXp || 0;
-          const nextXp = user.nextLevelXp || 1;
-          const progress = Math.max(0, Math.min(100, ((user.xp - currentXp) / (nextXp - currentXp)) * 100));
-          const rankBg = index < 3 ? rankColors[index] : 'var(--bg-tertiary)';
-          const rankColor = index < 3 ? '#000' : 'var(--text-secondary)';
+        const progress = (u) => {
+          const cur = u.currentLevelXp || 0;
+          const nxt = u.nextLevelXp || 1;
+          return Math.max(0, Math.min(100, ((u.xp - cur) / (nxt - cur)) * 100));
+        };
 
-          return `
-            <div class="feature-card" style="margin-bottom: 10px; padding: 14px;">
-              <div style="display: flex; align-items: center; gap: 16px;">
-                <div style="min-width:40px; height:40px; border-radius:50%; background:${rankBg}; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:15px; color:${rankColor};">
-                  ${index + 1}
-                </div>
-                <div style="flex: 1; min-width: 0;">
-                  <div style="font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${user.username || 'Bilinmeyen'}</div>
-                  <div style="font-size: 13px; color: var(--text-secondary); margin-top: 2px;">Seviye ${user.level} · ${user.xp.toLocaleString('tr-TR')} XP</div>
-                  <div style="height: 5px; background: var(--bg-tertiary); border-radius: 3px; margin-top: 8px; overflow: hidden;">
-                    <div style="height:100%; width:${progress.toFixed(1)}%; background:var(--accent-blue); border-radius:3px; transition: width 0.5s ease;"></div>
-                  </div>
-                </div>
-                <div style="background: rgba(88,101,242,0.15); border: 1px solid var(--accent-blue); color: var(--accent-blue); padding:5px 12px; border-radius: 20px; font-weight:600; font-size:13px; white-space:nowrap;">
-                  LVL ${user.level}
-                </div>
+        let html = '';
+
+        // Top 3 podium
+        const podiumMeta = [
+          { cls: 'gold', crown: '🥇', label: '#1' },
+          { cls: 'silver', crown: '🥈', label: '#2' },
+          { cls: 'bronze', crown: '🥉', label: '#3' }
+        ];
+        const top3 = data.slice(0, Math.min(3, data.length));
+        if (top3.length > 0) {
+          html += '<div class="podium-grid">';
+          top3.forEach((u, i) => {
+            const p = progress(u).toFixed(1);
+            html += `
+              <div class="podium-card ${podiumMeta[i].cls}">
+                <div class="podium-crown">${podiumMeta[i].crown}</div>
+                <div class="podium-rank">${podiumMeta[i].label}</div>
+                <div class="podium-name">${u.username || 'Bilinmeyen'}</div>
+                <div class="podium-info">Sv. ${u.level} · ${(u.xp || 0).toLocaleString('tr-TR')} XP</div>
+                <div class="podium-xp-bar"><div class="podium-xp-fill" style="width:${p}%"></div></div>
+              </div>`;
+          });
+          html += '</div>';
+        }
+
+        // Rank 4+
+        data.slice(3).forEach((u, i) => {
+          const p = progress(u).toFixed(1);
+          html += `
+            <div class="lb-item">
+              <div class="lb-rank">${i + 4}</div>
+              <div class="lb-info">
+                <div class="lb-name">${u.username || 'Bilinmeyen'}</div>
+                <div class="lb-sub">Seviye ${u.level} · ${(u.xp || 0).toLocaleString('tr-TR')} XP</div>
+                <div class="lb-xpbar"><div class="lb-xpfill" style="width:${p}%"></div></div>
               </div>
-            </div>
-          `;
-        }).join('');
+              <div class="lb-level">LVL ${u.level}</div>
+            </div>`;
+        });
+
+        container.innerHTML = html;
       } catch (error) {
         console.error('Leaderboard error:', error);
-        container.innerHTML = '<div class="feature-card"><p style="color:var(--accent-red);"><i class="fas fa-exclamation-circle"></i> Sıralama verisi yüklenemedi.</p></div>';
+        container.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-circle"></i><h3>Hata</h3><p>Sıralama verisi yüklenemedi.</p></div>';
       }
     }
+
+    let _allCases = [];
 
     async function loadModCases() {
       const container = document.getElementById('modcasesContent');
       const typeFilter = document.getElementById('caseTypeFilter')?.value || '';
 
+      container.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><h3>Yükleniyor\u2026</h3><p>Moderasyon vakalar\u0131 getiriliyor.</p></div>';
       try {
         const res = await fetch(`/api/guild/${guildId}/cases`);
-        let cases = await res.json();
-
-        if (typeFilter) cases = cases.filter(c => c.type === typeFilter);
-
-        if (!Array.isArray(cases) || cases.length === 0) {
-          container.innerHTML = '<div class="feature-card"><p style="color:var(--text-muted);">Bu filtreye uygun moderasyon vakası yok.</p></div>';
-          return;
-        }
-
-        const typeConfig = {
-          ban: { color: 'var(--accent-red)', icon: 'fa-ban', label: 'Ban' },
-          kick: { color: 'var(--accent-orange)', icon: 'fa-person-walking-arrow-right', label: 'Kick' },
-          mute: { color: 'var(--accent-purple)', icon: 'fa-microphone-slash', label: 'Mute' },
-          warn: { color: 'var(--accent-yellow)', icon: 'fa-triangle-exclamation', label: 'Uyarı' },
-          unmute: { color: 'var(--accent-green)', icon: 'fa-microphone', label: 'Unmute' },
-          unban: { color: 'var(--accent-green)', icon: 'fa-check-circle', label: 'Unban' }
-        };
-
-        container.innerHTML = `
-          <div style="overflow-x:auto;">
-            <table style="width:100%; border-collapse:collapse; font-size:14px;">
-              <thead>
-                <tr style="color:var(--text-muted); text-align:left; border-bottom: 1px solid var(--border-color);">
-                  <th style="padding:10px 12px;">#</th>
-                  <th style="padding:10px 12px;">Tip</th>
-                  <th style="padding:10px 12px;">Kullanıcı</th>
-                  <th style="padding:10px 12px;">Yetkili</th>
-                  <th style="padding:10px 12px;">Sebep</th>
-                  <th style="padding:10px 12px;">Tarih</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${cases.map(c => {
-          const cfg = typeConfig[c.type] || { color: 'var(--text-muted)', icon: 'fa-circle', label: c.type };
-          const date = c.createdAt ? new Date(c.createdAt).toLocaleDateString('tr-TR') : '-';
-          return `<tr style="border-bottom: 1px solid var(--border-color); transition: background 0.15s;" onmouseenter="this.style.background='var(--bg-hover)'" onmouseleave="this.style.background=''">
-                    <td style="padding:10px 12px; color:var(--text-muted);">#${c.caseNumber || c.id}</td>
-                    <td style="padding:10px 12px;">
-                      <span style="display:inline-flex; align-items:center; gap:6px; padding:3px 10px; border-radius:12px; font-size:12px; font-weight:600; background:${cfg.color}22; color:${cfg.color};">
-                        <i class="fas ${cfg.icon}"></i> ${cfg.label}
-                      </span>
-                    </td>
-                    <td style="padding:10px 12px; font-family: monospace; font-size:12px; color:var(--text-secondary);">${c.userId}</td>
-                    <td style="padding:10px 12px; font-family: monospace; font-size:12px; color:var(--text-secondary);">${c.moderatorId}</td>
-                    <td style="padding:10px 12px; color:var(--text-primary); max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${c.reason || '-'}</td>
-                    <td style="padding:10px 12px; color:var(--text-muted); font-size:12px;">${date}</td>
-                  </tr>`;
-        }).join('')}
-              </tbody>
-            </table>
-          </div>
-          <p style="color:var(--text-muted); font-size:12px; margin-top:12px; text-align:right;">${cases.length} vaka gösteriliyor</p>
-        `;
+        _allCases = await res.json();
+        if (!Array.isArray(_allCases)) _allCases = [];
+        renderCases(typeFilter);
       } catch (error) {
         console.error('Mod cases error:', error);
-        container.innerHTML = '<div class="feature-card"><p style="color:var(--accent-red);"><i class="fas fa-exclamation-circle"></i> Vakalar yüklenemedi.</p></div>';
+        container.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-circle"></i><h3>Hata</h3><p>Vakalar y\u00fcklenemedi.</p></div>';
       }
     }
+
+    function filterCases() {
+      const typeFilter = document.getElementById('caseTypeFilter')?.value || '';
+      renderCases(typeFilter);
+    }
+
+    function renderCases(typeFilter) {
+      const container = document.getElementById('modcasesContent');
+      const searchTerm = (document.getElementById('caseSearch')?.value || '').toLowerCase();
+
+      let cases = _allCases;
+      if (typeFilter) cases = cases.filter(c => c.type === typeFilter);
+      if (searchTerm) cases = cases.filter(c =>
+        (c.userId || '').toLowerCase().includes(searchTerm) ||
+        (c.moderatorId || '').toLowerCase().includes(searchTerm) ||
+        (c.reason || '').toLowerCase().includes(searchTerm)
+      );
+
+      if (cases.length === 0) {
+        container.innerHTML = '<div class="empty-state"><i class="fas fa-gavel"></i><h3>Vaka Bulunamad\u0131</h3><p>Bu filtreye uygun moderasyon vakas\u0131 yok.</p></div>';
+        return;
+      }
+
+      const typeConfig = {
+        ban: { color: 'var(--accent-red)', icon: 'fa-ban', label: 'Ban' },
+        kick: { color: 'var(--accent-orange)', icon: 'fa-person-walking-arrow-right', label: 'Kick' },
+        mute: { color: 'var(--accent-purple)', icon: 'fa-microphone-slash', label: 'Mute' },
+        warn: { color: 'var(--accent-yellow)', icon: 'fa-triangle-exclamation', label: 'Uyard\u0131' },
+        unmute: { color: 'var(--accent-green)', icon: 'fa-microphone', label: 'Unmute' },
+        unban: { color: 'var(--accent-green)', icon: 'fa-check-circle', label: 'Unban' }
+      };
+
+      container.innerHTML = `
+        <div style="overflow-x:auto;">
+          <table class="modcases-table" style="width:100%; border-collapse:collapse; font-size:14px;">
+            <thead>
+              <tr style="color:var(--text-muted); text-align:left; border-bottom: 1px solid var(--border-color);">
+                <th style="padding:10px 12px;">#</th>
+                <th style="padding:10px 12px;">Tip</th>
+                <th style="padding:10px 12px;">Kullan\u0131c\u0131</th>
+                <th style="padding:10px 12px;">Yetkili</th>
+                <th style="padding:10px 12px;">Sebep</th>
+                <th style="padding:10px 12px;">Tarih</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${cases.map(c => {
+        const cfg = typeConfig[c.type] || { color: 'var(--text-muted)', icon: 'fa-circle', label: c.type };
+        const date = c.createdAt ? new Date(c.createdAt).toLocaleDateString('tr-TR') : '-';
+        return `<tr style="border-bottom: 1px solid var(--border-color);" onmouseenter="this.style.background='var(--bg-hover)'" onmouseleave="this.style.background=''">
+                  <td style="padding:10px 12px; color:var(--text-muted);">#${c.caseNumber || c.id}</td>
+                  <td style="padding:10px 12px;">
+                    <span style="display:inline-flex; align-items:center; gap:6px; padding:3px 10px; border-radius:12px; font-size:12px; font-weight:600; background:${cfg.color}22; color:${cfg.color};">
+                      <i class="fas ${cfg.icon}"></i> ${cfg.label}
+                    </span>
+                  </td>
+                  <td style="padding:10px 12px; font-family:monospace; font-size:12px; color:var(--text-secondary);">${c.userId}</td>
+                  <td style="padding:10px 12px; font-family:monospace; font-size:12px; color:var(--text-secondary);">${c.moderatorId}</td>
+                  <td style="padding:10px 12px; color:var(--text-primary); max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${(c.reason || '').replace(/"/g, '&quot;')}">${c.reason || '-'}</td>
+                  <td style="padding:10px 12px; color:var(--text-muted); font-size:12px;">${date}</td>
+                </tr>`;
+      }).join('')}
+            </tbody>
+          </table>
+        </div>
+        <p style="color:var(--text-muted); font-size:12px; margin-top:12px; text-align:right;">${cases.length} vaka g\u00f6steriliyor</p>
+      `;
+    }
+
 
     async function enableFeature(featureId) {
       modules[featureId] = true;
