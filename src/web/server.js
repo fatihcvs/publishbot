@@ -31,7 +31,7 @@ app.use(helmet({
       styleSrc: ["'self'", "'unsafe-inline'", 'https://cdnjs.cloudflare.com', 'https://cdn.jsdelivr.net', 'https://fonts.googleapis.com'],
       fontSrc: ["'self'", 'https://fonts.gstatic.com', 'https://cdnjs.cloudflare.com'],
       imgSrc: ["'self'", 'data:', 'https://cdn.discordapp.com', 'https://i.imgur.com'],
-      connectSrc: ["'self'"]
+      connectSrc: ["'self'", 'https://cdn.jsdelivr.net', 'https://cdnjs.cloudflare.com']
     }
   },
   crossOriginEmbedderPolicy: false
@@ -1034,6 +1034,7 @@ app.get('/api/guild/:guildId', isAuthenticated, requireManagerAccess, async (req
     name: guild.name,
     icon: guild.iconURL(),
     memberCount: guild.memberCount,
+    presenceCount: guild.members.cache.filter(m => m.presence?.status && m.presence.status !== 'offline').size || 0,
     channels: guild.channels.cache
       .filter(c => c.type === 0 || c.type === 2 || c.type === 4)
       .map(c => ({ id: c.id, name: c.name, type: c.type })),
