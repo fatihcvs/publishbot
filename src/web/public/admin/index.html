@@ -741,44 +741,49 @@
 
         <nav class="sidebar-nav">
             <div class="sidebar-section-label">Genel</div>
-            <div class="sidebar-item active" onclick="showSection('overview')"><i class="fas fa-chart-pie"></i> Genel
-                Bakış</div>
-            <div class="sidebar-item" onclick="showSection('botstatus')"><i class="fas fa-robot"></i> Bot Durumu</div>
+            <div class="sidebar-item active" onclick="showSection('overview',this)"><i class="fas fa-chart-pie"></i>
+                Genel Bakış</div>
+            <div class="sidebar-item" onclick="showSection('botstatus',this)"><i class="fas fa-robot"></i> Bot Durumu
+            </div>
 
             <div class="sidebar-section-label">Yönetim</div>
-            <div class="sidebar-item" onclick="showSection('guilds')"><i class="fas fa-server"></i> Sunucular</div>
-            <div class="sidebar-item" onclick="showSection('blacklist')"><i class="fas fa-ban"></i> Kara Liste</div>
+            <div class="sidebar-item" onclick="showSection('guilds',this)"><i class="fas fa-server"></i> Sunucular</div>
+            <div class="sidebar-item" onclick="showSection('blacklist',this)"><i class="fas fa-ban"></i> Kara Liste
+            </div>
 
             <div class="sidebar-section-label">Araçlar</div>
-            <div class="sidebar-item" onclick="showSection('codes')"><i class="fas fa-ticket"></i> Ödül Kodları</div>
-            <div class="sidebar-item" onclick="showSection('broadcast')"><i class="fas fa-bullhorn"></i> Toplu Duyuru
+            <div class="sidebar-item" onclick="showSection('codes',this)"><i class="fas fa-ticket"></i> Ödül Kodları
             </div>
-            <div class="sidebar-item" onclick="showSection('userprofile')"><i class="fas fa-user-magnifying-glass"></i>
-                Kullanıcı Ara</div>
+            <div class="sidebar-item" onclick="showSection('broadcast',this)"><i class="fas fa-bullhorn"></i> Toplu
+                Duyuru</div>
+            <div class="sidebar-item" onclick="showSection('userprofile',this)"><i
+                    class="fas fa-user-magnifying-glass"></i> Kullanıcı Ara</div>
 
             <div class="sidebar-section-label">Sistem</div>
-            <div class="sidebar-item" onclick="showSection('logs')"><i class="fas fa-terminal"></i> Canlı Loglar</div>
-            <div class="sidebar-item" onclick="showSection('webhook')"><i class="fas fa-bell"></i> Webhook Bildirim
+            <div class="sidebar-item" onclick="showSection('logs',this)"><i class="fas fa-terminal"></i> Canlı Loglar
+            </div>
+            <div class="sidebar-item" onclick="showSection('webhook',this)"><i class="fas fa-bell"></i> Webhook Bildirim
             </div>
 
             <div class="sidebar-section-label">Lethe Game</div>
-            <div class="sidebar-item" onclick="showSection('lethe')"><i class="fas fa-paw"></i> Lethe Editörü</div>
+            <div class="sidebar-item" onclick="showSection('lethe',this)"><i class="fas fa-paw"></i> Lethe Editörü</div>
 
             <div class="sidebar-section-label">Sunucu</div>
-            <div class="sidebar-item" onclick="showSection('snapshot')"><i class="fas fa-camera"></i> Sunucu Snapshot
-            </div>
-            <div class="sidebar-item" onclick="showSection('premium')"><i class="fas fa-crown"></i> Premium Yönetimi
-            </div>
+            <div class="sidebar-item" onclick="showSection('snapshot',this)"><i class="fas fa-camera"></i> Sunucu
+                Snapshot</div>
+            <div class="sidebar-item" onclick="showSection('premium',this)"><i class="fas fa-crown"></i> Premium
+                Yönetimi</div>
 
             <div class="sidebar-section-label">Veri</div>
-            <div class="sidebar-item" onclick="showSection('analytics')"><i class="fas fa-chart-bar"></i> Analitik</div>
+            <div class="sidebar-item" onclick="showSection('analytics',this)"><i class="fas fa-chart-bar"></i> Analitik
+            </div>
             <div class="sidebar-item" onclick="exportData()"><i class="fas fa-download"></i> Veri Dışa Aktar</div>
 
             <div class="sidebar-section-label">Güvenlik</div>
-            <div class="sidebar-item" onclick="showSection('cmdlogs')"><i class="fas fa-terminal"></i> Komut Logları
-            </div>
-            <div class="sidebar-item" onclick="showSection('security')"><i class="fas fa-shield-halved"></i> Güvenlik
+            <div class="sidebar-item" onclick="showSection('cmdlogs',this)"><i class="fas fa-terminal"></i> Komut
                 Logları</div>
+            <div class="sidebar-item" onclick="showSection('security',this)"><i class="fas fa-shield-halved"></i>
+                Güvenlik Logları</div>
 
             <div class="sidebar-section-label">Diğer</div>
             <div class="sidebar-item" onclick="window.location='/admin/apikeys'"><i class="fas fa-key"></i> API
@@ -1421,20 +1426,21 @@
             loadBlacklist();
             loadCodes();
             loadAnalytics();
-            loadWebhookCfg();
-            loadScheduled();
-            loadLethe();
-            loadPremium();
-            loadSecurityLogs();
-            populateSnapGuilds();
+            loadWebhookCfg().catch(console.error);
+            loadScheduled().catch(console.error);
+            loadLethe().catch(console.error);
+            loadPremium().catch(console.error);
+            loadSecurityLogs().catch(console.error);
+            populateSnapGuilds().catch(console.error);
         }
 
         // ── Section navigation ───────────────────────────────────────────────────────
-        function showSection(id) {
+        function showSection(id, el) {
             document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
             document.querySelectorAll('.sidebar-item').forEach(s => s.classList.remove('active'));
-            document.getElementById('sec-' + id)?.classList.add('active');
-            event?.currentTarget?.classList.add('active');
+            const section = document.getElementById('sec-' + id);
+            if (section) section.classList.add('active');
+            if (el) el.classList.add('active');
         }
 
         // ── Toast ────────────────────────────────────────────────────────────────────
