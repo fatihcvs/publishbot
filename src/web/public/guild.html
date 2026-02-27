@@ -341,7 +341,90 @@
               <i class="fas fa-save"></i> Kaydet
             </button>
           </div>
+
+          <!-- Bot Owner Only: Bot Durumu Paneli -->
+          <div id="botStatusPanel" style="display:none; max-width:600px; margin-top:24px;">
+            <h2 class="section-title">🤖 Bot Durumu <span
+                style="font-size:12px;background:linear-gradient(90deg,#5865f2,#eb459e);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:700;">BOT
+                SAHİBİ</span></h2>
+            <div class="feature-card">
+              <div id="currentStatusDisplay"
+                style="background:var(--bg-tertiary);border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:13px;color:var(--text-secondary);">
+                <i class="fas fa-circle-notch fa-spin"></i> Mevcut durum yükleniyor...
+              </div>
+              <div class="form-group">
+                <label class="form-label">Aktivite Tipi</label>
+                <select class="form-select" id="botStatusType">
+                  <option value="3">👀 İzliyor</option>
+                  <option value="0">🎮 Oynuyor</option>
+                  <option value="2">🎧 Dinliyor</option>
+                  <option value="5">🏆 Rekabet Ediyor</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Durum Metni</label>
+                <input type="text" class="form-input" id="botStatusText" placeholder="!yardım publisherbot.org"
+                  maxlength="128"
+                  style="background:var(--bg-tertiary);border:1px solid var(--border-color);border-radius:8px;padding:10px 14px;color:var(--text-primary);width:100%;box-sizing:border-box;">
+              </div>
+              <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                <button class="btn btn-primary" onclick="saveBotStatus()">
+                  <i class="fas fa-save"></i> Uygula
+                </button>
+                <button class="btn btn-secondary" onclick="resetBotStatus()">
+                  <i class="fas fa-rotate-left"></i> Varsayılana Sıfırla
+                </button>
+              </div>
+            </div>
+          </div>
+          <script>
+            const BOT_OWNER_ID_SETTINGS = '259442832576741377';
+            (async () => {
+              try {
+                const u = await fetch('/api/user').then(r => r.json());
+                if (u.id !== BOT_OWNER_ID_SETTINGS) return;
+                const panel = document.getElementById('botStatusPanel');
+                if (panel) panel.style.display = 'block';
+                const statusRes = await fetch('/api/admin/bot-status');
+                if (statusRes.ok) {
+                  const s = await statusRes.json();
+                  document.getElementById('botStatusType').value = s.type ?? 3;
+                  document.getElementById('botStatusText').value = s.text || '';
+                  document.getElementById('currentStatusDisplay').innerHTML =
+                    `<i class="fas fa-circle" style="color:#57F287;"></i> Şu an: <strong>${s.typeName}</strong> — <em>${s.text || '(boş)'}</em>`;
+                }
+              } catch (_) { }
+            })();
+
+            async function saveBotStatus() {
+              const text = document.getElementById('botStatusText').value.trim();
+              const type = parseInt(document.getElementById('botStatusType').value);
+              try {
+                const res = await fetch('/api/admin/bot-status', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ text, type })
+                });
+                const data = await res.json();
+                if (data.success) {
+                  showToast('Bot durumu güncellendi!', 'success');
+                  const typeNames = { 0: 'Oynuyor', 2: 'Dinliyor', 3: 'İzliyor', 5: 'Rekabet Ediyor' };
+                  document.getElementById('currentStatusDisplay').innerHTML =
+                    `<i class="fas fa-circle" style="color:#57F287;"></i> Şu an: <strong>${typeNames[type] || 'İzliyor'}</strong> — <em>${text || '(boş)'}</em>`;
+                } else {
+                  showToast(data.error || 'Hata oluştu', 'error');
+                }
+              } catch (e) { showToast('İstek başarısız', 'error'); }
+            }
+
+            async function resetBotStatus() {
+              document.getElementById('botStatusText').value = '!yardım publisherbot.org';
+              document.getElementById('botStatusType').value = '3';
+              await saveBotStatus();
+            }
+          </script>
         </div>
+
       </div>
     </main>
   </div>
@@ -1837,7 +1920,7 @@
       }
     }
 
-    window.closeModal = function() {
+    window.closeModal = function () {
       const el = document.getElementById('modalOverlay');
       if (el) el.classList.remove('active');
     };

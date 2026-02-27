@@ -328,6 +328,41 @@ app.post('/api/admin/keys', isBotOwner, (req, res) => {
   }
 });
 
+// POST /api/admin/bot-status — Bot owner only: change bot activity from web dashboard
+app.post('/api/admin/bot-status', isBotOwner, (req, res) => {
+  const { text, type } = req.body;
+  if (!discordClient?.isReady()) {
+    return res.status(503).json({ error: 'Bot is not ready' });
+  }
+
+  // type: 0=Playing, 1=Streaming, 2=Listening, 3=Watching, 5=Competing
+  const activityType = parseInt(type) || 3;
+  const activityText = (typeof text === 'string' && text.trim()) ? text.trim().slice(0, 128) : '!yardım publisherbot.org';
+
+  try {
+    discordClient.user.setActivity(activityText, { type: activityType });
+    res.json({ success: true, text: activityText, type: activityType });
+  } catch (err) {
+    console.error('[Admin] setActivity error:', err);
+    res.status(500).json({ error: 'Failed to set activity' });
+  }
+});
+
+// GET /api/admin/bot-status — current bot activity
+app.get('/api/admin/bot-status', isBotOwner, (req, res) => {
+  if (!discordClient?.isReady()) {
+    return res.status(503).json({ error: 'Bot is not ready' });
+  }
+  const activity = discordClient.user.presence?.activities?.[0];
+  const typeNames = { 0: 'Oynuyor', 1: 'Yayın Yapıyor', 2: 'Dinliyor', 3: 'İzliyor', 5: 'Rekabet Ediyor' };
+  res.json({
+    text: activity?.name || '',
+    type: activity?.type ?? 3,
+    typeName: typeNames[activity?.type ?? 3] || 'İzliyor'
+  });
+});
+
+
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
@@ -486,16 +521,7 @@ app.delete('/api/guild/:guildId/commands/:name', isAuthenticated, requireManager
   }
 });
 
-app.get('/api/guild/:guildId/cases', isAuthenticated, requireManagerAccess, async (req, res) => {
-  const { guildId } = req.params;
-
-  try {
-    const cases = await storage.getModCases(guildId, 50);
-    res.json(cases);
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to get mod cases' });
-  }
-});
+// Note: Full enriched /cases route is at L563 — this duplicate was removed to prevent shadowing
 
 app.get('/api/guild/:guildId/warnings/:userId', isAuthenticated, requireManagerAccess, async (req, res) => {
   const { guildId, userId } = req.params;
@@ -838,7 +864,7 @@ app.get('/api/guild/:guildId/analytics/messages', isAuthenticated, requireManage
 
       const match = activeUsersCount.find(n => n.date && new Date(n.date).toISOString().split('T')[0] === dateStr);
       // Multiplying by a pseudo factor to simulate "messages"
-      datasets[0].data.push(match ? Number(match.count) * 20 : Math.floor(Math.random() * 50));
+      datasets[0].data.push(match ? Number(match.count) * 20 : 0);
     }
 
     res.json({ labels, datasets });
@@ -1224,7 +1250,7 @@ app.get('/lethe-rehber', (req, res) => {
 // One-time data migration endpoint for production
 // This endpoint imports data from the export file to the production database
 // It only runs once and skips tables that already have data
-app.post('/api/admin/import-data', async (req, res) => {
+app.post('/api/admin/import-data', isBotOwner, async (req, res) => {
   const { secret } = req.body;
 
   // Require admin secret for security - MUST be set in environment
@@ -1254,7 +1280,7 @@ app.post('/api/admin/import-data', async (req, res) => {
   }
 });
 
-app.post('/api/admin/merge-guilds', async (req, res) => {
+app.post('/api/admin/merge-guilds', isBotOwner, async (req, res) => {
   const { secret } = req.body;
 
   const IMPORT_SECRET = process.env.IMPORT_SECRET;
