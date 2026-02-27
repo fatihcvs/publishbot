@@ -1404,6 +1404,12 @@
     <div class="toast-stack" id="toastStack"></div>
 
     <script>
+        // Global error handler — surfaces any parse/runtime errors to console
+        window.onerror = (msg, src, line, col, err) => {
+            console.error(`[AdminPanel Error] ${msg} at ${src}:${line}:${col}`, err);
+        };
+        window.addEventListener('unhandledrejection', e => console.error('[AdminPanel UnhandledRejection]', e.reason));
+
         const BOT_OWNER_ID = '259442832576741377';
         let _guildsData = [];
 
@@ -1421,11 +1427,11 @@
             } catch { window.location.href = '/'; }
 
             loadOverview();
-            loadBotStatus();
-            loadGuilds();
-            loadBlacklist();
-            loadCodes();
-            loadAnalytics();
+            loadBotStatus().catch(console.error);
+            loadGuilds().catch(console.error);
+            loadBlacklist().catch(console.error);
+            loadCodes().catch(console.error);
+            loadAnalytics().catch(console.error);
             loadWebhookCfg().catch(console.error);
             loadScheduled().catch(console.error);
             loadLethe().catch(console.error);
@@ -1703,7 +1709,7 @@
         let _autoRefreshTimer = null;
         async function loadLogs() {
             const level = document.getElementById('logLevel').value;
-            const logs = await fetch(`/ api / admin / logs ? level = ${level} & limit=200`).then(r => r.json()).catch(() => []);
+            const logs = await fetch(`/api/admin/logs?level=${level}&limit=200`).then(r => r.json()).catch(() => []);
             const viewer = document.getElementById('logViewer');
             if (!logs.length) { viewer.innerHTML = '<div style="color:#6e7681;">Log yok.</div>'; return; }
             const colors = { error: '#ed4245', warn: '#faa61a', info: '#57f287', log: '#a8b4ff' };
@@ -1724,7 +1730,7 @@
             if (!uid) return toast('ID boş olamaz', 'error');
             const el = document.getElementById('userProfileResult');
             el.innerHTML = '<div style="color:var(--text-muted);padding:16px 0;"><i class="fas fa-spinner fa-spin"></i> Yükleniyor…</div>';
-            const d = await fetch(`/ api / admin / user / ${uid}`).then(r => r.json()).catch(e => ({ error: e.message }));
+            const d = await fetch(`/api/admin/user/${uid}`).then(r => r.json()).catch(e => ({ error: e.message }));
             if (d.error) { el.innerHTML = `< div style = "color:#ed4245;" >❌ ${d.error}</div > `; return; }
             const l = d.lethe;
             el.innerHTML = `
@@ -1752,7 +1758,7 @@
         }
         async function userAction(uid, action, amtOverride) {
             const amount = amtOverride !== undefined ? amtOverride : parseInt(document.getElementById('userActionAmt').value);
-            const r = await fetch(`/ api / admin / user / ${uid} `, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action, amount }) });
+            const r = await fetch(`/api/admin/user/${uid}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action, amount }) });
             if (r.ok) { toast('İşlem tamam!', 'success'); lookupUser(); }
             else { const d = await r.json(); toast(d.error || 'Hata', 'error'); }
         }
