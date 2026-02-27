@@ -5,6 +5,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Komutlar - Publisher Bot</title>
+  <meta name="description"
+    content="Publisher Bot'un tüm 100+ komutunu inceleyin. Moderasyon, Lethe Game, çekiliş, seviye, sosyal medya ve daha fazlası.">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
   <style>
@@ -25,13 +27,12 @@
       --text-primary: #f8fafc;
       --text-secondary: #94a3b8;
       --border-color: rgba(255, 255, 255, 0.08);
-      --glow-purple: rgba(167, 139, 250, 0.4);
     }
 
     * {
       box-sizing: border-box;
       margin: 0;
-      padding: 0;
+      padding: 0
     }
 
     body {
@@ -39,7 +40,7 @@
       color: var(--text-primary);
       font-family: 'Inter', system-ui, sans-serif;
       min-height: 100vh;
-      padding-top: 80px;
+      padding-top: 80px
     }
 
     body::before {
@@ -49,11 +50,9 @@
       left: 0;
       right: 0;
       bottom: 0;
-      background:
-        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(120, 80, 200, 0.12), transparent),
-        radial-gradient(ellipse 60% 40% at 80% 60%, rgba(60, 100, 200, 0.08), transparent);
+      background: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(120, 80, 200, 0.12), transparent), radial-gradient(ellipse 60% 40% at 80% 60%, rgba(60, 100, 200, 0.08), transparent);
       pointer-events: none;
-      z-index: -1;
+      z-index: -1
     }
 
     .navbar {
@@ -66,32 +65,32 @@
       top: 0;
       left: 0;
       right: 0;
-      z-index: 1000;
+      z-index: 1000
     }
 
     .navbar-brand {
       font-size: 1.5rem;
       font-weight: 800;
       background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple), var(--accent-pink));
-      background-size: 200% auto;
       -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      -webkit-text-fill-color: transparent
     }
 
     .nav-link {
       color: var(--text-secondary) !important;
       font-weight: 500;
       transition: all 0.3s;
-      padding: 8px 16px !important;
+      padding: 8px 16px !important
     }
 
     .nav-link:hover,
     .nav-link.active {
-      color: var(--text-primary) !important;
+      color: var(--text-primary) !important
     }
 
     .btn-discord {
-      background: linear-gradient(135deg, #5865F2 0%, #7289da 100%);
+      background: linear-gradient(135deg, #5865F2, #7289da);
       color: white;
       padding: 10px 24px;
       border-radius: 10px;
@@ -101,19 +100,19 @@
       align-items: center;
       gap: 8px;
       transition: all 0.3s;
-      text-decoration: none;
+      text-decoration: none
     }
 
     .btn-discord:hover {
       transform: translateY(-2px);
       box-shadow: 0 10px 30px rgba(88, 101, 242, 0.3);
-      color: white;
+      color: white
     }
 
     .page-header {
       text-align: center;
       padding: 60px 0 40px;
-      position: relative;
+      position: relative
     }
 
     .page-header h1 {
@@ -121,16 +120,16 @@
       font-weight: 800;
       margin-bottom: 1rem;
       background: linear-gradient(135deg, #fff, var(--accent-blue), var(--accent-purple));
-      background-size: 200% auto;
       -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      -webkit-text-fill-color: transparent
     }
 
     .page-header p {
       color: var(--text-secondary);
       font-size: 1.2rem;
       max-width: 600px;
-      margin: 0 auto;
+      margin: 0 auto
     }
 
     .game-banner {
@@ -144,13 +143,13 @@
       align-items: center;
       justify-content: space-between;
       gap: 20px;
-      flex-wrap: wrap;
+      flex-wrap: wrap
     }
 
     .game-banner-content {
       display: flex;
       align-items: center;
-      gap: 16px;
+      gap: 16px
     }
 
     .game-banner-icon {
@@ -162,18 +161,18 @@
       align-items: center;
       justify-content: center;
       font-size: 1.5rem;
-      color: white;
+      color: white
     }
 
     .game-banner h4 {
       margin: 0 0 4px;
-      font-weight: 700;
+      font-weight: 700
     }
 
     .game-banner p {
       margin: 0;
       color: var(--text-secondary);
-      font-size: 0.9rem;
+      font-size: 0.9rem
     }
 
     .btn-game {
@@ -184,19 +183,19 @@
       font-weight: 600;
       text-decoration: none;
       transition: all 0.3s;
-      white-space: nowrap;
+      white-space: nowrap
     }
 
     .btn-game:hover {
       transform: translateY(-2px);
       box-shadow: 0 10px 30px rgba(244, 114, 182, 0.3);
-      color: white;
+      color: white
     }
 
     .search-box {
       max-width: 500px;
       margin: 30px auto 0;
-      position: relative;
+      position: relative
     }
 
     .search-box input {
@@ -208,17 +207,17 @@
       padding: 16px 20px 16px 50px;
       color: var(--text-primary);
       font-size: 1rem;
-      transition: all 0.3s;
+      transition: all 0.3s
     }
 
     .search-box input:focus {
       outline: none;
       border-color: var(--accent-purple);
-      box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.2);
+      box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.2)
     }
 
     .search-box input::placeholder {
-      color: var(--text-secondary);
+      color: var(--text-secondary)
     }
 
     .search-box i {
@@ -226,16 +225,16 @@
       left: 18px;
       top: 50%;
       transform: translateY(-50%);
-      color: var(--text-secondary);
+      color: var(--text-secondary)
     }
 
     .commands-container {
-      padding: 40px 0 80px;
+      padding: 40px 0 80px
     }
 
     .category-sidebar {
       position: sticky;
-      top: 100px;
+      top: 100px
     }
 
     .category-nav {
@@ -243,7 +242,7 @@
       backdrop-filter: blur(10px);
       border: 1px solid var(--border-color);
       border-radius: 16px;
-      padding: 20px;
+      padding: 20px
     }
 
     .category-nav h5 {
@@ -252,7 +251,7 @@
       color: var(--text-secondary);
       text-transform: uppercase;
       letter-spacing: 1px;
-      margin-bottom: 15px;
+      margin-bottom: 15px
     }
 
     .category-link {
@@ -264,23 +263,23 @@
       color: var(--text-secondary);
       text-decoration: none;
       transition: all 0.3s;
-      margin-bottom: 6px;
+      margin-bottom: 6px
     }
 
     .category-link:hover {
       background: var(--bg-tertiary);
-      color: var(--text-primary);
+      color: var(--text-primary)
     }
 
     .category-link.active {
       background: linear-gradient(135deg, rgba(167, 139, 250, 0.2), rgba(96, 165, 250, 0.2));
       color: var(--text-primary);
-      border: 1px solid rgba(167, 139, 250, 0.3);
+      border: 1px solid rgba(167, 139, 250, 0.3)
     }
 
     .category-link i {
       width: 20px;
-      text-align: center;
+      text-align: center
     }
 
     .category-link .count {
@@ -288,12 +287,12 @@
       background: var(--bg-tertiary);
       padding: 2px 8px;
       border-radius: 10px;
-      font-size: 0.8rem;
+      font-size: 0.8rem
     }
 
     .category-section {
       margin-bottom: 50px;
-      scroll-margin-top: 100px;
+      scroll-margin-top: 100px
     }
 
     .category-header {
@@ -302,78 +301,63 @@
       gap: 16px;
       margin-bottom: 24px;
       padding-bottom: 16px;
-      border-bottom: 1px solid var(--border-color);
+      border-bottom: 1px solid var(--border-color)
     }
 
-    .category-icon {
+    .cat-icon {
       width: 48px;
       height: 48px;
       border-radius: 12px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.25rem;
+      font-size: 1.25rem
     }
 
-    .category-icon.moderation {
+    .cat-icon.blue {
       background: rgba(96, 165, 250, 0.15);
-      color: var(--accent-blue);
+      color: var(--accent-blue)
     }
 
-    .category-icon.automod {
+    .cat-icon.purple {
       background: rgba(167, 139, 250, 0.15);
-      color: var(--accent-purple);
+      color: var(--accent-purple)
     }
 
-    .category-icon.settings {
+    .cat-icon.green {
       background: rgba(52, 211, 153, 0.15);
-      color: var(--accent-green);
+      color: var(--accent-green)
     }
 
-    .category-icon.roles {
+    .cat-icon.orange {
       background: rgba(251, 191, 36, 0.15);
-      color: var(--accent-orange);
+      color: var(--accent-orange)
     }
 
-    .category-icon.fun {
+    .cat-icon.pink {
       background: rgba(244, 114, 182, 0.15);
-      color: var(--accent-pink);
+      color: var(--accent-pink)
     }
 
-    .category-icon.utility {
+    .cat-icon.cyan {
       background: rgba(34, 211, 238, 0.15);
-      color: var(--accent-cyan);
+      color: var(--accent-cyan)
     }
 
-    .category-icon.social {
+    .cat-icon.red {
       background: rgba(248, 113, 113, 0.15);
-      color: var(--accent-red);
-    }
-
-    .category-icon.schedule {
-      background: rgba(251, 191, 36, 0.15);
-      color: var(--accent-orange);
-    }
-
-    .category-icon.info {
-      background: rgba(96, 165, 250, 0.15);
-      color: var(--accent-blue);
-    }
-
-    .category-icon.ai {
-      background: rgba(167, 139, 250, 0.15);
-      color: var(--accent-purple);
+      color: var(--accent-red)
     }
 
     .category-header h3 {
       font-size: 1.3rem;
       font-weight: 700;
-      margin: 0;
+      margin: 0
     }
 
     .category-header span {
       color: var(--text-secondary);
-      font-size: 0.9rem;
+      font-size: 0.9rem
     }
 
     .command-card {
@@ -383,13 +367,13 @@
       border-radius: 14px;
       padding: 20px 24px;
       margin-bottom: 12px;
-      transition: all 0.3s;
+      transition: all 0.3s
     }
 
     .command-card:hover {
       border-color: rgba(167, 139, 250, 0.3);
       transform: translateX(5px);
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2)
     }
 
     .command-header {
@@ -397,21 +381,21 @@
       align-items: center;
       justify-content: space-between;
       flex-wrap: wrap;
-      gap: 10px;
+      gap: 10px
     }
 
     .command-name {
       font-family: 'JetBrains Mono', 'Fira Code', monospace;
       color: var(--accent-blue);
       font-weight: 600;
-      font-size: 0.95rem;
+      font-size: 0.95rem
     }
 
     .command-desc {
       color: var(--text-secondary);
       margin: 10px 0 0;
       font-size: 0.9rem;
-      line-height: 1.6;
+      line-height: 1.6
     }
 
     .command-usage {
@@ -421,14 +405,14 @@
       margin-top: 12px;
       font-family: 'JetBrains Mono', 'Fira Code', monospace;
       font-size: 0.85rem;
-      color: var(--accent-green);
+      color: var(--accent-green)
     }
 
     .command-permissions {
       margin-top: 12px;
       display: flex;
       gap: 8px;
-      flex-wrap: wrap;
+      flex-wrap: wrap
     }
 
     .permission-badge {
@@ -437,30 +421,43 @@
       padding: 4px 10px;
       border-radius: 6px;
       font-size: 0.75rem;
-      font-weight: 600;
+      font-weight: 600
+    }
+
+    .tag-badge {
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 600
+    }
+
+    .tag-badge.new {
+      background: rgba(52, 211, 153, 0.15);
+      color: var(--accent-green)
+    }
+
+    .tag-badge.owner {
+      background: rgba(251, 191, 36, 0.15);
+      color: var(--accent-orange)
     }
 
     .no-results {
       text-align: center;
       padding: 60px 20px;
       color: var(--text-secondary);
+      display: none
     }
 
     .no-results i {
       font-size: 3rem;
       margin-bottom: 20px;
-      opacity: 0.5;
-    }
-
-    .no-results h4 {
-      margin-bottom: 10px;
-      color: var(--text-primary);
+      opacity: 0.5
     }
 
     footer {
       background: var(--bg-secondary);
       border-top: 1px solid var(--border-color);
-      padding: 50px 0;
+      padding: 50px 0
     }
 
     .footer-content {
@@ -468,7 +465,7 @@
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
-      gap: 20px;
+      gap: 20px
     }
 
     .footer-brand {
@@ -476,56 +473,57 @@
       font-weight: 700;
       background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
       -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      -webkit-text-fill-color: transparent
     }
 
     .footer-links {
       display: flex;
-      gap: 24px;
+      gap: 24px
     }
 
     .footer-links a {
       color: var(--text-secondary);
       text-decoration: none;
-      transition: color 0.3s;
+      transition: color 0.3s
     }
 
     .footer-links a:hover {
-      color: var(--accent-purple);
+      color: var(--accent-purple)
     }
 
     .footer-copy {
       color: var(--text-secondary);
-      font-size: 0.9rem;
+      font-size: 0.9rem
     }
 
-    @media (max-width: 991px) {
+    @media(max-width:991px) {
       .category-sidebar {
-        display: none;
+        display: none
       }
     }
 
-    @media (max-width: 768px) {
+    @media(max-width:768px) {
       .page-header h1 {
-        font-size: 2rem;
+        font-size: 2rem
       }
 
       .game-banner {
         flex-direction: column;
-        text-align: center;
+        text-align: center
       }
 
       .game-banner-content {
-        flex-direction: column;
+        flex-direction: column
       }
 
       .footer-content {
         flex-direction: column;
-        text-align: center;
+        text-align: center
       }
 
       .footer-links {
-        justify-content: center;
+        justify-content: center
       }
     }
   </style>
@@ -534,9 +532,7 @@
 <body>
   <nav class="navbar navbar-expand-lg navbar-dark">
     <div class="container">
-      <a class="navbar-brand" href="/">
-        <i class="fas fa-robot me-2"></i>Publisher
-      </a>
+      <a class="navbar-brand" href="/"><i class="fas fa-robot me-2"></i>Publisher</a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
         <span class="navbar-toggler-icon"></span>
       </button>
@@ -546,9 +542,7 @@
           <li class="nav-item"><a class="nav-link active" href="/commands.html">Komutlar</a></li>
           <li class="nav-item"><a class="nav-link" href="/lethe-game">Lethe Game</a></li>
           <li class="nav-item ms-3">
-            <a href="/auth/discord" class="btn btn-discord">
-              <i class="fab fa-discord"></i>Dashboard
-            </a>
+            <a href="/auth/discord" class="btn btn-discord"><i class="fab fa-discord"></i>Dashboard</a>
           </li>
         </ul>
       </div>
@@ -557,22 +551,18 @@
 
   <section class="page-header">
     <div class="container">
-      <h1>Bot Komutlari</h1>
-      <p>Publisher Bot'un tum moderasyon, ayar ve yardimci komutlari</p>
-
+      <h1>Bot Komutları</h1>
+      <p>Publisher Bot'un tüm 100+ komutunu inceleyin</p>
       <div class="game-banner">
         <div class="game-banner-content">
           <div class="game-banner-icon"><i class="fas fa-paw"></i></div>
           <div>
-            <h4>Lethe Game Komutlari</h4>
-            <p>151+ hayvanli koleksiyon oyunu komutlari icin</p>
+            <h4>Lethe Game Komutları</h4>
+            <p>183+ hayvanlı koleksiyon oyunu — avla, savaş, evrimle!</p>
           </div>
         </div>
-        <a href="/lethe-game" class="btn-game">
-          <i class="fas fa-gamepad me-2"></i>Oyun Sayfasi
-        </a>
+        <a href="/lethe-game" class="btn-game"><i class="fas fa-gamepad me-2"></i>Oyun Sayfası</a>
       </div>
-
       <div class="search-box">
         <i class="fas fa-search"></i>
         <input type="text" id="search-input" placeholder="Komut ara...">
@@ -583,619 +573,605 @@
   <section class="commands-container">
     <div class="container">
       <div class="row">
+        <!-- Sidebar -->
         <div class="col-lg-3">
           <div class="category-sidebar">
             <div class="category-nav">
               <h5>Kategoriler</h5>
-              <a href="#moderation" class="category-link active">
-                <i class="fas fa-shield-alt"></i>
-                Moderasyon
-                <span class="count">13</span>
-              </a>
-              <a href="#automod" class="category-link">
-                <i class="fas fa-robot"></i>
-                AutoMod
-                <span class="count">2</span>
-              </a>
-              <a href="#settings" class="category-link">
-                <i class="fas fa-cog"></i>
-                Ayarlar
-                <span class="count">6</span>
-              </a>
-              <a href="#roles" class="category-link">
-                <i class="fas fa-user-tag"></i>
-                Rol Yonetimi
-                <span class="count">4</span>
-              </a>
-              <a href="#fun" class="category-link">
-                <i class="fas fa-star"></i>
-                Eglence
-                <span class="count">5</span>
-              </a>
-              <a href="#utility" class="category-link">
-                <i class="fas fa-tools"></i>
-                Araclar
-                <span class="count">4</span>
-              </a>
-              <a href="#social" class="category-link">
-                <i class="fas fa-share-alt"></i>
-                Sosyal Medya
-                <span class="count">4</span>
-              </a>
-              <a href="#schedule" class="category-link">
-                <i class="fas fa-clock"></i>
-                Zamanlama
-                <span class="count">4</span>
-              </a>
-              <a href="#info" class="category-link">
-                <i class="fas fa-info-circle"></i>
-                Bilgi
-                <span class="count">7</span>
-              </a>
-              <a href="#ai" class="category-link">
-                <i class="fas fa-brain"></i>
-                Yapay Zeka
-                <span class="count">4</span>
-              </a>
+              <a href="#moderation" class="category-link active"><i class="fas fa-shield-halved"></i>Moderasyon<span
+                  class="count">14</span></a>
+              <a href="#automod" class="category-link"><i class="fas fa-robot"></i>AutoMod<span
+                  class="count">3</span></a>
+              <a href="#settings" class="category-link"><i class="fas fa-cog"></i>Ayarlar<span
+                  class="count">8</span></a>
+              <a href="#roles" class="category-link"><i class="fas fa-user-tag"></i>Rol Yönetimi<span
+                  class="count">5</span></a>
+              <a href="#leveling" class="category-link"><i class="fas fa-chart-line"></i>Seviye<span
+                  class="count">6</span></a>
+              <a href="#lethe" class="category-link"><i class="fas fa-paw"></i>Lethe Game<span
+                  class="count">23</span></a>
+              <a href="#fun" class="category-link"><i class="fas fa-star"></i>Eğlence<span class="count">7</span></a>
+              <a href="#social" class="category-link"><i class="fas fa-share-nodes"></i>Sosyal<span
+                  class="count">3</span></a>
+              <a href="#utility" class="category-link"><i class="fas fa-tools"></i>Araçlar<span
+                  class="count">10</span></a>
+              <a href="#info" class="category-link"><i class="fas fa-info-circle"></i>Bilgi<span
+                  class="count">7</span></a>
+              <a href="#schedule" class="category-link"><i class="fas fa-clock"></i>Zamanlama<span
+                  class="count">4</span></a>
             </div>
           </div>
         </div>
+
+        <!-- Commands -->
         <div class="col-lg-9">
           <div id="commands-list">
 
+            <!-- MODERASyon -->
             <div class="category-section" id="moderation">
               <div class="category-header">
-                <div class="category-icon moderation"><i class="fas fa-shield-alt"></i></div>
+                <div class="cat-icon blue"><i class="fas fa-shield-halved"></i></div>
                 <div>
-                  <h3>Moderasyon</h3>
-                  <span>Sunucu guvenligini saglayan komutlar</span>
+                  <h3>Moderasyon</h3><span>Sunucu güvenliğini sağlayan komutlar</span>
                 </div>
               </div>
               <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!kick @kullanici [sebep]</span>
-                </div>
-                <p class="command-desc">Belirtilen kullaniciyi sunucudan atar.</p>
-                <div class="command-permissions">
-                  <span class="permission-badge">Kick Members</span>
-                </div>
+                <div class="command-header"><span class="command-name">!ban @kullanıcı [süre] [sebep]</span><span
+                    class="tag-badge new">Geçici Ban</span></div>
+                <p class="command-desc">Kullanıcıyı kalıcı veya geçici olarak yasaklar. Süre formatı: <code>7g</code>
+                  (gün), <code>24s</code> (saat), <code>30d</code> (dakika). Geçici ban bitiince otomatik kaldırılır.
+                </p>
+                <div class="command-usage">!ban @kullanıcı 7g Kural ihlali | !ban @kullanıcı Kalıcı yasak</div>
+                <div class="command-permissions"><span class="permission-badge">Ban Members</span></div>
               </div>
               <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!ban @kullanici [sebep]</span>
-                </div>
-                <p class="command-desc">Belirtilen kullaniciyi sunucudan kalici olarak yasaklar.</p>
-                <div class="command-permissions">
-                  <span class="permission-badge">Ban Members</span>
-                </div>
+                <div class="command-header"><span class="command-name">!unban kullanıcı_id</span></div>
+                <p class="command-desc">Yasaklı bir kullanıcının yasağını kaldırır.</p>
+                <div class="command-permissions"><span class="permission-badge">Ban Members</span></div>
               </div>
               <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!unban kullanici_id</span>
-                </div>
-                <p class="command-desc">Yasakli bir kullanicinin yasagini kaldirir.</p>
-                <div class="command-permissions">
-                  <span class="permission-badge">Ban Members</span>
-                </div>
+                <div class="command-header"><span class="command-name">!kick @kullanıcı [sebep]</span></div>
+                <p class="command-desc">Belirtilen kullanıcıyı sunucudan atar.</p>
+                <div class="command-permissions"><span class="permission-badge">Kick Members</span></div>
               </div>
               <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!mute @kullanici [sure] [birim] [sebep]</span>
+                <div class="command-header"><span class="command-name">!mute @kullanıcı [süre] [birim] [sebep]</span>
                 </div>
-                <p class="command-desc">Kullaniciyi belirtilen sure boyunca susturur.</p>
-                <div class="command-usage">!mute @kullanici 30 dakika Spam yapti</div>
-                <div class="command-permissions">
-                  <span class="permission-badge">Moderate Members</span>
-                </div>
+                <p class="command-desc">Kullanıcıyı belirtilen süre boyunca susturur. Birim: dakika, saat, gün.</p>
+                <div class="command-usage">!mute @kullanıcı 30 dakika Spam yaptı</div>
+                <div class="command-permissions"><span class="permission-badge">Moderate Members</span></div>
               </div>
               <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!unmute @kullanici</span>
-                </div>
-                <p class="command-desc">Susturulmus kullanicinin susturmasini kaldirir.</p>
-                <div class="command-permissions">
-                  <span class="permission-badge">Moderate Members</span>
-                </div>
+                <div class="command-header"><span class="command-name">!unmute @kullanıcı</span></div>
+                <p class="command-desc">Susturulmuş kullanıcının susturmasını kaldırır.</p>
+                <div class="command-permissions"><span class="permission-badge">Moderate Members</span></div>
               </div>
               <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!warn @kullanici [sebep]</span>
-                </div>
-                <p class="command-desc">Kullaniciyi uyarir ve uyari kaydeder.</p>
-                <div class="command-permissions">
-                  <span class="permission-badge">Manage Messages</span>
-                </div>
+                <div class="command-header"><span class="command-name">!warn @kullanıcı [sebep]</span><span
+                    class="tag-badge new">Oto-Ceza</span></div>
+                <p class="command-desc">Kullanıcıyı uyarır ve kaydeder. <strong>3 uyarı = 1 saatlik mute</strong>,
+                  <strong>5 uyarı = kick</strong> otomatik uygulanır.</p>
+                <div class="command-permissions"><span class="permission-badge">Manage Messages</span></div>
               </div>
               <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!uyarilar @kullanici</span>
-                </div>
-                <p class="command-desc">Kullanicinin tum uyarilarini listeler.</p>
-                <div class="command-permissions">
-                  <span class="permission-badge">Manage Messages</span>
-                </div>
+                <div class="command-header"><span class="command-name">!uyarılar @kullanıcı</span></div>
+                <p class="command-desc">Kullanıcının tüm uyarılarını listeler.</p>
+                <div class="command-permissions"><span class="permission-badge">Manage Messages</span></div>
               </div>
               <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!uyarisil @kullanici</span>
-                </div>
-                <p class="command-desc">Kullanicinin tum uyarilarini siler.</p>
-                <div class="command-permissions">
-                  <span class="permission-badge">Administrator</span>
-                </div>
+                <div class="command-header"><span class="command-name">!uyarısil @kullanıcı</span></div>
+                <p class="command-desc">Kullanıcının tüm uyarılarını siler.</p>
+                <div class="command-permissions"><span class="permission-badge">Administrator</span></div>
               </div>
               <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!temizle [miktar]</span>
-                </div>
-                <p class="command-desc">Belirtilen sayida mesaji siler (1-100 arasi).</p>
+                <div class="command-header"><span class="command-name">!temizle [miktar]</span></div>
+                <p class="command-desc">Belirtilen sayıda mesajı siler (1-100 arası).</p>
                 <div class="command-usage">!temizle 50</div>
-                <div class="command-permissions">
-                  <span class="permission-badge">Manage Messages</span>
-                </div>
+                <div class="command-permissions"><span class="permission-badge">Manage Messages</span></div>
               </div>
               <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!lock [#kanal]</span>
-                </div>
-                <p class="command-desc">Kanali kilitler, kimse mesaj yazamaz.</p>
-                <div class="command-permissions">
-                  <span class="permission-badge">Manage Channels</span>
-                </div>
+                <div class="command-header"><span class="command-name">!lock [#kanal]</span></div>
+                <p class="command-desc">Kanalı kilitler, kimse mesaj yazamaz.</p>
+                <div class="command-permissions"><span class="permission-badge">Manage Channels</span></div>
               </div>
               <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!unlock [#kanal]</span>
-                </div>
-                <p class="command-desc">Kilitli kanalin kilidini acar.</p>
-                <div class="command-permissions">
-                  <span class="permission-badge">Manage Channels</span>
-                </div>
+                <div class="command-header"><span class="command-name">!unlock [#kanal]</span></div>
+                <p class="command-desc">Kilitli kanalın kilidini açar.</p>
+                <div class="command-permissions"><span class="permission-badge">Manage Channels</span></div>
               </div>
               <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!slowmode [saniye]</span>
-                </div>
-                <p class="command-desc">Kanala yavas mod uygular (0-21600 saniye).</p>
+                <div class="command-header"><span class="command-name">!slowmode [saniye]</span></div>
+                <p class="command-desc">Kanala yavaş mod uygular (0-21600 saniye). 0 girince kapatır.</p>
                 <div class="command-usage">!slowmode 10</div>
-                <div class="command-permissions">
-                  <span class="permission-badge">Manage Channels</span>
-                </div>
+                <div class="command-permissions"><span class="permission-badge">Manage Channels</span></div>
               </div>
               <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!vaka [numara]</span>
-                </div>
-                <p class="command-desc">Moderasyon vakalarini goruntule.</p>
-                <div class="command-permissions">
-                  <span class="permission-badge">Manage Messages</span>
-                </div>
+                <div class="command-header"><span class="command-name">!vaka [numara]</span></div>
+                <p class="command-desc">Moderasyon vakasını görüntüler. Numara verilmezse son vakayı gösterir.</p>
+                <div class="command-permissions"><span class="permission-badge">Manage Messages</span></div>
+              </div>
+              <div class="command-card">
+                <div class="command-header"><span class="command-name">!talep</span></div>
+                <p class="command-desc">Destek talebi oluşturur. Özel kanal açılır, moderatörler yönetir.</p>
+                <div class="command-permissions"><span class="permission-badge">-</span></div>
               </div>
             </div>
 
+            <!-- AUTOMOD -->
             <div class="category-section" id="automod">
               <div class="category-header">
-                <div class="category-icon automod"><i class="fas fa-robot"></i></div>
+                <div class="cat-icon purple"><i class="fas fa-robot"></i></div>
                 <div>
-                  <h3>AutoMod</h3>
-                  <span>Otomatik moderasyon ayarlari</span>
+                  <h3>AutoMod & Anti-Raid</h3><span>Otomatik moderasyon ayarları</span>
                 </div>
               </div>
               <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!automod [ayar] [deger]</span>
-                </div>
-                <p class="command-desc">Otomatik moderasyon sistemini yapilandirir. Spam, link, kufur, davet, emoji ve
+                <div class="command-header"><span class="command-name">!automod [ayar] [değer]</span></div>
+                <p class="command-desc">Otomatik moderasyon sistemini yapılandırır. Spam, link, küfür, davet, emoji ve
                   etiket filtreleri.</p>
-                <div class="command-usage">!automod spam ac | !automod link kapat | !automod kelime ekle kelime</div>
-                <div class="command-permissions">
-                  <span class="permission-badge">Administrator</span>
-                </div>
+                <div class="command-usage">!automod spam aç | !automod link kapat | !automod kelime ekle kelime</div>
+                <div class="command-permissions"><span class="permission-badge">Administrator</span></div>
               </div>
               <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!otoceza [uyari_sayisi] [ceza]</span>
-                </div>
-                <p class="command-desc">Belirli uyari sayisina ulasinca otomatik ceza uygular.</p>
+                <div class="command-header"><span class="command-name">!otoceza [uyarı_sayısı] [ceza]</span></div>
+                <p class="command-desc">Belirli uyarı sayısına ulaşınca otomatik ceza uygular.</p>
                 <div class="command-usage">!otoceza 3 mute 1h | !otoceza 5 ban</div>
-                <div class="command-permissions">
-                  <span class="permission-badge">Administrator</span>
-                </div>
+                <div class="command-permissions"><span class="permission-badge">Administrator</span></div>
+              </div>
+              <div class="command-card">
+                <div class="command-header"><span class="command-name">!raid [aç/kapat] [eşik]</span><span
+                    class="tag-badge new">Yeni</span></div>
+                <p class="command-desc">Anti-Raid sistemini yapılandırır. Belirli sürede çok sayıda üye katılırsa
+                  otomatik koruma devreye girer.</p>
+                <div class="command-permissions"><span class="permission-badge">Administrator</span></div>
               </div>
             </div>
 
+            <!-- AYARLAR -->
             <div class="category-section" id="settings">
               <div class="category-header">
-                <div class="category-icon settings"><i class="fas fa-cog"></i></div>
+                <div class="cat-icon green"><i class="fas fa-cog"></i></div>
                 <div>
-                  <h3>Ayarlar</h3>
-                  <span>Sunucu yapilandirma komutlari</span>
+                  <h3>Ayarlar</h3><span>Sunucu yapılandırma komutları</span>
                 </div>
               </div>
               <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!hosgeldin kanal #kanal</span>
-                </div>
-                <p class="command-desc">Hos geldin kanalini ayarlar.</p>
-                <div class="command-permissions">
-                  <span class="permission-badge">Manage Guild</span>
-                </div>
+                <div class="command-header"><span class="command-name">!log [kanal] [tür]</span></div>
+                <p class="command-desc">Moderasyon olaylarının kaydedileceği kanalı ayarlar. Tür: ban, kick, warn, mute,
+                  mesaj, üye.</p>
+                <div class="command-permissions"><span class="permission-badge">Manage Guild</span></div>
               </div>
               <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!hosgeldin mesaj [mesaj]</span>
-                </div>
-                <p class="command-desc">Hos geldin mesajini ayarlar. {user}, {server}, {memberCount}, {inviter}
-                  degiskenleri kullanilabilir.</p>
-                <div class="command-usage">!hosgeldin mesaj Hosgeldin {user}! Davet eden: {inviter}</div>
-                <div class="command-permissions">
-                  <span class="permission-badge">Manage Guild</span>
-                </div>
+                <div class="command-header"><span class="command-name">!hoşgeldin [kanal] [mesaj]</span></div>
+                <p class="command-desc">Yeni üyelere gönderilecek hoşgeldin mesajını ve kanalını ayarlar.
+                  <code>{user}</code> ve <code>{server}</code> değişkenleri kullanılabilir.</p>
+                <div class="command-permissions"><span class="permission-badge">Manage Guild</span></div>
               </div>
               <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!otorol @rol</span>
-                </div>
-                <p class="command-desc">Yeni uyelere otomatik rol verir.</p>
-                <div class="command-usage">!otorol @Uye</div>
-                <div class="command-permissions">
-                  <span class="permission-badge">Manage Roles</span>
-                </div>
+                <div class="command-header"><span class="command-name">!hoşçakal [kanal] [mesaj]</span></div>
+                <p class="command-desc">Ayrılan üyeler için hoşçakal mesajı ayarlar.</p>
+                <div class="command-permissions"><span class="permission-badge">Manage Guild</span></div>
               </div>
               <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!log #kanal</span>
-                </div>
-                <p class="command-desc">Moderasyon log kanalini ayarlar.</p>
-                <div class="command-usage">!log #mod-log</div>
-                <div class="command-permissions">
-                  <span class="permission-badge">Manage Guild</span>
-                </div>
+                <div class="command-header"><span class="command-name">!doğrulama [açık/kapalı]</span></div>
+                <p class="command-desc">Buton tabanlı kayıt/doğrulama sistemini açar veya kapatır.</p>
+                <div class="command-permissions"><span class="permission-badge">Administrator</span></div>
               </div>
               <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!dogumgunu kanal #kanal</span>
+                <div class="command-header"><span class="command-name">!oyunkanal [ekle/kaldır/liste] [#kanal]</span>
                 </div>
-                <p class="command-desc">Dogum gunu kutlama kanalini ayarlar.</p>
-                <div class="command-permissions">
-                  <span class="permission-badge">Manage Guild</span>
-                </div>
+                <p class="command-desc">Lethe Game komutlarının çalışacağı kanalları belirler. Boş bırakılırsa tüm
+                  kanallarda çalışır.</p>
+                <div class="command-permissions"><span class="permission-badge">Manage Guild</span></div>
               </div>
               <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!dogumgunu mesaj [mesaj]</span>
+                <div class="command-header"><span class="command-name">!zamanlamamesaj [kanal] [süre] [mesaj]</span>
                 </div>
-                <p class="command-desc">Dogum gunu kutlama mesajini ayarlar. {user} degiskeni kullanilabilir.</p>
-                <div class="command-permissions">
-                  <span class="permission-badge">Manage Guild</span>
-                </div>
+                <p class="command-desc">Belirtilen kanala düzenli aralıklarla otomatik mesaj gönderir.</p>
+                <div class="command-permissions"><span class="permission-badge">Manage Guild</span></div>
+              </div>
+              <div class="command-card">
+                <div class="command-header"><span class="command-name">!statchannel [tür] [#kanal]</span></div>
+                <p class="command-desc">Canlı istatistik kanalı oluşturur. Tür: üyeler, botlar, çevrimiçi.</p>
+                <div class="command-permissions"><span class="permission-badge">Manage Channels</span></div>
+              </div>
+              <div class="command-card">
+                <div class="command-header"><span class="command-name">!durum [tip] [metin]</span><span
+                    class="tag-badge owner">Bot Sahibi</span></div>
+                <p class="command-desc">Botun Discord aktivite durumunu değiştirir. Tip: izliyor, oynuyor, dinliyor,
+                  rekabet.</p>
+                <div class="command-permissions"><span class="permission-badge">Bot Owner</span></div>
               </div>
             </div>
 
+            <!-- ROL -->
             <div class="category-section" id="roles">
               <div class="category-header">
-                <div class="category-icon roles"><i class="fas fa-user-tag"></i></div>
+                <div class="cat-icon orange"><i class="fas fa-user-tag"></i></div>
                 <div>
-                  <h3>Rol Yonetimi</h3>
-                  <span>Rol ekleme, cikarma ve tepki rolleri</span>
+                  <h3>Rol Yönetimi</h3><span>Rol verme ve tepki rol sistemi</span>
                 </div>
               </div>
               <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!rolekle @kullanici @rol</span>
+                <div class="command-header"><span class="command-name">!tepkirol ekle [mesaj_id] [emoji] [@rol]</span>
                 </div>
-                <p class="command-desc">Kullaniciya belirtilen rolu ekler.</p>
-                <div class="command-permissions">
-                  <span class="permission-badge">Manage Roles</span>
-                </div>
+                <p class="command-desc">Belirtilen mesaja tepki rol ekler. Kullanıcı emoji tepkisi verdiğinde otomatik
+                  rol alır.</p>
+                <div class="command-permissions"><span class="permission-badge">Manage Roles</span></div>
               </div>
               <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!rolcikar @kullanici @rol</span>
-                </div>
-                <p class="command-desc">Kullanicidan belirtilen rolu cikarir.</p>
-                <div class="command-permissions">
-                  <span class="permission-badge">Manage Roles</span>
-                </div>
+                <div class="command-header"><span class="command-name">!rolekle @kullanıcı [@rol]</span></div>
+                <p class="command-desc">Kullanıcıya belirtilen rolü ekler.</p>
+                <div class="command-permissions"><span class="permission-badge">Manage Roles</span></div>
               </div>
               <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!roller</span>
-                </div>
-                <p class="command-desc">Sunucudaki tum rolleri listeler.</p>
+                <div class="command-header"><span class="command-name">!rolkaldır @kullanıcı [@rol]</span></div>
+                <p class="command-desc">Kullanıcıdan belirtilen rolü kaldırır.</p>
+                <div class="command-permissions"><span class="permission-badge">Manage Roles</span></div>
               </div>
               <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!tepkirol</span>
-                </div>
-                <p class="command-desc">Tepki rol mesaji olusturur veya yonetir.</p>
-                <div class="command-usage">!tepkirol olustur | !tepkirol ekle :emoji: @rol</div>
-                <div class="command-permissions">
-                  <span class="permission-badge">Manage Roles</span>
-                </div>
+                <div class="command-header"><span class="command-name">!roller</span></div>
+                <p class="command-desc">Sunucudaki tüm rolleri listeler.</p>
+              </div>
+              <div class="command-card">
+                <div class="command-header"><span class="command-name">!seviyerol [seviye] [@rol]</span></div>
+                <p class="command-desc">Belirli seviyeye ulaşınca otomatik verilecek rolü ayarlar.</p>
+                <div class="command-permissions"><span class="permission-badge">Manage Roles</span></div>
               </div>
             </div>
 
+            <!-- SEVİYE -->
+            <div class="category-section" id="leveling">
+              <div class="category-header">
+                <div class="cat-icon cyan"><i class="fas fa-chart-line"></i></div>
+                <div>
+                  <h3>Seviye & XP</h3><span>Aktivite ödül sistemi</span>
+                </div>
+              </div>
+              <div class="command-card">
+                <div class="command-header"><span class="command-name">!seviye [@kullanıcı]</span></div>
+                <p class="command-desc">Kullanıcının seviye ve XP bilgisini gösterir. Etiketlenmezse kendininkini
+                  gösterir.</p>
+              </div>
+              <div class="command-card">
+                <div class="command-header"><span class="command-name">!sıralama</span></div>
+                <p class="command-desc">Sunucunun XP sıralamasını gösterir (top 10).</p>
+              </div>
+              <div class="command-card">
+                <div class="command-header"><span class="command-name">!profil [@kullanıcı]</span></div>
+                <p class="command-desc">Kullanıcı profil kartı oluşturur. Seviye, XP, Lethe Game istatistikleri ve
+                  ekonomi bakiyesi gösterilir.</p>
+              </div>
+              <div class="command-card">
+                <div class="command-header"><span class="command-name">!başarımlar [@kullanıcı]</span></div>
+                <p class="command-desc">Kullanıcının kazandığı başarımları listeler.</p>
+              </div>
+              <div class="command-card">
+                <div class="command-header"><span class="command-name">!davetler [@kullanıcı]</span></div>
+                <p class="command-desc">Kullanıcının davet istatistiklerini gösterir.</p>
+              </div>
+              <div class="command-card">
+                <div class="command-header"><span class="command-name">!davettop</span></div>
+                <p class="command-desc">Sunucunun davet sıralamasını gösterir.</p>
+              </div>
+            </div>
+
+            <!-- LETHE GAME -->
+            <div class="category-section" id="lethe">
+              <div class="category-header">
+                <div class="cat-icon pink"><i class="fas fa-paw"></i></div>
+                <div>
+                  <h3>Lethe Game</h3><span>183+ hayvanlı global koleksiyon oyunu</span>
+                </div>
+              </div>
+              <!-- Temel -->
+              <div class="command-card">
+                <div class="command-header"><span class="command-name">!avla / !a / !av / !hunt</span></div>
+                <p class="command-desc">Hayvan avla ve koleksiyonuna ekle. Nadir hayvanlarda gem taşı düşme şansı. 7
+                  saniyelik cooldown.</p>
+              </div>
+              <div class="command-card">
+                <div class="command-header"><span class="command-name">!koleksiyon / !k</span></div>
+                <p class="command-desc">Yakaladığın hayvanları görüntüle. 15'li sayfalama, rarityye göre sıralama.
+                  <code>!k albüm</code> ile biyom tamamlanma durumu.</p>
+              </div>
+              <div class="command-card">
+                <div class="command-header"><span class="command-name">!satış [id] / !sat hepsi</span></div>
+                <p class="command-desc">Hayvanı sat ve altın kazan. <code>!sat hepsi</code> ile tüm takım dışı
+                  hayvanları satarsın.</p>
+              </div>
+              <div class="command-card">
+                <div class="command-header"><span class="command-name">!ad [id] [yeni_ad]</span></div>
+                <p class="command-desc">Hayvanına özel isim ver. 20 karakter limit.</p>
+              </div>
+              <!-- Savaş -->
+              <div class="command-card">
+                <div class="command-header"><span class="command-name">!savas / !s / !battle</span></div>
+                <p class="command-desc">Takımınla PvE savaşı yap. Seviyene göre zorlaşan düşman takımı. Kazanırsan XP +
+                  altın.</p>
+              </div>
+              <div class="command-card">
+                <div class="command-header"><span class="command-name">!düello @kullanıcı / !d</span></div>
+                <p class="command-desc">Başka bir oyuncuya PvP meydan okuma. Kazanan XP ve altın kazanır.</p>
+              </div>
+              <div class="command-card">
+                <div class="command-header"><span class="command-name">!boss</span></div>
+                <p class="command-desc">Özel boss canavarana karşı savaş. Nadiren karşılaşılır, ödüller yüksektir.</p>
+              </div>
+              <!-- Takım & Ekipman -->
+              <div class="command-card">
+                <div class="command-header"><span class="command-name">!takım / !t</span></div>
+                <p class="command-desc">Aktif savaş takımını görüntüle.</p>
+              </div>
+              <div class="command-card">
+                <div class="command-header"><span class="command-name">!takımekle [id]</span></div>
+                <p class="command-desc">Hayvanı savaş takımına ekle.</p>
+              </div>
+              <div class="command-card">
+                <div class="command-header"><span class="command-name">!takımçıkar [id]</span></div>
+                <p class="command-desc">Hayvanı savaş takımından çıkar.</p>
+              </div>
+              <div class="command-card">
+                <div class="command-header"><span class="command-name">!eğit [id]</span></div>
+                <p class="command-desc">Hayvanını eğit, stat puanları ver. Seviye atlama bonusu.</p>
+              </div>
+              <div class="command-card">
+                <div class="command-header"><span class="command-name">!evrim [id]</span></div>
+                <p class="command-desc">Gem taşı kullanarak hayvanı evrilt. Daha güçlü versiyon elde et.</p>
+              </div>
+              <!-- Envanter & Ekonomi -->
+              <div class="command-card">
+                <div class="command-header"><span class="command-name">!sandık / !sc [tür]</span></div>
+                <p class="command-desc">Sandık aç ve içindeki ödülü kazan. Farklı sandık türleri farklı içerikler sunar.
+                </p>
+              </div>
+              <div class="command-card">
+                <div class="command-header"><span class="command-name">!envanter / !env</span></div>
+                <p class="command-desc">Eşyalar, sandıklar ve gem taşlarını görüntüle.</p>
+              </div>
+              <div class="command-card">
+                <div class="command-header"><span class="command-name">!mağaza / !shop</span></div>
+                <p class="command-desc">Özel eşyalar ve güçlendirmeler satın al.</p>
+              </div>
+              <div class="command-card">
+                <div class="command-header"><span class="command-name">!al [eşya_id]</span></div>
+                <p class="command-desc">Mağazadan eşya satın al.</p>
+              </div>
+              <div class="command-card">
+                <div class="command-header"><span class="command-name">!takas @kullanıcı</span></div>
+                <p class="command-desc">Başka oyuncuyla hayvan takas teklifi gönder.</p>
+              </div>
+              <div class="command-card">
+                <div class="command-header"><span class="command-name">!hediye @kullanıcı [id]</span></div>
+                <p class="command-desc">Oyuncuya hayvan veya eşya hediye et.</p>
+              </div>
+              <!-- İstatistik & Sosyal -->
+              <div class="command-card">
+                <div class="command-header"><span class="command-name">!siralama [kategori]</span></div>
+                <p class="command-desc">Global liderlik tablosu. Kategori: coins, level, hunts, battles, pvp, animals.
+                </p>
+              </div>
+              <div class="command-card">
+                <div class="command-header"><span class="command-name">!görev / !g</span></div>
+                <p class="command-desc">Aktif günlük görevleri ve ilerlemeyi gösterir.</p>
+              </div>
+              <div class="command-card">
+                <div class="command-header"><span class="command-name">!keşfet / !bölge</span></div>
+                <p class="command-desc">Bölgeleri keşfet ve özel hayvan bulma şansını artır.</p>
+              </div>
+              <div class="command-card">
+                <div class="command-header"><span class="command-name">!sezon</span></div>
+                <p class="command-desc">Aktif sezon bilgisini ve özel sezonluk hayvanları gösterir.</p>
+              </div>
+              <div class="command-card">
+                <div class="command-header"><span class="command-name">!günlük / !daily</span></div>
+                <p class="command-desc">Günlük para ödülünü topla.</p>
+              </div>
+              <div class="command-card">
+                <div class="command-header"><span class="command-name">!bakiye / !para</span></div>
+                <p class="command-desc">Altın bakiyeni ve ekonomi istatistiklerini gösterir.</p>
+              </div>
+            </div>
+
+            <!-- EĞLENCE -->
             <div class="category-section" id="fun">
               <div class="category-header">
-                <div class="category-icon fun"><i class="fas fa-star"></i></div>
+                <div class="cat-icon pink"><i class="fas fa-star"></i></div>
                 <div>
-                  <h3>Eglence</h3>
-                  <span>Cekilisler, anketler ve daha fazlasi</span>
+                  <h3>Eğlence & Oyunlar</h3><span>Topluluk eğlence komutları</span>
                 </div>
               </div>
               <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!cekilis baslat [sure] [kazanan] [odul]</span>
+                <div class="command-header"><span class="command-name">!çekiliş başlat [süre] [kazanan] [ödül]</span>
                 </div>
-                <p class="command-desc">Yeni bir cekilis baslatir.</p>
-                <div class="command-usage">!cekilis baslat 1h 1 Discord Nitro</div>
-                <div class="command-permissions">
-                  <span class="permission-badge">Manage Guild</span>
-                </div>
+                <p class="command-desc">Çekiliş başlatır. Süre dolunca kazanan otomatik seçilir.</p>
+                <div class="command-usage">!çekiliş başlat 1d 1 Nitro</div>
+                <div class="command-permissions"><span class="permission-badge">Manage Guild</span></div>
               </div>
               <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!cekilis bitir [mesaj_id]</span>
-                </div>
-                <p class="command-desc">Devam eden cekilisi erken bitirir.</p>
-                <div class="command-permissions">
-                  <span class="permission-badge">Manage Guild</span>
-                </div>
+                <div class="command-header"><span class="command-name">!anket [soru]</span></div>
+                <p class="command-desc">Reaksiyon bazlı anket oluşturur.</p>
               </div>
               <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!cekilis tekrar [mesaj_id]</span>
-                </div>
-                <p class="command-desc">Biten cekilisten yeni kazanan secer.</p>
-                <div class="command-permissions">
-                  <span class="permission-badge">Manage Guild</span>
-                </div>
+                <div class="command-header"><span class="command-name">!doğumgünü [gün] [ay]</span></div>
+                <p class="command-desc">Doğum gününü kaydeder. Bot otomatik kutlar ve özel rol verir.</p>
               </div>
               <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!anket "Soru" "Secenek1" "Secenek2" ...</span>
-                </div>
-                <p class="command-desc">Anket olusturur (10 secenege kadar).</p>
-                <div class="command-usage">!anket "En iyi programlama dili?" "Python" "JavaScript" "Rust"</div>
+                <div class="command-header"><span class="command-name">!bilgiyarışması</span></div>
+                <p class="command-desc">Kanal geneli bilgi yarışması başlatır.</p>
               </div>
               <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!duyuru [#kanal] [mesaj]</span>
-                </div>
-                <p class="command-desc">Belirtilen kanala duyuru mesaji gonderir.</p>
-                <div class="command-permissions">
-                  <span class="permission-badge">Manage Guild</span>
-                </div>
+                <div class="command-header"><span class="command-name">!çalış</span></div>
+                <p class="command-desc">Çeşitli işlerden para kazan. Cooldown: 30 dakika.</p>
+              </div>
+              <div class="command-card">
+                <div class="command-header"><span class="command-name">!king</span></div>
+                <p class="command-desc">Sunucunun günlük en aktif üyesini gösterir.</p>
+              </div>
+              <div class="command-card">
+                <div class="command-header"><span class="command-name">!arkadaş @kullanıcı</span></div>
+                <p class="command-desc">Arkadaş isteği gönder ve sosyal sistem puanı kazan.</p>
               </div>
             </div>
 
-            <div class="category-section" id="utility">
-              <div class="category-header">
-                <div class="category-icon utility"><i class="fas fa-tools"></i></div>
-                <div>
-                  <h3>Araclar</h3>
-                  <span>Yardimci araclar ve ozel komutlar</span>
-                </div>
-              </div>
-              <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!hatirlat [sure] [mesaj]</span>
-                </div>
-                <p class="command-desc">Belirtilen sure sonra hatirlatic olusturur.</p>
-                <div class="command-usage">!hatirlat 30dk Toplantiya katil</div>
-              </div>
-              <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!afk [sebep]</span>
-                </div>
-                <p class="command-desc">AFK durumunu ayarlar. Birisi sizi etiketlediginde bilgilendirilir.</p>
-              </div>
-              <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!komutekle [komut] [yanit]</span>
-                </div>
-                <p class="command-desc">Ozel komut ekler.</p>
-                <div class="command-usage">!komutekle kurallar Sunucu kurallari: ...</div>
-                <div class="command-permissions">
-                  <span class="permission-badge">Manage Guild</span>
-                </div>
-              </div>
-              <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!komutsil [komut]</span>
-                </div>
-                <p class="command-desc">Ozel komutu siler.</p>
-                <div class="command-permissions">
-                  <span class="permission-badge">Manage Guild</span>
-                </div>
-              </div>
-            </div>
-
+            <!-- SOSYAL MEDYA -->
             <div class="category-section" id="social">
               <div class="category-header">
-                <div class="category-icon social"><i class="fas fa-share-alt"></i></div>
+                <div class="cat-icon red"><i class="fas fa-share-nodes"></i></div>
                 <div>
-                  <h3>Sosyal Medya Bildirimleri</h3>
-                  <span>Twitch, YouTube, TikTok ve diger platformlar</span>
+                  <h3>Sosyal Medya</h3><span>Platform bildirim ayarları</span>
                 </div>
               </div>
               <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!sosyal ekle [platform] [kullanici] #kanal [mesaj]</span>
-                </div>
-                <p class="command-desc">Sosyal medya bildirimi ekler. Platformlar: twitch, youtube, tiktok, twitter,
-                  instagram, rss</p>
-                <div class="command-usage">!sosyal ekle twitch ninja #bildirimler Yayin basladi!</div>
-                <div class="command-permissions">
-                  <span class="permission-badge">Manage Guild</span>
-                </div>
+                <div class="command-header"><span class="command-name">!twitch ekle [kullanıcı] [#kanal]</span></div>
+                <p class="command-desc">Twitch yayın başladığında Discord kanalına bildirim gönderir.</p>
+                <div class="command-permissions"><span class="permission-badge">Manage Guild</span></div>
               </div>
               <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!sosyal sil [id]</span>
-                </div>
-                <p class="command-desc">Sosyal medya bildirimini siler.</p>
-                <div class="command-permissions">
-                  <span class="permission-badge">Manage Guild</span>
-                </div>
+                <div class="command-header"><span class="command-name">!kick ekle [kullanıcı] [#kanal]</span><span
+                    class="tag-badge new">Yeni</span></div>
+                <p class="command-desc">Kick yayın başladığında Discord kanalına bildirim gönderir.</p>
+                <div class="command-permissions"><span class="permission-badge">Manage Guild</span></div>
               </div>
               <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!sosyal liste [platform]</span>
-                </div>
-                <p class="command-desc">Tum sosyal medya bildirimlerini listeler.</p>
-              </div>
-              <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!sosyal toggle [id]</span>
-                </div>
-                <p class="command-desc">Bildirimi acar/kapatir.</p>
-                <div class="command-permissions">
-                  <span class="permission-badge">Manage Guild</span>
-                </div>
+                <div class="command-header"><span class="command-name">!sosyal liste</span></div>
+                <p class="command-desc">Sunucudaki tüm sosyal medya bildirimlerini listeler.</p>
+                <div class="command-permissions"><span class="permission-badge">Manage Guild</span></div>
               </div>
             </div>
 
-            <div class="category-section" id="schedule">
+            <!-- ARAÇLAR -->
+            <div class="category-section" id="utility">
               <div class="category-header">
-                <div class="category-icon schedule"><i class="fas fa-clock"></i></div>
+                <div class="cat-icon cyan"><i class="fas fa-tools"></i></div>
                 <div>
-                  <h3>Zamanlanmis Mesajlar</h3>
-                  <span>Otomatik mesaj gonderme sistemi</span>
+                  <h3>Araçlar</h3><span>Genel yardımcı komutlar</span>
                 </div>
               </div>
               <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!zamanli ekle #kanal [dakika] [mesaj]</span>
-                </div>
-                <p class="command-desc">Zamanlanmis mesaj ekler.</p>
-                <div class="command-usage">!zamanli ekle #genel 60 Her saat gonderilen mesaj</div>
-                <div class="command-permissions">
-                  <span class="permission-badge">Manage Guild</span>
-                </div>
+                <div class="command-header"><span class="command-name">!embed basit [metin]</span></div>
+                <p class="command-desc">Basit embed mesaj oluşturur.</p>
+                <div class="command-permissions"><span class="permission-badge">Manage Messages</span></div>
               </div>
               <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!zamanli sil [id]</span>
-                </div>
-                <p class="command-desc">Zamanlanmis mesaji siler.</p>
-                <div class="command-permissions">
-                  <span class="permission-badge">Manage Guild</span>
-                </div>
+                <div class="command-header"><span class="command-name">!embed gelişmiş [başlık] | [açıklama] |
+                    [renk]</span></div>
+                <p class="command-desc">Başlık, açıklama ve renk özelleştirmeli embed oluşturur.</p>
+                <div class="command-permissions"><span class="permission-badge">Manage Messages</span></div>
               </div>
               <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!zamanli liste</span>
-                </div>
-                <p class="command-desc">Tum zamanlanmis mesajlari listeler.</p>
+                <div class="command-header"><span class="command-name">!hatırlatıcı [süre] [mesaj]</span></div>
+                <p class="command-desc">Belirtilen süre sonra DM ile hatırlat.</p>
+                <div class="command-usage">!hatırlat 2s Toplantı var</div>
               </div>
               <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!zamanli toggle [id]</span>
-                </div>
-                <p class="command-desc">Mesaji acar/kapatir.</p>
-                <div class="command-permissions">
-                  <span class="permission-badge">Manage Guild</span>
-                </div>
+                <div class="command-header"><span class="command-name">!geçicikanal oluştur</span></div>
+                <p class="command-desc">Geçici ses kanalı oluşturur. Kanal boşaldığında otomatik silinir.</p>
+              </div>
+              <div class="command-card">
+                <div class="command-header"><span class="command-name">!döviz [miktar] [para_birimi]</span></div>
+                <p class="command-desc">Döviz kuru sorgular (USD, EUR, GBP vb.).</p>
+              </div>
+              <div class="command-card">
+                <div class="command-header"><span class="command-name">!çevir [dil] [metin]</span></div>
+                <p class="command-desc">Metni belirtilen dile çevirir.</p>
+              </div>
+              <div class="command-card">
+                <div class="command-header"><span class="command-name">!afk [mesaj]</span></div>
+                <p class="command-desc">AFK modunu açar. Etiketlendiğinde botunuzdan otomatik sebebi bildirir.</p>
+              </div>
+              <div class="command-card">
+                <div class="command-header"><span class="command-name">!özelkomut ekle [komut] [yanıt]</span></div>
+                <p class="command-desc">Sunucuya özel komut ekler.</p>
+                <div class="command-permissions"><span class="permission-badge">Manage Guild</span></div>
+              </div>
+              <div class="command-card">
+                <div class="command-header"><span class="command-name">!paraekle @kullanıcı [miktar]</span><span
+                    class="tag-badge owner">Bot Sahibi</span></div>
+                <p class="command-desc">Kullanıcıya ekonomi parası ekler.</p>
+              </div>
+              <div class="command-card">
+                <div class="command-header"><span class="command-name">!parasil @kullanıcı [miktar]</span><span
+                    class="tag-badge owner">Bot Sahibi</span></div>
+                <p class="command-desc">Kullanıcının ekonomi parasını azaltır.</p>
               </div>
             </div>
 
+            <!-- BİLGİ -->
             <div class="category-section" id="info">
               <div class="category-header">
-                <div class="category-icon info"><i class="fas fa-info-circle"></i></div>
+                <div class="cat-icon blue"><i class="fas fa-info-circle"></i></div>
                 <div>
-                  <h3>Bilgi</h3>
-                  <span>Bilgi ve istatistik komutlari</span>
+                  <h3>Bilgi</h3><span>Sunucu ve kullanıcı bilgi komutları</span>
                 </div>
               </div>
               <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!yardim [kategori]</span>
-                </div>
-                <p class="command-desc">Komut listesini veya belirli kategori hakkinda bilgi gosterir.</p>
+                <div class="command-header"><span class="command-name">!sunucubilgi</span></div>
+                <p class="command-desc">Sunucu hakkında detaylı bilgi gösterir (üye sayısı, kanal sayısı, roller vb.).
+                </p>
               </div>
               <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!sunucu</span>
-                </div>
-                <p class="command-desc">Sunucu hakkinda detayli bilgi gosterir.</p>
+                <div class="command-header"><span class="command-name">!kullanıcıbilgi [@kullanıcı]</span></div>
+                <p class="command-desc">Kullanıcı hakkında detaylı bilgi gösterir.</p>
               </div>
               <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!kullanici [@kullanici]</span>
-                </div>
-                <p class="command-desc">Kullanici hakkinda detayli bilgi gosterir.</p>
+                <div class="command-header"><span class="command-name">!avatar [@kullanıcı]</span></div>
+                <p class="command-desc">Kullanıcının profil fotoğrafını büyük boyutta gösterir.</p>
               </div>
               <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!avatar [@kullanici]</span>
-                </div>
-                <p class="command-desc">Kullanicinin avatarini gosterir.</p>
+                <div class="command-header"><span class="command-name">!ping</span></div>
+                <p class="command-desc">Bot ve WebSocket API gecikme sürelerini gösterir.</p>
               </div>
               <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!ping</span>
-                </div>
-                <p class="command-desc">Bot gecikmesini gosterir.</p>
+                <div class="command-header"><span class="command-name">!yardım [kategori]</span></div>
+                <p class="command-desc">Komut listesini ve kategorileri görüntüler. Kategori verilirse o bölümün
+                  detayları gösterilir.</p>
               </div>
               <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!davet [@kullanici]</span>
-                </div>
-                <p class="command-desc">Kullanicinin davet istatistiklerini gosterir.</p>
+                <div class="command-header"><span class="command-name">!komutlar</span></div>
+                <p class="command-desc">Tüm aktif komutları listeler.</p>
               </div>
               <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!davet siralama</span>
-                </div>
-                <p class="command-desc">En cok davet eden kullanicilari listeler.</p>
+                <div class="command-header"><span class="command-name">!biyografi [metin]</span></div>
+                <p class="command-desc">Profil kartında gösterilecek biyografiyi ayarlar.</p>
               </div>
             </div>
 
-            <div class="category-section" id="ai">
+            <!-- ZAMANLAMA -->
+            <div class="category-section" id="schedule">
               <div class="category-header">
-                <div class="category-icon ai"><i class="fas fa-brain"></i></div>
+                <div class="cat-icon orange"><i class="fas fa-clock"></i></div>
                 <div>
-                  <h3>Yapay Zeka</h3>
-                  <span>GPT-4o ve DALL-E 3 destekli komutlar</span>
+                  <h3>Zamanlama</h3><span>Zamanlı mesaj ve etkinlik komutları</span>
                 </div>
               </div>
               <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">@Publisher [mesaj]</span>
-                </div>
-                <p class="command-desc">Botu etiketleyerek sohbet edin. Coklu dil destegi ve Lethe Game rehberligi!</p>
-                <div class="command-usage">@Publisher Merhaba, nasilsin?</div>
+                <div class="command-header"><span class="command-name">!zamanlamamsg [kanal] [cron] [mesaj]</span></div>
+                <p class="command-desc">Düzenli aralıklarla belirtilen kanala otomatik mesaj gönderir.</p>
+                <div class="command-permissions"><span class="permission-badge">Manage Guild</span></div>
               </div>
               <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!gorsel [aciklama]</span>
-                </div>
-                <p class="command-desc">DALL-E 3 ile gorsel olusturur.</p>
-                <div class="command-usage">!gorsel Uzayda bir astronot kedi</div>
+                <div class="command-header"><span class="command-name">!etkinlik oluştur [başlık] [tarih]
+                    [açıklama]</span></div>
+                <p class="command-desc">Sunucu etkinliği oluşturur ve hatırlatıcı gönderir.</p>
+                <div class="command-permissions"><span class="permission-badge">Manage Events</span></div>
               </div>
               <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!analiz [soru]</span>
-                </div>
-                <p class="command-desc">Gorselleri yapay zeka ile analiz eder. Bir gorsel ekleyerek veya yanit vererek
-                  kullanin.</p>
+                <div class="command-header"><span class="command-name">!hatırlatıcı liste</span></div>
+                <p class="command-desc">Aktif hatırlatıcılarını listeler.</p>
               </div>
               <div class="command-card">
-                <div class="command-header">
-                  <span class="command-name">!cevir [dil] [metin]</span>
-                </div>
-                <p class="command-desc">Metni 20+ dile cevirir.</p>
-                <div class="command-usage">!cevir ingilizce Merhaba dunya</div>
+                <div class="command-header"><span class="command-name">!duyur [#kanal] [mesaj]</span></div>
+                <p class="command-desc">Belirtilen kanala resmi duyuru embed gönderir.</p>
+                <div class="command-permissions"><span class="permission-badge">Manage Messages</span></div>
               </div>
             </div>
 
-          </div>
-          <div id="no-results" class="no-results" style="display: none;">
+          </div><!-- /commands-list -->
+          <div class="no-results" id="no-results">
             <i class="fas fa-search"></i>
-            <h4>Sonuc Bulunamadi</h4>
-            <p>Aradiginiz komut bulunamadi. Farkli bir kelime deneyin.</p>
+            <h4>Sonuç Bulunamadı</h4>
+            <p>Arama kriterinize uyan komut bulunamadı.</p>
           </div>
         </div>
       </div>
@@ -1211,108 +1187,49 @@
           <a href="/lethe-game">Lethe Game</a>
           <a href="/auth/discord">Dashboard</a>
         </div>
-        <div class="footer-copy">&copy; 2025 Publisher Bot. Tum haklari saklidir.</div>
+        <div class="footer-copy">&copy; 2025 Publisher Bot. Tüm hakları saklıdır.</div>
       </div>
     </div>
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
   <script>
+    // Search functionality
     const searchInput = document.getElementById('search-input');
-    const commandCards = document.querySelectorAll('.command-card');
-    const categorySections = document.querySelectorAll('.category-section');
-    const noResults = document.getElementById('no-results');
-    const categoryLinks = document.querySelectorAll('.category-link');
-
     searchInput.addEventListener('input', function () {
       const query = this.value.toLowerCase().trim();
-      let hasResults = false;
+      const cards = document.querySelectorAll('.command-card');
+      const sections = document.querySelectorAll('.category-section');
+      let anyVisible = false;
 
-      categorySections.forEach(section => {
-        const cards = section.querySelectorAll('.command-card');
-        let sectionHasResults = false;
-
-        cards.forEach(card => {
-          const name = card.querySelector('.command-name').textContent.toLowerCase();
-          const desc = card.querySelector('.command-desc').textContent.toLowerCase();
-
-          if (name.includes(query) || desc.includes(query)) {
-            card.style.display = 'block';
-            sectionHasResults = true;
-            hasResults = true;
-          } else {
-            card.style.display = 'none';
-          }
+      sections.forEach(section => {
+        let sectionHasVisible = false;
+        section.querySelectorAll('.command-card').forEach(card => {
+          const text = card.textContent.toLowerCase();
+          const visible = text.includes(query);
+          card.style.display = visible ? 'block' : 'none';
+          if (visible) sectionHasVisible = true;
         });
-
-        section.style.display = sectionHasResults ? 'block' : 'none';
+        section.style.display = sectionHasVisible ? 'block' : 'none';
+        if (sectionHasVisible) anyVisible = true;
       });
 
-      noResults.style.display = hasResults ? 'none' : 'block';
+      document.getElementById('no-results').style.display = anyVisible ? 'none' : 'block';
     });
 
-    categoryLinks.forEach(link => {
-      link.addEventListener('click', function () {
-        categoryLinks.forEach(l => l.classList.remove('active'));
-        this.classList.add('active');
-      });
-    });
-
-    window.addEventListener('scroll', function () {
-      let currentSection = '';
-      categorySections.forEach(section => {
-        const sectionTop = section.offsetTop;
-        if (window.pageYOffset >= sectionTop - 150) {
-          currentSection = section.getAttribute('id');
+    // Sidebar active highlight on scroll
+    const sidebarLinks = document.querySelectorAll('.category-link');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          sidebarLinks.forEach(l => l.classList.remove('active'));
+          const link = document.querySelector(`.category-link[href="#${entry.target.id}"]`);
+          if (link) link.classList.add('active');
         }
       });
+    }, { rootMargin: '-100px 0px -60% 0px' });
 
-      categoryLinks.forEach(link => {
-        link.classList.remove('active');
-        if (link.getAttribute('href') === '#' + currentSection) {
-          link.classList.add('active');
-        }
-      });
-    });
-
-    // Fetch and display real-time command usage stats
-    async function loadCommandStats() {
-      try {
-        const response = await fetch('/api/commands/stats');
-        if (!response.ok) return;
-        const stats = await response.json();
-
-        const statsMap = {};
-        stats.forEach(s => {
-          statsMap[s.commandName.toLowerCase()] = s.usageCount;
-        });
-
-        document.querySelectorAll('.command-card').forEach(card => {
-          const nameText = card.querySelector('.command-name').textContent;
-          let cmdNameStr = '';
-          if (nameText.startsWith('!')) {
-            cmdNameStr = nameText.split(' ')[0].substring(1).toLowerCase();
-          } else if (nameText.startsWith('@Publisher')) {
-            cmdNameStr = 'chatgpt'; // Default internal name
-          }
-
-          if (statsMap[cmdNameStr] && statsMap[cmdNameStr] > 0) {
-            const header = card.querySelector('.command-header');
-            const badge = document.createElement('span');
-            badge.className = 'permission-badge usage-badge';
-            badge.style.background = 'rgba(52, 211, 153, 0.15)';
-            badge.style.color = 'var(--accent-green)';
-            badge.style.marginLeft = 'auto';
-            badge.innerHTML = `<i class="fas fa-bolt me-1"></i> ${statsMap[cmdNameStr].toLocaleString('tr-TR')} Kullanım`;
-            header.appendChild(badge);
-          }
-        });
-      } catch (err) {
-        console.error('Failed to load command stats:', err);
-      }
-    }
-
-    document.addEventListener('DOMContentLoaded', loadCommandStats);
+    document.querySelectorAll('.category-section').forEach(s => observer.observe(s));
   </script>
 </body>
 
