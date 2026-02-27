@@ -778,6 +778,61 @@
           <p class="text-secondary mb-4">Yıl boyunca değişen sezonlara özel hayvanlar! Bu hayvanlar sadece kendi
             sezonlarında yakalanabilir ve koleksiyonunda kalıcı olarak kalır.</p>
 
+          <!-- Aktif Sezon Countdown -->
+          <div id="season-banner" class="card-custom mb-4"
+            style="background: linear-gradient(135deg, rgba(135,206,250,0.15), rgba(100,180,255,0.05)); border-color: #87ceeb; text-align:center;">
+            <div id="season-icon" style="font-size:2.5rem;">❄️</div>
+            <h4 id="season-name" style="color:#87ceeb; margin:8px 0;">Kış Sezonu</h4>
+            <p class="small text-secondary mb-2">Bir sonraki sezona kalan süre:</p>
+            <div id="season-countdown" style="font-size:1.4rem; font-weight:700; color:#fff; letter-spacing:2px;">-- :
+              -- : --</div>
+          </div>
+          <script>
+            (function () {
+              const month = new Date().getMonth(); // 0=Ocak ... 11=Aralık
+              const seasons = [
+                { name: 'Kış Sezonu', emoji: '❄️', color: '#87ceeb', endMonth: 2 },   // Ara-Şub → bitiş Mart
+                { name: 'Kış Sezonu', emoji: '❄️', color: '#87ceeb', endMonth: 2 },   // Ocak
+                { name: 'Kış Sezonu', emoji: '❄️', color: '#87ceeb', endMonth: 2 },   // Şubat
+                { name: 'Bahar Sezonu', emoji: '🌸', color: '#f9a8d4', endMonth: 5 }, // Mart
+                { name: 'Bahar Sezonu', emoji: '🌸', color: '#f9a8d4', endMonth: 5 }, // Nisan
+                { name: 'Bahar Sezonu', emoji: '🌸', color: '#f9a8d4', endMonth: 5 }, // Mayıs
+                { name: 'Yaz Sezonu', emoji: '☀️', color: '#fbbf24', endMonth: 8 },   // Haziran
+                { name: 'Yaz Sezonu', emoji: '☀️', color: '#fbbf24', endMonth: 8 },   // Temmuz
+                { name: 'Yaz Sezonu', emoji: '☀️', color: '#fbbf24', endMonth: 8 },   // Ağustos
+                { name: 'Sonbahar Sezonu', emoji: '🍂', color: '#f97316', endMonth: 11 }, // Eylül
+                { name: 'Sonbahar Sezonu', emoji: '🍂', color: '#f97316', endMonth: 11 }, // Ekim
+                { name: 'Sonbahar Sezonu', emoji: '🍂', color: '#f97316', endMonth: 11 }, // Kasım
+                { name: 'Kış Sezonu', emoji: '❄️', color: '#87ceeb', endMonth: 14 }   // Aralık
+              ];
+              const s = seasons[month];
+              document.getElementById('season-icon').textContent = s.emoji;
+              document.getElementById('season-name').textContent = s.name;
+              document.getElementById('season-name').style.color = s.color;
+              document.getElementById('season-banner').style.borderColor = s.color;
+
+              // Bitiş tarihi: sezon biti ayının 1. günü
+              const now = new Date();
+              const endMonth = s.endMonth > 11 ? 2 : s.endMonth;
+              const endYear = s.endMonth > 11 ? now.getFullYear() + 1 : now.getFullYear();
+              const end = new Date(endYear, endMonth, 1, 0, 0, 0);
+
+              function pad(n) { return String(n).padStart(2, '0'); }
+              function tick() {
+                const diff = end - Date.now();
+                if (diff <= 0) { document.getElementById('season-countdown').textContent = 'Sezon değişiyor!'; return; }
+                const d = Math.floor(diff / 86400000);
+                const h = Math.floor((diff % 86400000) / 3600000);
+                const m = Math.floor((diff % 3600000) / 60000);
+                const sec = Math.floor((diff % 60000) / 1000);
+                document.getElementById('season-countdown').textContent =
+                  d > 0 ? `${d} gün ${pad(h)}:${pad(m)}:${pad(sec)}` : `${pad(h)}:${pad(m)}:${pad(sec)}`;
+              }
+              tick();
+              setInterval(tick, 1000);
+            })();
+          </script>
+
           <div class="row g-4 mb-4">
             <div class="col-md-6 col-lg-3">
               <div class="card-custom text-center" style="border-color: #f472b6;">
