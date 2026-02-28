@@ -18,11 +18,17 @@ class DatabaseStorage {
       return cached.data;
     }
 
-    const [guild] = await db.select().from(guilds).where(eq(guilds.id, guildId));
-    if (guild) {
-      this.guildCache.set(guildId, { data: guild, timestamp: Date.now() });
+    try {
+      const [guild] = await db.select().from(guilds).where(eq(guilds.id, guildId));
+      if (guild) {
+        this.guildCache.set(guildId, { data: guild, timestamp: Date.now() });
+      }
+      return guild || null;
+    } catch (err) {
+      console.error('[getGuild] DB hatası (migration gerekebilir):', err.message);
+      // Kolon eksikse yine de çalışsın: minimal kayıt döndür
+      return { id: guildId };
     }
-    return guild || null;
   }
 
   async upsertGuild(guildId, data) {

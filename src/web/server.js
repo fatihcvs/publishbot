@@ -1034,29 +1034,33 @@ app.get('/api/guilds', isAuthenticated, (req, res) => {
 
 app.get('/api/guild/:guildId', isAuthenticated, requireManagerAccess, async (req, res) => {
   const { guildId } = req.params;
+  try {
+    const guild = discordClient?.guilds.cache.get(guildId);
+    if (!guild) {
+      return res.status(404).json({ error: 'Guild not found or bot not in guild' });
+    }
 
-  const guild = discordClient?.guilds.cache.get(guildId);
-  if (!guild) {
-    return res.status(404).json({ error: 'Guild not found' });
+    const guildData = await storage.getGuild(guildId) || {};
+
+    return res.json({
+      id: guild.id,
+      name: guild.name,
+      icon: guild.iconURL(),
+      memberCount: guild.memberCount,
+      presenceCount: guild.members.cache.filter(m => m.presence?.status && m.presence.status !== 'offline').size || 0,
+      channels: guild.channels.cache
+        .filter(c => c.type === 0 || c.type === 2 || c.type === 4)
+        .map(c => ({ id: c.id, name: c.name, type: c.type })),
+      roles: guild.roles.cache
+        .filter(r => r.id !== guild.id)
+        .map(r => ({ id: r.id, name: r.name, color: r.hexColor }))
+        .sort((a, b) => b.position - a.position),
+      settings: guildData
+    });
+  } catch (err) {
+    console.error(`[/api/guild/${guildId}] Hata:`, err);
+    return res.status(500).json({ error: 'Internal Server Error', detail: err.message });
   }
-
-  const guildData = await storage.getGuild(guildId) || {};
-
-  res.json({
-    id: guild.id,
-    name: guild.name,
-    icon: guild.iconURL(),
-    memberCount: guild.memberCount,
-    presenceCount: guild.members.cache.filter(m => m.presence?.status && m.presence.status !== 'offline').size || 0,
-    channels: guild.channels.cache
-      .filter(c => c.type === 0 || c.type === 2 || c.type === 4)
-      .map(c => ({ id: c.id, name: c.name, type: c.type })),
-    roles: guild.roles.cache
-      .filter(r => r.id !== guild.id)
-      .map(r => ({ id: r.id, name: r.name, color: r.hexColor }))
-      .sort((a, b) => b.position - a.position),
-    settings: guildData
-  });
 });
 
 app.post('/api/guild/:guildId/settings', isAuthenticated, requireManagerAccess, async (req, res) => {
