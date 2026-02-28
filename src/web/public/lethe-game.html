@@ -352,6 +352,177 @@
       display: block;
     }
 
+    /* ── Roadmap ──────────────────────────────────────────────────────── */
+    .roadmap-timeline {
+      position: relative;
+      padding-left: 32px;
+    }
+
+    .roadmap-timeline::before {
+      content: '';
+      position: absolute;
+      left: 10px;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: linear-gradient(180deg, var(--accent-purple), var(--accent-pink));
+      opacity: 0.35;
+      border-radius: 2px;
+    }
+
+    .roadmap-item {
+      position: relative;
+      margin-bottom: 22px;
+    }
+
+    .roadmap-dot {
+      position: absolute;
+      left: -28px;
+      top: 16px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      border: 2px solid;
+      background: var(--bg-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 7px;
+    }
+
+    .roadmap-dot.done {
+      border-color: #10b981;
+      color: #10b981;
+    }
+
+    .roadmap-dot.plan {
+      border-color: var(--accent-purple);
+      color: var(--accent-purple);
+    }
+
+    .roadmap-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 16px 20px;
+      transition: border-color 0.3s, transform 0.3s;
+    }
+
+    .roadmap-card:hover {
+      border-color: var(--accent-purple);
+      transform: translateX(4px);
+    }
+
+    .roadmap-card.done {
+      border-left: 3px solid #10b981;
+    }
+
+    .roadmap-card.plan {
+      border-left: 3px solid var(--accent-purple);
+    }
+
+    .roadmap-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+    }
+
+    .roadmap-badge {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 9px;
+      border-radius: 20px;
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+    }
+
+    .roadmap-badge.done {
+      background: rgba(16, 185, 129, 0.15);
+      color: #10b981;
+    }
+
+    .roadmap-badge.plan {
+      background: rgba(139, 92, 246, 0.15);
+      color: var(--accent-purple);
+    }
+
+    .roadmap-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin: 0;
+    }
+
+    .roadmap-features {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-top: 8px;
+    }
+
+    .roadmap-tag {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      font-size: 11px;
+      padding: 2px 8px;
+      color: var(--text-secondary);
+    }
+
+    .rm-version-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+    }
+
+    .rm-version-table th,
+    .rm-version-table td {
+      padding: 9px 12px;
+      text-align: left;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .rm-version-table th {
+      background: var(--bg-tertiary);
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      letter-spacing: 0.4px;
+    }
+
+    .rm-version-table tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .rm-stat-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .rm-stat-box {
+      text-align: center;
+      background: var(--bg-tertiary);
+      border-radius: 10px;
+      padding: 12px;
+    }
+
+    .rm-stat-val {
+      font-size: 1.4rem;
+      font-weight: 800;
+    }
+
+    .rm-stat-lbl {
+      font-size: 11px;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+
+
     .animal-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
@@ -2026,6 +2197,425 @@
       </div>
     </div>
   </div>
+
+  <!-- ═══════════════════ ROADMAP BÖLÜMÜ ═══════════════════ -->
+  <div class="container" id="roadmap">
+    <section class="section">
+      <h2 class="section-title"><i class="fas fa-map-signs"></i> Geliştirme Yol Haritası</h2>
+      <p class="text-secondary mb-4">Lethe Game aktif olarak geliştirilmeye devam ediyor. Tamamlanan ve planlanan tüm
+        fazları aşağıda görebilirsiniz.</p>
+
+      <div class="row g-4">
+        <!-- Sol: Timeline -->
+        <div class="col-lg-8">
+          <div class="roadmap-timeline">
+
+            <!-- FAZ 1 -->
+            <div class="roadmap-item">
+              <div class="roadmap-dot done"><i class="fas fa-check" style="font-size:7px;"></i></div>
+              <div class="roadmap-card done">
+                <div class="roadmap-header">
+                  <span class="roadmap-badge done">✅ TAMAMLANDI</span>
+                  <p class="roadmap-title">Faz 1 — Görev Sistemi</p>
+                </div>
+                <div class="roadmap-features">
+                  <span class="roadmap-tag">8 Günlük Görev</span>
+                  <span class="roadmap-tag">7 Haftalık Görev</span>
+                  <span class="roadmap-tag">Streak Bonusu</span>
+                  <span class="roadmap-tag">Ödül Sandıkları</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- FAZ 2 -->
+            <div class="roadmap-item">
+              <div class="roadmap-dot done"><i class="fas fa-check" style="font-size:7px;"></i></div>
+              <div class="roadmap-card done">
+                <div class="roadmap-header">
+                  <span class="roadmap-badge done">✅ TAMAMLANDI</span>
+                  <p class="roadmap-title">Faz 2 — Ekonomi Geliştirmeleri</p>
+                </div>
+                <div class="roadmap-features">
+                  <span class="roadmap-tag">7 Günlük Streak</span>
+                  <span class="roadmap-tag">4 Meslek Tipi</span>
+                  <span class="roadmap-tag">Çalışma Sistemi</span>
+                  <span class="roadmap-tag">Günlük Ödül</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- FAZ 3 -->
+            <div class="roadmap-item">
+              <div class="roadmap-dot done"><i class="fas fa-check" style="font-size:7px;"></i></div>
+              <div class="roadmap-card done">
+                <div class="roadmap-header">
+                  <span class="roadmap-badge done">✅ TAMAMLANDI</span>
+                  <p class="roadmap-title">Faz 3 — Pet Evrimi</p>
+                </div>
+                <div class="roadmap-features">
+                  <span class="roadmap-tag">7 Evrim Taşı</span>
+                  <span class="roadmap-tag">3'lü Birleştirme</span>
+                  <span class="roadmap-tag">18 Özel Yetenek</span>
+                  <span class="roadmap-tag">Eğitim Sistemi</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- FAZ 4 -->
+            <div class="roadmap-item">
+              <div class="roadmap-dot done"><i class="fas fa-check" style="font-size:7px;"></i></div>
+              <div class="roadmap-card done">
+                <div class="roadmap-header">
+                  <span class="roadmap-badge done">✅ TAMAMLANDI</span>
+                  <p class="roadmap-title">Faz 4 — Oyuncu Etkileşimi</p>
+                </div>
+                <div class="roadmap-features">
+                  <span class="roadmap-tag">Takas Sistemi</span>
+                  <span class="roadmap-tag">Hediye Sistemi</span>
+                  <span class="roadmap-tag">Arkadaş Sistemi</span>
+                  <span class="roadmap-tag">Co-op Raid</span>
+                  <span class="roadmap-tag">Global Sıralama</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- FAZ 5 -->
+            <div class="roadmap-item">
+              <div class="roadmap-dot done"><i class="fas fa-check" style="font-size:7px;"></i></div>
+              <div class="roadmap-card done">
+                <div class="roadmap-header">
+                  <span class="roadmap-badge done">✅ TAMAMLANDI</span>
+                  <p class="roadmap-title">Faz 5 — Sezonluk Hayvanlar</p>
+                </div>
+                <div class="roadmap-features">
+                  <span class="roadmap-tag">4 Sezon</span>
+                  <span class="roadmap-tag">48 Özel Hayvan</span>
+                  <span class="roadmap-tag">🌸 Bahar</span>
+                  <span class="roadmap-tag">☀️ Yaz</span>
+                  <span class="roadmap-tag">🍂 Sonbahar</span>
+                  <span class="roadmap-tag">❄️ Kış</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- FAZ 6 -->
+            <div class="roadmap-item">
+              <div class="roadmap-dot done"><i class="fas fa-check" style="font-size:7px;"></i></div>
+              <div class="roadmap-card done">
+                <div class="roadmap-header">
+                  <span class="roadmap-badge done">✅ TAMAMLANDI</span>
+                  <p class="roadmap-title">Faz 6 — Etkinlik Sistemi</p>
+                </div>
+                <div class="roadmap-features">
+                  <span class="roadmap-tag">Hafta Sonu 2x XP</span>
+                  <span class="roadmap-tag">Cuma Nadir Günü</span>
+                  <span class="roadmap-tag">Topluluk Hedefleri</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- FAZ 7 -->
+            <div class="roadmap-item">
+              <div class="roadmap-dot done"><i class="fas fa-check" style="font-size:7px;"></i></div>
+              <div class="roadmap-card done">
+                <div class="roadmap-header">
+                  <span class="roadmap-badge done">✅ TAMAMLANDI</span>
+                  <p class="roadmap-title">Faz 7 — Keşif Sistemi</p>
+                </div>
+                <div class="roadmap-features">
+                  <span class="roadmap-tag">Biyom Keşfi</span>
+                  <span class="roadmap-tag">NPC Karakterler</span>
+                  <span class="roadmap-tag">Hazine Avı</span>
+                  <span class="roadmap-tag">Macera Modu</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- FAZ 8 -->
+            <div class="roadmap-item">
+              <div class="roadmap-dot done"><i class="fas fa-check" style="font-size:7px;"></i></div>
+              <div class="roadmap-card done">
+                <div class="roadmap-header">
+                  <span class="roadmap-badge done">✅ TAMAMLANDI</span>
+                  <p class="roadmap-title">Faz 8 — Klan Sistemi</p>
+                </div>
+                <div class="roadmap-features">
+                  <span class="roadmap-tag">Klan Kurma</span>
+                  <span class="roadmap-tag">Klan Seviyeleri</span>
+                  <span class="roadmap-tag">Klan Hazinesi</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- FAZ 9 -->
+            <div class="roadmap-item">
+              <div class="roadmap-dot done"><i class="fas fa-check" style="font-size:7px;"></i></div>
+              <div class="roadmap-card done">
+                <div class="roadmap-header">
+                  <span class="roadmap-badge done">✅ TAMAMLANDI</span>
+                  <p class="roadmap-title">Faz 9 — Başarım & Koleksiyon</p>
+                </div>
+                <div class="roadmap-features">
+                  <span class="roadmap-tag">30+ Başarım</span>
+                  <span class="roadmap-tag">Koleksiyon Albümü</span>
+                  <span class="roadmap-tag">Başarım Vitrinleri</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- ── PLANLI FAZLAR ──────────────────── -->
+            <!-- FAZ 10 -->
+            <div class="roadmap-item">
+              <div class="roadmap-dot plan"><i class="fas fa-clock" style="font-size:6px;"></i></div>
+              <div class="roadmap-card plan">
+                <div class="roadmap-header">
+                  <span class="roadmap-badge plan">🔜 PLANLI</span>
+                  <p class="roadmap-title">Faz 10 — Hayvan Yaşam Döngüsü & Bağ Sistemi</p>
+                </div>
+                <div class="roadmap-features">
+                  <span class="roadmap-tag">Bağ Puanı (0–100)</span>
+                  <span class="roadmap-tag">Ruh Hali Sistemi 😊</span>
+                  <span class="roadmap-tag">!besle / !oyna</span>
+                  <span class="roadmap-tag">Hayvan Yaşlanması</span>
+                  <span class="roadmap-tag">Veteran Rozeti 🎖️</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- FAZ 11 -->
+            <div class="roadmap-item">
+              <div class="roadmap-dot plan"><i class="fas fa-clock" style="font-size:6px;"></i></div>
+              <div class="roadmap-card plan">
+                <div class="roadmap-header">
+                  <span class="roadmap-badge plan">🔜 PLANLI</span>
+                  <p class="roadmap-title">Faz 11 — Turnuva & Şampiyona</p>
+                </div>
+                <div class="roadmap-features">
+                  <span class="roadmap-tag">Haftalık Turnuva</span>
+                  <span class="roadmap-tag">Sezonluk Şampiyona</span>
+                  <span class="roadmap-tag">Kategori Bazlı</span>
+                  <span class="roadmap-tag">Özel Rozet & Unvan</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- FAZ 12 -->
+            <div class="roadmap-item">
+              <div class="roadmap-dot plan"><i class="fas fa-clock" style="font-size:6px;"></i></div>
+              <div class="roadmap-card plan">
+                <div class="roadmap-header">
+                  <span class="roadmap-badge plan">🔜 PLANLI</span>
+                  <p class="roadmap-title">Faz 12 — Açık Pazar & Müzayede</p>
+                </div>
+                <div class="roadmap-features">
+                  <span class="roadmap-tag">Oyuncu Pazarı</span>
+                  <span class="roadmap-tag">Açık Artırma</span>
+                  <span class="roadmap-tag">Anti-Snipe Koruması</span>
+                  <span class="roadmap-tag">Değer Endeksi</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- FAZ 13 -->
+            <div class="roadmap-item">
+              <div class="roadmap-dot plan"><i class="fas fa-clock" style="font-size:6px;"></i></div>
+              <div class="roadmap-card plan">
+                <div class="roadmap-header">
+                  <span class="roadmap-badge plan">🔜 PLANLI</span>
+                  <p class="roadmap-title">Faz 13 — Dünya Haritası & Bölge Fethi</p>
+                </div>
+                <div class="roadmap-features">
+                  <span class="roadmap-tag">12 Bölge</span>
+                  <span class="roadmap-tag">Klan Fethi</span>
+                  <span class="roadmap-tag">Kaynak Bonusu</span>
+                  <span class="roadmap-tag">Vergi Mekanizması</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- FAZ 14 -->
+            <div class="roadmap-item">
+              <div class="roadmap-dot plan"><i class="fas fa-clock" style="font-size:6px;"></i></div>
+              <div class="roadmap-card plan">
+                <div class="roadmap-header">
+                  <span class="roadmap-badge plan">🔜 PLANLI</span>
+                  <p class="roadmap-title">Faz 14 — Melezleme (Breeding)</p>
+                </div>
+                <div class="roadmap-features">
+                  <span class="roadmap-tag">2 Hayvandan Yeni Tür</span>
+                  <span class="roadmap-tag">Gizli Kombinasyonlar</span>
+                  <span class="roadmap-tag">Kuluçka Süresi</span>
+                  <span class="roadmap-tag">🐉+🦅=🔥</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- FAZ 15 -->
+            <div class="roadmap-item">
+              <div class="roadmap-dot plan"><i class="fas fa-clock" style="font-size:6px;"></i></div>
+              <div class="roadmap-card plan">
+                <div class="roadmap-header">
+                  <span class="roadmap-badge plan">🔜 PLANLI</span>
+                  <p class="roadmap-title">Faz 15 — Unvan & Kimlik Sistemi</p>
+                </div>
+                <div class="roadmap-features">
+                  <span class="roadmap-tag">50+ Unvan</span>
+                  <span class="roadmap-tag">Profil Temaları</span>
+                  <span class="roadmap-tag">Prestij Sistemi ⭐</span>
+                  <span class="roadmap-tag">Gökkuşağı Unvan</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- FAZ 16 -->
+            <div class="roadmap-item">
+              <div class="roadmap-dot plan"><i class="fas fa-clock" style="font-size:6px;"></i></div>
+              <div class="roadmap-card plan">
+                <div class="roadmap-header">
+                  <span class="roadmap-badge plan">🔜 PLANLI</span>
+                  <p class="roadmap-title">Faz 16 — Hava Durumu & Ekosistem</p>
+                </div>
+                <div class="roadmap-features">
+                  <span class="roadmap-tag">Dinamik Hava ☀️⛈️❄️</span>
+                  <span class="roadmap-tag">🌕 Dolunay 3x Mythic</span>
+                  <span class="roadmap-tag">Ekosistem Dengesi</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- FAZ 17 -->
+            <div class="roadmap-item">
+              <div class="roadmap-dot plan"><i class="fas fa-clock" style="font-size:6px;"></i></div>
+              <div class="roadmap-card plan">
+                <div class="roadmap-header">
+                  <span class="roadmap-badge plan">🔜 PLANLI</span>
+                  <p class="roadmap-title">Faz 17 — Özel Tatil Etkinlikleri</p>
+                </div>
+                <div class="roadmap-features">
+                  <span class="roadmap-tag">🎃 Cadılar Bayramı</span>
+                  <span class="roadmap-tag">🎄 Yılbaşı</span>
+                  <span class="roadmap-tag">💝 Sevgililer Günü</span>
+                  <span class="roadmap-tag">⚡ Flash Etkinlikler</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- FAZ 18 -->
+            <div class="roadmap-item">
+              <div class="roadmap-dot plan"><i class="fas fa-clock" style="font-size:6px;"></i></div>
+              <div class="roadmap-card plan">
+                <div class="roadmap-header">
+                  <span class="roadmap-badge plan">🔜 PLANLI</span>
+                  <p class="roadmap-title">Faz 18 — Yapay Zeka Destekli Özellikler</p>
+                </div>
+                <div class="roadmap-features">
+                  <span class="roadmap-tag">AI Hayvan Hikayeleri</span>
+                  <span class="roadmap-tag">Strateji Danışmanı</span>
+                  <span class="roadmap-tag">Dinamik Boss Diyaloğu</span>
+                </div>
+              </div>
+            </div>
+
+          </div><!-- /roadmap-timeline -->
+        </div><!-- /col-lg-8 -->
+
+        <!-- Sağ: Özet & Versiyon -->
+        <div class="col-lg-4">
+
+          <!-- İlerleme özeti -->
+          <div class="card-custom mb-4">
+            <h5 style="margin-bottom:14px;"><i class="fas fa-chart-pie"
+                style="color:var(--accent-purple);margin-right:8px;"></i>İlerleme</h5>
+            <div style="display:flex;justify-content:space-between;margin-bottom:6px;font-size:0.85rem;">
+              <span class="text-secondary">Tamamlanan Fazlar</span>
+              <strong style="color:#10b981;">9 / 18</strong>
+            </div>
+            <div style="background:var(--bg-tertiary);border-radius:6px;height:8px;overflow:hidden;">
+              <div
+                style="width:50%;height:100%;background:linear-gradient(90deg,#10b981,var(--accent-purple));border-radius:6px;">
+              </div>
+            </div>
+            <div class="rm-stat-grid">
+              <div class="rm-stat-box">
+                <div class="rm-stat-val" style="color:#10b981;">151</div>
+                <div class="rm-stat-lbl">Toplam Hayvan</div>
+              </div>
+              <div class="rm-stat-box">
+                <div class="rm-stat-val" style="color:var(--accent-purple);">18+</div>
+                <div class="rm-stat-lbl">Özel Yetenek</div>
+              </div>
+              <div class="rm-stat-box">
+                <div class="rm-stat-val" style="color:var(--accent-orange);">15</div>
+                <div class="rm-stat-lbl">Görev</div>
+              </div>
+              <div class="rm-stat-box">
+                <div class="rm-stat-val" style="color:var(--accent-pink);">30+</div>
+                <div class="rm-stat-lbl">Başarım</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Versiyon geçmişi -->
+          <div class="card-custom">
+            <h5 style="margin-bottom:14px;"><i class="fas fa-history"
+                style="color:var(--accent-blue);margin-right:8px;"></i>Güncelleme Geçmişi</h5>
+            <table class="rm-version-table">
+              <thead>
+                <tr>
+                  <th>Versiyon</th>
+                  <th>Tarih</th>
+                  <th>Öne Çıkan</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><span style="color:var(--accent-purple);font-weight:700;">v1.0</span></td>
+                  <td class="text-secondary">—</td>
+                  <td class="text-secondary">103 hayvan, savaş</td>
+                </tr>
+                <tr>
+                  <td><span style="color:var(--accent-purple);font-weight:700;">v1.1</span></td>
+                  <td class="text-secondary">Ara 2024</td>
+                  <td class="text-secondary">Görev sistemi</td>
+                </tr>
+                <tr>
+                  <td><span style="color:var(--accent-purple);font-weight:700;">v1.2</span></td>
+                  <td class="text-secondary">Ara 2024</td>
+                  <td class="text-secondary">Ekonomi & Çalışma</td>
+                </tr>
+                <tr>
+                  <td><span style="color:var(--accent-purple);font-weight:700;">v1.3</span></td>
+                  <td class="text-secondary">Ara 2024</td>
+                  <td class="text-secondary">Pet Evrimi</td>
+                </tr>
+                <tr>
+                  <td><span style="color:var(--accent-purple);font-weight:700;">v2.0</span></td>
+                  <td class="text-secondary">Ara 2024</td>
+                  <td class="text-secondary">Takas, Raid, Sıralama</td>
+                </tr>
+                <tr>
+                  <td><span style="color:var(--accent-purple);font-weight:700;">v2.1</span></td>
+                  <td class="text-secondary">Ara 2024</td>
+                  <td class="text-secondary">48 Sezonluk Hayvan</td>
+                </tr>
+                <tr>
+                  <td><span style="color:var(--accent-purple);font-weight:700;">v2.2</span></td>
+                  <td class="text-secondary">Ara 2024</td>
+                  <td class="text-secondary">Etkinlik Sistemi</td>
+                </tr>
+                <tr>
+                  <td><span style="color:var(--accent-blue);font-weight:700;">v3.0</span></td>
+                  <td style="color:var(--accent-blue);">Yakında</td>
+                  <td class="text-secondary">Bağ, Turnuva, Pazar…</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+        </div><!-- /col-lg-4 -->
+      </div><!-- /row -->
+    </section>
+  </div><!-- /container roadmap -->
 
   <footer class="footer">
     <div class="container text-center">
