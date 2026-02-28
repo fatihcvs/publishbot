@@ -48,10 +48,11 @@ class DatabaseStorage {
     return guild || null;
   }
 
-  async addWarning(guildId, userId, moderatorId, reason) {
+  // ── Uyarı Sistemi (Faz 1 — Gelişmiş) ───────────────────────────────────
+  async addWarning(guildId, userId, moderatorId, reason, { points = 1, note = null, expiresAt = null } = {}) {
     if (!db) return null;
     const [warning] = await db.insert(warnings).values({
-      guildId, userId, moderatorId, reason
+      guildId, userId, moderatorId, reason, note, points, active: true, expiresAt
     }).returning();
     return warning;
   }
@@ -63,22 +64,42 @@ class DatabaseStorage {
     ).orderBy(desc(warnings.createdAt));
   }
 
+  // Aktif (süresi dolmamış) uyarı sayısı — geriye uyumluluk için
   async getWarningCount(guildId, userId) {
     if (!db) return 0;
     const result = await db.select({ count: sql`count(*)` }).from(warnings).where(
-      and(eq(warnings.guildId, guildId), eq(warnings.userId, userId))
+      and(eq(warnings.guildId, guildId), eq(warnings.userId, userId), eq(warnings.active, true))
     );
     return parseInt(result[0]?.count || 0);
   }
 
+  // Aktif uyarı PUAN toplamı (eşik kontrolü için)
+  async getWarnPoints(guildId, userId) {
+    if (!db) return 0;
+    const result = await db.select({ total: sql`coalesce(sum(points), 0)` }).from(warnings).where(
+      and(eq(warnings.guildId, guildId), eq(warnings.userId, userId), eq(warnings.active, true))
+    );
+    return parseInt(result[0]?.total || 0);
+  }
+
+  // Süresi dolmuş uyarıları pasifleştir (saatlik cron'dan çağrılır)
+  async expireWarnings() {
+    if (!db) return;
+    const now = new Date();
+    await db.update(warnings)
+      .set({ active: false })
+      .where(and(eq(warnings.active, true), sql`expires_at IS NOT NULL AND expires_at < ${now}`));
+  }
+
   async clearWarnings(guildId, userId) {
     if (!db) return;
-    await db.delete(warnings).where(
+    await db.update(warnings).set({ active: false }).where(
       and(eq(warnings.guildId, guildId), eq(warnings.userId, userId))
     );
   }
 
-  async addModCase(guildId, type, userId, moderatorId, reason, duration = null) {
+  // ── Moderasyon Vakaları ──────────────────────────────────────────────────
+  async addModCase(guildId, type, userId, moderatorId, reason, duration = null, note = null) {
     if (!db) return null;
     const lastCase = await db.select({ caseNumber: modCases.caseNumber })
       .from(modCases)
@@ -89,7 +110,7 @@ class DatabaseStorage {
     const caseNumber = (lastCase[0]?.caseNumber || 0) + 1;
 
     const [modCase] = await db.insert(modCases).values({
-      guildId, caseNumber, type, userId, moderatorId, reason, duration
+      guildId, caseNumber, type, userId, moderatorId, reason, duration, note
     }).returning();
     return modCase;
   }
@@ -108,6 +129,36 @@ class DatabaseStorage {
       and(eq(modCases.guildId, guildId), eq(modCases.caseNumber, caseNumber))
     );
     return modCase || null;
+  }
+
+  // Belirli kullanıcının tüm vakaları (paginated)
+  async getModCasesByUser(guildId, userId, limit = 10, offset = 0) {
+    if (!db) return [];
+    return db.select().from(modCases).where(
+      and(eq(modCases.guildId, guildId), eq(modCases.userId, userId))
+    ).orderBy(desc(modCases.createdAt)).limit(limit).offset(offset);
+  }
+
+  // Vakaya moderatör notu ekle
+  async addModNote(caseId, note) {
+    if (!db) return;
+    await db.update(modCases).set({ note }).where(eq(modCases.id, caseId));
+  }
+
+  // Moderatör başına işlem istatistiği
+  async getModStats(guildId) {
+    if (!db) return [];
+    return db.select({
+      moderatorId: modCases.moderatorId,
+      total: sql`count(*)`,
+      warns: sql`sum(case when type='warn' then 1 else 0 end)`,
+      mutes: sql`sum(case when type='mute' then 1 else 0 end)`,
+      kicks: sql`sum(case when type='kick' then 1 else 0 end)`,
+      bans: sql`sum(case when type='ban' then 1 else 0 end)`
+    }).from(modCases)
+      .where(eq(modCases.guildId, guildId))
+      .groupBy(modCases.moderatorId)
+      .orderBy(desc(sql`count(*)`));
   }
 
   async addCustomCommand(guildId, name, response, createdBy) {

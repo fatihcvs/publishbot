@@ -26,6 +26,7 @@ const guilds = pgTable('guilds', {
   ticketSupportRole: text('ticket_support_role'),
   tempVoiceChannel: text('temp_voice_channel'),
   tempVoiceCategory: text('temp_voice_category'),
+  modConfig: jsonb('mod_config').default({}),      // Faz 1: Uyarı eşikleri & sona erme
   createdAt: timestamp('created_at').defaultNow()
 });
 
@@ -35,6 +36,10 @@ const warnings = pgTable('warnings', {
   userId: text('user_id').notNull(),
   moderatorId: text('moderator_id').notNull(),
   reason: text('reason'),
+  note: text('note'),                              // Moderatör gizli notu
+  points: integer('points').default(1),            // Uyarı puan ağırlığı
+  active: boolean('active').default(true),         // Süresi dolunca false
+  expiresAt: timestamp('expires_at'),              // null = süresiz
   createdAt: timestamp('created_at').defaultNow()
 });
 
@@ -46,6 +51,7 @@ const modCases = pgTable('mod_cases', {
   userId: text('user_id').notNull(),
   moderatorId: text('moderator_id').notNull(),
   reason: text('reason'),
+  note: text('note'),                              // Moderatör gizli notu
   duration: integer('duration'),
   createdAt: timestamp('created_at').defaultNow()
 });

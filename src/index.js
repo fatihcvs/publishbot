@@ -135,6 +135,12 @@ client.once(Events.ClientReady, async () => {
   socialNotificationSystem = new SocialNotificationSystem(client, storage);
   antiRaidSystem = new AntiRaidSystem(client, storage);
 
+  // Faz 1: Her saat süresi dolmuş uyarıları pasifleştir
+  setInterval(async () => {
+    try { await storage.expireWarnings(); } catch (e) { console.error('[ExpireWarnings] Hata:', e); }
+  }, 60 * 60 * 1000);
+  await storage.expireWarnings().catch(() => { }); // Başlangıçta da çalıştır
+
   // Seed Lethe Game quests
   await letheStorage.seedQuests();
 

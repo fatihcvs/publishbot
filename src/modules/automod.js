@@ -13,6 +13,8 @@ const defaultConfig = {
 };
 
 const messageCache = new Map();
+// key: guildId-userId → last msg content + timestamp (for duplicate detection)
+const lastMsgCache = new Map();
 
 async function checkAutomod(message, client, storage) {
   if (!message.guild || message.author.bot) return false;
@@ -23,15 +25,16 @@ async function checkAutomod(message, client, storage) {
 
   if (!config.enabled) return false;
 
-  // Exemptions (Bypasses)
+  // Exemptions
   const exemptChannels = config.exemptChannels || [];
   const exemptRoles = config.exemptRoles || [];
-
   if (exemptChannels.includes(message.channel.id)) return false;
   if (message.member?.roles.cache.some(role => exemptRoles.includes(role.id))) return false;
 
   const violations = [];
+  const content = message.content;
 
+  // ── Spam filtresi ──────────────────────────────────────────────────────
   if (config.spamFilter?.enabled) {
     const key = `${message.guild.id}-${message.author.id}`;
     const now = Date.now();
@@ -39,92 +42,100 @@ async function checkAutomod(message, client, storage) {
     userMessages.push(now);
     const recent = userMessages.filter(t => now - t < (config.spamFilter.interval || 5000));
     messageCache.set(key, recent);
-
-    if (recent.length > (config.spamFilter.maxMessages || 5)) {
+    if (recent.length > (config.spamFilter.maxMessages || 5))
       violations.push({ type: 'spam', action: config.spamFilter.action });
+  }
+
+  // ── Duplikat mesaj tespiti ─────────────────────────────────────────────
+  if (config.duplicateFilter?.enabled) {
+    const dk = `${message.guild.id}-${message.author.id}`;
+    const now = Date.now();
+    const last = lastMsgCache.get(dk);
+    if (last && last.content === content && (now - last.ts) < 5000) {
+      violations.push({ type: 'duplicate', action: config.duplicateFilter.action || 'delete' });
+    }
+    lastMsgCache.set(dk, { content, ts: now });
+    // TTL cleanup
+    if (lastMsgCache.size > 5000) {
+      const cutoff = now - 30000;
+      for (const [k, v] of lastMsgCache) { if (v.ts < cutoff) lastMsgCache.delete(k); }
     }
   }
 
+  // ── Büyük harf filtresi ────────────────────────────────────────────────
   if (config.capsFilter?.enabled) {
-    const text = message.content;
-    if (text.length >= (config.capsFilter.minLength || 10)) {
-      const caps = text.replace(/[^A-Z]/g, '').length;
-      const letters = text.replace(/[^a-zA-Z]/g, '').length;
-      if (letters > 0 && (caps / letters) * 100 >= (config.capsFilter.threshold || 70)) {
+    if (content.length >= (config.capsFilter.minLength || 10)) {
+      const caps = content.replace(/[^A-Z]/g, '').length;
+      const letters = content.replace(/[^a-zA-Z]/g, '').length;
+      if (letters > 0 && (caps / letters) * 100 >= (config.capsFilter.threshold || 70))
         violations.push({ type: 'caps', action: config.capsFilter.action });
-      }
     }
   }
 
+  // ── Kötü kelime filtresi ───────────────────────────────────────────────
   if (config.badWords?.enabled && config.badWords.words?.length > 0) {
-    const content = message.content.toLowerCase();
+    const lower = content.toLowerCase();
     for (const word of config.badWords.words) {
-      if (content.includes(word.toLowerCase())) {
+      if (lower.includes(word.toLowerCase())) {
         violations.push({ type: 'badword', action: config.badWords.action, word });
         break;
       }
     }
   }
 
+  // ── Link filtresi (whitelist destekli) ────────────────────────────────
   if (config.linkFilter?.enabled) {
     const urlRegex = /(https?:\/\/[^\s]+)/gi;
-    const links = message.content.match(urlRegex);
+    const links = content.match(urlRegex);
     if (links) {
-      const whitelist = config.linkFilter.whitelist || [];
-      const hasBlockedLink = links.some(link => {
-        return !whitelist.some(allowed => link.includes(allowed));
+      const whitelist = (config.linkFilter.whitelist || []).map(d => d.toLowerCase());
+      const hasBlocked = links.some(link => {
+        try {
+          const host = new URL(link).hostname.toLowerCase();
+          return !whitelist.some(w => host === w || host.endsWith('.' + w));
+        } catch { return true; }
       });
-      if (hasBlockedLink) {
-        violations.push({ type: 'link', action: config.linkFilter.action });
-      }
+      if (hasBlocked) violations.push({ type: 'link', action: config.linkFilter.action });
     }
   }
 
+  // ── Discord davet filtresi ─────────────────────────────────────────────
   if (config.inviteFilter?.enabled) {
     const inviteRegex = /(discord\.(gg|io|me|li)|discordapp\.com\/invite)\/[^\s]+/gi;
-    if (inviteRegex.test(message.content)) {
+    if (inviteRegex.test(content))
       violations.push({ type: 'invite', action: config.inviteFilter.action });
-    }
   }
 
+  // ── Etiket spam ────────────────────────────────────────────────────────
   if (config.mentionSpam?.enabled) {
     const mentions = message.mentions.users.size + message.mentions.roles.size;
-    if (mentions > (config.mentionSpam.maxMentions || 5)) {
+    if (mentions > (config.mentionSpam.maxMentions || 5))
       violations.push({ type: 'mentions', action: config.mentionSpam.action });
-    }
   }
 
+  // ── Emoji spam ─────────────────────────────────────────────────────────
   if (config.emojiSpam?.enabled) {
     const emojiRegex = /(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff]|<:[^:]+:\d+>|<a:[^:]+:\d+>)/g;
-    const emojis = message.content.match(emojiRegex) || [];
-    if (emojis.length > (config.emojiSpam.maxEmojis || 10)) {
+    const emojis = content.match(emojiRegex) || [];
+    if (emojis.length > (config.emojiSpam.maxEmojis || 10))
       violations.push({ type: 'emoji', action: config.emojiSpam.action });
-    }
   }
 
+  // ── Regex filtresi ─────────────────────────────────────────────────────
   if (config.regexFilter?.enabled && config.regexFilter.patterns?.length > 0) {
-    const content = message.content;
     for (const pattern of config.regexFilter.patterns) {
       try {
-        const regex = new RegExp(pattern, 'i');
-        if (regex.test(content)) {
+        if (new RegExp(pattern, 'i').test(content)) {
           violations.push({ type: 'regex', action: config.regexFilter.action, pattern });
           break;
         }
-      } catch (err) {
-        console.error('[AutoMod] Invalid regex pattern configured:', pattern);
-      }
+      } catch { console.error('[AutoMod] Geçersiz regex:', pattern); }
     }
   }
 
   if (violations.length > 0) {
-    // En ağır ihlali seç (ban > kick > mute > warn > delete)
     const severityOrder = ['ban', 'kick', 'mute', 'warn', 'delete'];
-    violations.sort((a, b) => {
-      const aIdx = severityOrder.indexOf(a.action);
-      const bIdx = severityOrder.indexOf(b.action);
-      return aIdx - bIdx;
-    });
+    violations.sort((a, b) => severityOrder.indexOf(a.action) - severityOrder.indexOf(b.action));
     await handleViolation(message, violations[0], client, storage, guildData);
     return true;
   }
