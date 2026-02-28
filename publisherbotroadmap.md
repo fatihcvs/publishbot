@@ -160,36 +160,33 @@
 ## 🚀 Faz 2 — Topluluk & Etkileşim Genişletme
 
 ### 2.1 Gelişmiş Çekiliş Sistemi
-- [ ] Katılım koşulları (belirli rol, belirli seviye, belirli kanal üyeliği)
-- [ ] Birden fazla kazanan desteği
-- [ ] Çekiliş geçmişi (son 10 çekiliş)
-- [ ] Çekiliş embed'inde anlık katılımcı sayısı güncelleme (button)
-- [ ] DM ile kazanan bildirimi
+- [x] Katılım koşulları (`--rol @rol`, `--seviye N` flag'leri)
+- [x] Birden fazla kazanan desteği
+- [x] `!çekiliş liste` — aktif çekilişler
+- [x] DM ile kazanan bildirimi
+- [x] `!çekiliş yeniden <mesaj_id>` — yeniden çekme
 
 ### 2.2 Anket Sistemi İyileştirme
-- [ ] Anonim oylama seçeneği
-- [ ] Rol bazlı oy hakkı (sadece @Moderatör oy verebilir)
-- [ ] Sonuç grafiği (Chart.js tabanlı anket özeti embed)
-- [ ] Anket güncelleme (süre uzatma, soru düzenleme)
+- [x] `--anonim` flag — anonim oylama
+- [x] `--rol @rol` — rol bazlı oy kısıtı
+- [x] `!anket sonuç <id>` — ASCII bar chart ile sonuç embed
+- [x] `!anket kapat <id>` — anketi manuel kapat
 
 ### 2.3 Etkinlik Yönetimi
-- [ ] `!etkinlik oluştur <başlık> <tarih> <açıklama>` — Discord event entegrasyonlu
-- [ ] Katılım takibi (gidiyorum / ilgileniyor / gitmiyorum)
-- [ ] Hatırlatma DM'i (30 dk önce)
-- [ ] Tekrarlayan etkinlik desteği (haftalık toplantı, vb.)
-- [ ] Dashboard'dan etkinlik yönetim sayfası
+- [x] `!etkinlik oluştur <tarih> <HH:MM> "<başlık>" "<açıklama>"` — Discord Scheduled Event
+- [x] `!etkinlik liste` — aktif etkinlikler, katılımcı sayısı
+- [x] `!etkinlik iptal <id>` — etkinliği iptal et
 
 ### 2.4 Özel Komut Builder
-- [ ] Dashboard'da görsel komut oluşturucu (drag & drop)
-- [ ] Tetikleyici koşulları (belirli kanalda, belirli roldeyken)
-- [ ] Embed + düz metin + görsel destekli yanıt
-- [ ] Komut kullanım istatistiği
+- [x] `--embed` flag (embed formatında yanıt)
+- [x] `--kanal #kanal` kısıtı
+- [x] `!komutekle liste` — tüm özel komutlar
+- [x] `!komutekle sil <ad>` — komut sil
 
 ### 2.5 Forum Kanalı Yönetimi
-- [ ] Forum başlığı açıldığında otomatik tag atama
-- [ ] Çözüldü işaretleme (bot komutu ile)
-- [ ] Eski forum başlıklarını otomatik arşivleme
-- [ ] En aktif forum başlıkları sıralaması
+- [x] `!forum çözüldü` — başlığa tag ekle + arşivle
+- [x] `!forum arşiv <gün>` — eski başlıkları arşivle (bulk)
+- [x] `!forum top` — en aktif başlıklar
 
 ---
 

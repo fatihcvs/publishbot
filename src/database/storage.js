@@ -259,6 +259,26 @@ class DatabaseStorage {
     return db.select().from(giveaways).where(eq(giveaways.ended, false));
   }
 
+  async getGiveawayByMessageId(messageId) {
+    if (!db) return null;
+    const [gw] = await db.select().from(giveaways).where(eq(giveaways.messageId, messageId));
+    return gw || null;
+  }
+
+  async getActiveGiveawaysByGuild(guildId) {
+    if (!db) return [];
+    return db.select().from(giveaways).where(
+      and(eq(giveaways.guildId, guildId), eq(giveaways.ended, false))
+    ).orderBy(giveaways.endsAt);
+  }
+
+  async getGuildGiveaways(guildId) {
+    if (!db) return [];
+    return db.select().from(giveaways)
+      .where(eq(giveaways.guildId, guildId))
+      .orderBy(desc(giveaways.createdAt));
+  }
+
   async addReminder(userId, channelId, guildId, message, remindAt) {
     if (!db) return null;
     const [reminder] = await db.insert(reminders).values({
