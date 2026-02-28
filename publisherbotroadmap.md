@@ -249,22 +249,21 @@
 ## 🚀 Faz 5 — Müzik Sistemi
 
 ### 5.1 Temel Müzik
-- [ ] YouTube'dan şarkı çal (`!çal <link/arama>`)
-- [ ] Çalma listesi yönetimi (`!sıra`, `!atla`, `!dur`, `!devam`)
-- [ ] Ses seviyesi kontrolü
-- [ ] Loop modu (tek şarkı / tüm liste)
-- [ ] Karıştır (shuffle)
+- [x] `!çal <URL/arama>` — YouTube'dan çal / kuyruğa ekle
+- [x] `!sıra` — kuyruk görüntüleme
+- [x] `!atla` / `!dur` / `!devam` / `!durdur` — kontrol komutları
+- [x] `!ses <0-200>` — ses seviyesi
+- [x] `!loop [şarkı|liste|off]` — loop modu
+- [x] `!karıştır` — shuffle
 
 ### 5.2 Gelişmiş Müzik
-- [ ] Spotify şarkı linki desteği (YouTube'a dönüştür)
-- [ ] Spotify çalma listesi import
-- [ ] 24/7 mod (sessizlik varsa bile kalmaya devam et)
-- [ ] DJ modu (sadece @DJ rolü kontrol edebilir)
-- [ ] `!lirik` — Aktif şarkının sözleri
+- [x] Spotify şarkı/playlist linki → YouTube'a dönüştür (play-dl)
+- [x] `!247` — 24/7 mod (kanal boşalınca ayrılmaz)
+- [x] `!dj @rol` — sadece DJ rolü komut kullanabilir
+- [x] `!lirik [şarkı]` — Genius.com'dan şarkı sözleri linki
 
 ### 5.3 Ses Filtreleri
-- [ ] Bas güçlendirme, nightcore, 8D ses efektleri
-- [ ] Normalleştirici
+- [x] `!filtre bass|nightcore|8d|normal` — şarkı yeniden başlatılarak uygulanır
 
 ---
 
