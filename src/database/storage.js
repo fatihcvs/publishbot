@@ -1491,6 +1491,107 @@ class JSONStorage {
     } catch (e) { console.error('[Storage] setGlobalData error:', e); }
   }
 
+  // ── Faz 4: Sunucu Ekonomisi ───────────────────────────────────────────────
+  async getUserBalance(userId, guildId) {
+    if (!db) return 0;
+    try {
+      const { userEconomy } = require('../../shared/schema');
+      const { and } = require('drizzle-orm');
+      const [row] = await db.select().from(userEconomy).where(
+        and(eq(userEconomy.userId, userId), eq(userEconomy.guildId, guildId))
+      );
+      return row?.balance ?? 0;
+    } catch { return 0; }
+  }
+
+  async addToBalance(userId, guildId, amount) {
+    if (!db) return;
+    try {
+      const { userEconomy } = require('../../shared/schema');
+      const { and } = require('drizzle-orm');
+      const [row] = await db.select().from(userEconomy).where(
+        and(eq(userEconomy.userId, userId), eq(userEconomy.guildId, guildId))
+      );
+      if (row) {
+        await db.update(userEconomy).set({ balance: Math.max(0, (row.balance || 0) + amount) })
+          .where(and(eq(userEconomy.userId, userId), eq(userEconomy.guildId, guildId)));
+      } else {
+        await db.insert(userEconomy).values({ userId, guildId, balance: Math.max(0, amount) }).catch(() => { });
+      }
+    } catch (e) { console.error('[addToBalance]', e.message); }
+  }
+
+  // Shop
+  async getShopItems(guildId) {
+    if (!db) return [];
+    try {
+      const { shopItems } = require('../../shared/schema');
+      return await db.select().from(shopItems).where(eq(shopItems.guildId, guildId));
+    } catch { return []; }
+  }
+
+  async addShopItem(guildId, { name, price, type = 'özel', roleId = null, description = null, stock = null }) {
+    if (!db) return null;
+    try {
+      const { shopItems } = require('../../shared/schema');
+      const [item] = await db.insert(shopItems).values({ guildId, name, price, roleId, description, stock }).returning();
+      return item;
+    } catch (e) { console.error('[addShopItem]', e.message); return null; }
+  }
+
+  async removeShopItem(guildId, itemId) {
+    if (!db) return;
+    try {
+      const { shopItems } = require('../../shared/schema');
+      const { and } = require('drizzle-orm');
+      await db.delete(shopItems).where(and(eq(shopItems.id, itemId), eq(shopItems.guildId, guildId)));
+    } catch { }
+  }
+
+  async updateShopItemStock(itemId, stock) {
+    if (!db) return;
+    try {
+      const { shopItems } = require('../../shared/schema');
+      await db.update(shopItems).set({ stock }).where(eq(shopItems.id, itemId));
+    } catch { }
+  }
+
+  // Treasury (sunucu hazinesi — guilds.modConfig.treasury)
+  async getTreasury(guildId) {
+    const g = await this.getGuild(guildId);
+    return g?.modConfig?.treasury ?? 0;
+  }
+
+  async addToTreasury(guildId, amount) {
+    const g = await this.getGuild(guildId);
+    const mc = g?.modConfig || {};
+    mc.treasury = (mc.treasury || 0) + amount;
+    await this.upsertGuild(guildId, { modConfig: mc });
+  }
+
+  async takeFromTreasury(guildId, amount) {
+    const g = await this.getGuild(guildId);
+    const mc = g?.modConfig || {};
+    mc.treasury = Math.max(0, (mc.treasury || 0) - amount);
+    await this.upsertGuild(guildId, { modConfig: mc });
+  }
+
+  // Günlük kumar limiti
+  async getDailyGambleSpent(userId, guildId) {
+    const g = await this.getGuild(guildId);
+    const today = new Date().toISOString().slice(0, 10);
+    return g?.modConfig?.[`gamble_${userId}_${today}`] ?? 0;
+  }
+
+  async addDailyGambleSpent(userId, guildId, amount) {
+    const g = await this.getGuild(guildId);
+    const mc = g?.modConfig || {};
+    const today = new Date().toISOString().slice(0, 10);
+    const key = `gamble_${userId}_${today}`;
+    mc[key] = (mc[key] || 0) + amount;
+    await this.upsertGuild(guildId, { modConfig: mc });
+  }
+
   // ── Faz 3: Mesaj Şablonları ───────────────────────────────────────────────
   async getTemplate(guildId, type) {
     const g = await this.getGuild(guildId);

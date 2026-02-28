@@ -221,29 +221,28 @@
 ## 🚀 Faz 4 — Ekonomi & Mağaza Sistemi
 
 ### 4.1 Sunucu Mağazası
-- [ ] `!mağaza` — Sunucunun özel mağazası
-- [ ] Rol satın alma (sunucu parası ile)
-- [ ] Özel ünvan satın alma
-- [ ] Ürün stok limiti
-- [ ] Dashboard'dan mağaza yönetimi (ürün ekle/çıkar/fiyat düzenle)
+- [x] `!sunucu-mağaza` — sunucunun özel mağazası (rol/ünvan satın al)
+- [x] Rol satın alma (sunucu parası ile)
+- [x] Özel ünvan satın alma (nickname prefix)
+- [x] Ürün stok limiti (`!mağaza-yönet stok <id> <adet>`)
+- [x] `!mağaza-yönet ekle/sil/stok/liste` — moderatör yönetimi
 
 ### 4.2 Kumar Oyunları
-- [ ] `!slot` — Slot makinesi (emojili animasyon)
-- [ ] `!blackjack` — Bot'a karşı 21 oyunu
-- [ ] `!rulet` — Renk/numara bahsi
-- [ ] `!zar` — İki oyunculu zar yarışması
-- [ ] Günlük bahis limiti (anti-farming)
+- [x] `!kumar slot <miktar>` — Slot makinesi (emoji çark + çarpan)
+- [x] `!kumar blackjack <miktar>` — Bota karşı 21 oyunu
+- [x] `!kumar rulet <miktar> <kırmızı|siyah|0-36>` — Renk/numara bahsi
+- [x] `!kumar zar <miktar>` — Bota karşı zar yarışması
+- [x] Günlük bahis limiti (5000 coin/gün, anti-farming)
 
 ### 4.3 Para Transferi & Vergi
-- [ ] `!ver @user <miktar>` — Kullanıcıya para gönder
-- [ ] Transfer vergisi (configurable, örn. %5 hazineye gider)
-- [ ] Sahte transfer koruması (bot'a transfer edilemez)
+- [x] `!ver @user <miktar>` — Kullanıcıya para gönder
+- [x] Transfer vergisi (%5 varsayılan, guilds.modConfig.transferTax)
+- [x] Bot'a ve kendine transfer koruması
 
 ### 4.4 Sunucu Hazinesi
-- [ ] Vergilerden biriken sunucu hazinesi
-- [ ] Çekilişlerde sunucu hazinesi ödülü
-- [ ] Etkinlik ödülleri için kullanım
-- [ ] Şeffaf hazine görüntüleme (`!hazine`)
+- [x] Transfer vergisi + kumar kaybından otomatik birikim
+- [x] `!hazine` — bakiye ve vergi oranı görüntüleme
+- [x] `!hazine ver @user <miktar>` — moderatör ödül dağıtımı
 
 ---
 
