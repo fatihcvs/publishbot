@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Publisher — Analitik</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+    <link href="/css/dashboard.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+    <style>
+        :root {
+            --bg: #0f1117;
+            --surface: #1a1d2e;
+            --surface2: #252841;
+            --accent: #5865f2;
+            --accent2: #eb459e;
+            --text: #e0e2f0;
+            --muted: #7d8094;
+            --border: rgba(255, 255, 255, 0.08);
+            --success: #57f287;
+            --warning: #fee75c;
+            --danger: #ed4245;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        .top-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 2rem;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .top-bar h1 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: .6rem;
+        }
+
+        .top-bar h1 span {
+            background: linear-gradient(90deg, var(--accent), var(--accent2));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .back-btn {
+            background: var(--surface2);
+            color: var(--text);
+            border: 1px solid var(--border);
+            padding: .4rem .9rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: .85rem;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: .4rem;
+        }
+
+        .back-btn:hover {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .guild-select {
+            background: var(--surface2);
+            color: var(--text);
+            border: 1px solid var(--border);
+            padding: .4rem .8rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: .85rem;
+        }
+
+        .main {
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .stat-icon {
+            width: 46px;
+            height: 46px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+        }
+
+        .stat-icon.blue {
+            background: rgba(88, 101, 242, .2);
+            color: var(--accent);
+        }
+
+        .stat-icon.green {
+            background: rgba(87, 242, 135, .2);
+            color: var(--success);
+        }
+
+        .stat-icon.pink {
+            background: rgba(235, 69, 158, .2);
+            color: var(--accent2);
+        }
+
+        .stat-icon.yellow {
+            background: rgba(254, 231, 92, .2);
+            color: var(--warning);
+        }
+
+        .stat-val {
+            font-size: 1.8rem;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .stat-lbl {
+            font-size: .78rem;
+            color: var(--muted);
+            margin-top: .25rem;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .charts-grid2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .chart-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .chart-card h3 {
+            font-size: .95rem;
+            font-weight: 600;
+            margin-bottom: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            color: var(--text);
+        }
+
+        .chart-card h3 i {
+            color: var(--accent);
+        }
+
+        canvas {
+            max-height: 280px;
+        }
+
+        .heatmap {
+            display: grid;
+            grid-template-columns: repeat(24, 1fr);
+            gap: 3px;
+            margin-top: .5rem;
+        }
+
+        .heat-cell {
+            aspect-ratio: 1;
+            border-radius: 3px;
+            cursor: default;
+            transition: transform .15s;
+        }
+
+        .heat-cell:hover {
+            transform: scale(1.4);
+        }
+
+        .heat-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: .65rem;
+            color: var(--muted);
+            margin-top: .3rem;
+        }
+
+        .loading {
+            color: var(--muted);
+            text-align: center;
+            padding: 2rem;
+            font-size: .9rem;
+        }
+
+        @media (max-width: 900px) {
+            .stats-row {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .charts-grid,
+            .charts-grid2 {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="top-bar">
+        <h1><i class="fas fa-chart-bar"></i> Publisher — <span>Analitik</span></h1>
+        <div style="display:flex;gap:.7rem;align-items:center;">
+            <select class="guild-select" id="guildSelect">
+                <option value="">-- Sunucu Seç --</option>
+            </select>
+            <a href="/dashboard" class="back-btn"><i class="fas fa-arrow-left"></i> Dashboard</a>
+        </div>
+    </div>
+
+    <div class="main">
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-icon blue"><i class="fas fa-terminal"></i></div>
+                <div>
+                    <div class="stat-val" id="totalCmds">—</div>
+                    <div class="stat-lbl">Toplam Komut</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon green"><i class="fas fa-user-plus"></i></div>
+                <div>
+                    <div class="stat-val" id="totalJoins">—</div>
+                    <div class="stat-lbl">Katılan Üye (30g)</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon pink"><i class="fas fa-user-minus"></i></div>
+                <div>
+                    <div class="stat-val" id="totalLeaves">—</div>
+                    <div class="stat-lbl">Ayrılan Üye (30g)</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon yellow"><i class="fas fa-gavel"></i></div>
+                <div>
+                    <div class="stat-val" id="totalMod">—</div>
+                    <div class="stat-lbl">Mod İşlemi</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="charts-grid">
+            <div class="chart-card">
+                <h3><i class="fas fa-chart-bar"></i> En Çok Kullanılan Komutlar</h3>
+                <canvas id="cmdChart"></canvas>
+            </div>
+            <div class="chart-card">
+                <h3><i class="fas fa-chart-pie"></i> Moderasyon İş Yükü</h3>
+                <canvas id="modChart"></canvas>
+            </div>
+        </div>
+
+        <div class="charts-grid2">
+            <div class="chart-card" style="grid-column:1/-1;">
+                <h3><i class="fas fa-fire"></i> Aktif Saat Isı Haritası (Son 7 Gün)</h3>
+                <div class="heatmap" id="heatmap"></div>
+                <div class="heat-labels">
+                    <span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>23:00</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const CHART_DEFAULTS = {
+            plugins: { legend: { labels: { color: '#e0e2f0', font: { family: 'Inter' } } } },
+            scales: {
+                x: { ticks: { color: '#7d8094' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                y: { ticks: { color: '#7d8094' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+            }
+        };
+
+        let cmdChart, modChart;
+
+        async function loadGuilds() {
+            const res = await fetch('/api/guilds').catch(() => null);
+            if (!res?.ok) return;
+            const guilds = await res.json();
+            const sel = document.getElementById('guildSelect');
+            guilds.forEach(g => {
+                const opt = document.createElement('option');
+                opt.value = g.id; opt.textContent = g.name;
+                sel.appendChild(opt);
+            });
+            const saved = localStorage.getItem('selectedGuild');
+            if (saved) sel.value = saved;
+            if (sel.value) loadAnalytics(sel.value);
+            sel.onchange = () => { localStorage.setItem('selectedGuild', sel.value); loadAnalytics(sel.value); };
+        }
+
+        async function loadAnalytics(guildId) {
+            const res = await fetch(`/api/guild/${guildId}/analytics`).catch(() => null);
+            if (!res?.ok) return;
+            const data = await res.json();
+
+            // Stats
+            document.getElementById('totalCmds').textContent = (data.commandUsage?.reduce((a, c) => a + c.count, 0) || 0).toLocaleString();
+            document.getElementById('totalJoins').textContent = data.joins ?? '—';
+            document.getElementById('totalLeaves').textContent = data.leaves ?? '—';
+            document.getElementById('totalMod').textContent = data.modActions ?? '—';
+
+            // Command Bar Chart
+            const top10 = (data.commandUsage || []).slice(0, 10);
+            if (cmdChart) cmdChart.destroy();
+            cmdChart = new Chart(document.getElementById('cmdChart'), {
+                type: 'bar',
+                data: {
+                    labels: top10.map(c => '!' + c.command),
+                    datasets: [{
+                        label: 'Kullanım',
+                        data: top10.map(c => c.count),
+                        backgroundColor: 'rgba(88,101,242,0.7)',
+                        borderColor: '#5865f2', borderWidth: 1, borderRadius: 6
+                    }]
+                },
+                options: { ...CHART_DEFAULTS, plugins: { ...CHART_DEFAULTS.plugins, legend: { display: false } } }
+            });
+
+            // Mod Pie Chart
+            const modData = data.modBreakdown || { ban: 0, kick: 0, timeout: 0, warn: 0 };
+            if (modChart) modChart.destroy();
+            modChart = new Chart(document.getElementById('modChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Ban', 'Kick', 'Timeout', 'Uyarı'],
+                    datasets: [{
+                        data: [modData.ban, modData.kick, modData.timeout, modData.warn],
+                        backgroundColor: ['#ed4245', '#fee75c', '#ff9500', '#5865f2'],
+                        hoverOffset: 8
+                    }]
+                },
+                options: { plugins: { legend: { labels: { color: '#e0e2f0', font: { family: 'Inter' } } } }, cutout: '60%' }
+            });
+
+            // Heatmap
+            const heatData = data.hourlyActivity || Array(24).fill(0);
+            const max = Math.max(...heatData, 1);
+            const hm = document.getElementById('heatmap');
+            hm.innerHTML = '';
+            heatData.forEach((val, h) => {
+                const cell = document.createElement('div');
+                cell.className = 'heat-cell';
+                const intensity = val / max;
+                const alpha = 0.1 + intensity * 0.9;
+                cell.style.background = `rgba(88,101,242,${alpha.toFixed(2)})`;
+                cell.title = `${String(h).padStart(2, '0')}:00 — ${val} işlem`;
+                hm.appendChild(cell);
+            });
+        }
+
+        loadGuilds();
+    </script>
+</body>
+
+</html>

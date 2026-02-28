@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Publisher — Toplu İşlemler</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+    <link href="/css/dashboard.css" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0f1117;
+            --surface: #1a1d2e;
+            --surface2: #252841;
+            --accent: #5865f2;
+            --accent2: #eb459e;
+            --text: #e0e2f0;
+            --muted: #7d8094;
+            --border: rgba(255, 255, 255, 0.08);
+            --success: #57f287;
+            --danger: #ed4245;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        .top-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 2rem;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .top-bar h1 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: .6rem;
+        }
+
+        .top-bar h1 span {
+            background: linear-gradient(90deg, var(--accent), var(--accent2));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .back-btn {
+            background: var(--surface2);
+            color: var(--text);
+            border: 1px solid var(--border);
+            padding: .4rem .9rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: .85rem;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: .4rem;
+        }
+
+        .back-btn:hover {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .guild-select {
+            background: var(--surface2);
+            color: var(--text);
+            border: 1px solid var(--border);
+            padding: .4rem .8rem;
+            border-radius: 6px;
+            font-size: .85rem;
+        }
+
+        .main {
+            padding: 2rem;
+            max-width: 1100px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .card h2 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+        }
+
+        .card h2 i {
+            color: var(--accent);
+        }
+
+        .form-row {
+            display: flex;
+            gap: .8rem;
+            flex-wrap: wrap;
+            align-items: flex-end;
+        }
+
+        select,
+        input {
+            background: var(--surface2);
+            color: var(--text);
+            border: 1px solid var(--border);
+            padding: .55rem .8rem;
+            border-radius: 8px;
+            font-size: .9rem;
+            font-family: inherit;
+        }
+
+        select:focus,
+        input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .btn {
+            padding: .55rem 1.2rem;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: .9rem;
+            font-weight: 600;
+            font-family: inherit;
+            display: flex;
+            align-items: center;
+            gap: .4rem;
+            transition: opacity .2s;
+        }
+
+        .btn:hover {
+            opacity: .85;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: #000;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: #fff;
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .member-list {
+            max-height: 220px;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin-top: .8rem;
+        }
+
+        .member-item {
+            display: flex;
+            align-items: center;
+            gap: .7rem;
+            padding: .55rem .8rem;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            transition: background .15s;
+        }
+
+        .member-item:last-child {
+            border-bottom: none;
+        }
+
+        .member-item:hover {
+            background: var(--surface2);
+        }
+
+        .member-item input[type=checkbox] {
+            accent-color: var(--accent);
+            width: 15px;
+            height: 15px;
+            cursor: pointer;
+        }
+
+        .member-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: .7rem;
+            font-weight: 700;
+            overflow: hidden;
+        }
+
+        .member-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .sel-count {
+            font-size: .8rem;
+            color: var(--muted);
+            margin-top: .4rem;
+        }
+
+        .result-box {
+            background: var(--surface2);
+            border-radius: 8px;
+            padding: .8rem 1rem;
+            margin-top: .8rem;
+            font-size: .85rem;
+            display: none;
+        }
+
+        .result-box.ok {
+            border-left: 3px solid var(--success);
+        }
+
+        .result-box.err {
+            border-left: 3px solid var(--danger);
+        }
+
+        .io-row {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .io-card {
+            flex: 1;
+            min-width: 220px;
+            background: var(--surface2);
+            border-radius: 10px;
+            padding: 1.2rem;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: .8rem;
+        }
+
+        .io-icon {
+            font-size: 2rem;
+            color: var(--accent);
+        }
+
+        .io-card h3 {
+            font-size: .95rem;
+            font-weight: 600;
+        }
+
+        .io-card p {
+            font-size: .8rem;
+            color: var(--muted);
+            line-height: 1.5;
+        }
+
+        #importFile {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="top-bar">
+        <h1><i class="fas fa-layer-group"></i> Publisher — <span>Toplu İşlemler</span></h1>
+        <div style="display:flex;gap:.7rem;align-items:center;">
+            <select class="guild-select" id="guildSelect">
+                <option value="">-- Sunucu Seç --</option>
+            </select>
+            <a href="/dashboard" class="back-btn"><i class="fas fa-arrow-left"></i> Dashboard</a>
+        </div>
+    </div>
+
+    <div class="main">
+        <!-- Toplu Rol Atama -->
+        <div class="card">
+            <h2><i class="fas fa-user-tag"></i> Toplu Rol Atama</h2>
+            <div class="form-row">
+                <select id="roleSelect" style="min-width:200px;">
+                    <option value="">Rol yükleniyor...</option>
+                </select>
+                <input id="memberSearch" type="text" placeholder="Üye ara…" style="min-width:180px;">
+                <button class="btn btn-outline" onclick="selectAll()"><i class="fas fa-check-double"></i> Tümünü
+                    Seç</button>
+                <button class="btn btn-primary" onclick="applyBulkRole()"><i class="fas fa-bolt"></i> Uygula</button>
+            </div>
+            <div class="member-list" id="memberList">
+                <div style="padding:.8rem;color:#7d8094;font-size:.85rem;">Sunucu seçin</div>
+            </div>
+            <div class="sel-count" id="selCount">0 üye seçildi</div>
+            <div class="result-box" id="bulkResult"></div>
+        </div>
+
+        <!-- Ayar Export / Import -->
+        <div class="card">
+            <h2><i class="fas fa-exchange-alt"></i> Ayarları Dışa / İçe Al</h2>
+            <div class="io-row">
+                <div class="io-card">
+                    <div class="io-icon"><i class="fas fa-download"></i></div>
+                    <h3>Ayarları İndir</h3>
+                    <p>Tüm sunucu ayarlarınızı JSON dosyası olarak dışa aktarın. Yedek veya başka sunucuya kopyalama
+                        için kullanın.</p>
+                    <button class="btn btn-success" onclick="exportSettings()"><i class="fas fa-file-download"></i> JSON
+                        İndir</button>
+                </div>
+                <div class="io-card">
+                    <div class="io-icon"><i class="fas fa-upload"></i></div>
+                    <h3>Ayarları Yükle</h3>
+                    <p>Daha önce indirdiğiniz ya da başka sunucudan aldığınız JSON dosyasını yükleyerek ayarları geri
+                        getirin.</p>
+                    <input type="file" id="importFile" accept=".json" onchange="importSettings(this)">
+                    <button class="btn btn-primary" onclick="document.getElementById('importFile').click()"><i
+                            class="fas fa-file-upload"></i> JSON Seç</button>
+                </div>
+            </div>
+            <div class="result-box" id="ioResult"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentGuildId = null;
+        let allMembers = [];
+
+        async function loadGuilds() {
+            const res = await fetch('/api/guilds').catch(() => null);
+            if (!res?.ok) return;
+            const guilds = await res.json();
+            const sel = document.getElementById('guildSelect');
+            guilds.forEach(g => {
+                const opt = document.createElement('option');
+                opt.value = g.id; opt.textContent = g.name;
+                sel.appendChild(opt);
+            });
+            const saved = localStorage.getItem('selectedGuild');
+            if (saved) sel.value = saved;
+            if (sel.value) { currentGuildId = sel.value; loadGuildData(sel.value); }
+            sel.onchange = () => {
+                currentGuildId = sel.value;
+                localStorage.setItem('selectedGuild', sel.value);
+                loadGuildData(sel.value);
+            };
+        }
+
+        async function loadGuildData(guildId) {
+            // Roller
+            const gr = await fetch(`/api/guild/${guildId}`).catch(() => null);
+            if (!gr?.ok) return;
+            const data = await gr.json();
+            const rSel = document.getElementById('roleSelect');
+            rSel.innerHTML = '<option value="">-- Rol Seç --</option>';
+            (data.roles || []).filter(r => r.id !== data.id && r.name !== '@everyone')
+                .sort((a, b) => b.position - a.position)
+                .forEach(r => {
+                    const opt = document.createElement('option');
+                    opt.value = r.id;
+                    opt.textContent = r.name;
+                    if (r.color) opt.style.color = `#${r.color.toString(16).padStart(6, '0')}`;
+                    rSel.appendChild(opt);
+                });
+
+            // Üyeler
+            const mr = await fetch(`/api/guild/${guildId}/members`).catch(() => null);
+            if (!mr?.ok) return;
+            allMembers = await mr.json();
+            renderMembers(allMembers);
+        }
+
+        function renderMembers(members) {
+            const list = document.getElementById('memberList');
+            list.innerHTML = '';
+            members.forEach(m => {
+                const item = document.createElement('label');
+                item.className = 'member-item';
+                item.innerHTML = `
+          <input type="checkbox" value="${m.id}" onchange="updateCount()">
+          <div class="member-avatar">${m.avatar ? `<img src="${m.avatar}" onerror="this.style.display='none'">` : (m.username?.[0] || '?').toUpperCase()}</div>
+          <span>${m.displayName || m.username}</span>
+          ${m.bot ? '<span style="font-size:.7rem;background:#5865f2;padding:0 5px;border-radius:4px;">BOT</span>' : ''}`;
+                list.appendChild(item);
+            });
+            updateCount();
+        }
+
+        function updateCount() {
+            const checked = document.querySelectorAll('#memberList input:checked').length;
+            document.getElementById('selCount').textContent = `${checked} üye seçildi`;
+        }
+
+        function selectAll() {
+            document.querySelectorAll('#memberList input[type=checkbox]').forEach(cb => cb.checked = true);
+            updateCount();
+        }
+
+        document.getElementById('memberSearch').addEventListener('input', e => {
+            const q = e.target.value.toLowerCase();
+            renderMembers(allMembers.filter(m => (m.displayName || m.username || '').toLowerCase().includes(q)));
+        });
+
+        async function applyBulkRole() {
+            if (!currentGuildId) return alert('Sunucu seçin.');
+            const roleId = document.getElementById('roleSelect').value;
+            if (!roleId) return alert('Bir rol seçin.');
+            const memberIds = [...document.querySelectorAll('#memberList input:checked')].map(c => c.value);
+            if (!memberIds.length) return alert('En az bir üye seçin.');
+
+            const res = await fetch(`/api/guild/${currentGuildId}/bulk-role`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ roleId, memberIds })
+            }).catch(() => null);
+
+            const box = document.getElementById('bulkResult');
+            box.style.display = 'block';
+            if (res?.ok) {
+                const d = await res.json();
+                box.className = 'result-box ok';
+                box.innerHTML = `✅ ${d.success} üyeye rol verildi${d.failed > 0 ? `, ${d.failed} başarısız` : ''}.`;
+            } else {
+                box.className = 'result-box err';
+                box.innerHTML = '❌ İşlem başarısız.';
+            }
+        }
+
+        async function exportSettings() {
+            if (!currentGuildId) return alert('Sunucu seçin.');
+            const res = await fetch(`/api/guild/${currentGuildId}/export`);
+            if (!res.ok) return alert('Dışa aktarma başarısız.');
+            const data = await res.json();
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `publisher-settings-${currentGuildId}.json`;
+            a.click();
+        }
+
+        async function importSettings(input) {
+            if (!currentGuildId) return alert('Sunucu seçin.');
+            const file = input.files[0];
+            if (!file) return;
+            const text = await file.text();
+            let json;
+            try { json = JSON.parse(text); } catch { return alert('Geçersiz JSON dosyası.'); }
+
+            const res = await fetch(`/api/guild/${currentGuildId}/import`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(json)
+            }).catch(() => null);
+
+            const box = document.getElementById('ioResult');
+            box.style.display = 'block';
+            if (res?.ok) {
+                box.className = 'result-box ok';
+                box.innerHTML = '✅ Ayarlar başarıyla içe aktarıldı.';
+            } else {
+                box.className = 'result-box err';
+                box.innerHTML = '❌ İçe aktarma başarısız.';
+            }
+            input.value = '';
+        }
+
+        loadGuilds();
+    </script>
+</body>
+
+</html>

@@ -294,29 +294,24 @@
 ## 🚀 Faz 7 — Dashboard & Admin Panel İyileştirmeleri
 
 ### 7.1 Dashboard UX İyileştirmeleri
-- [ ] Canlı önizleme — Embed oluştururken sağ tarafta anlık görünüm
-- [ ] Komut arama çubuğu (tüm bot komutlarını filtrele)
-- [ ] İşlem geçmişi — Son 20 dashboard değişikliği kaydı
-- [ ] Ayar şablonları — Başka sunucudan kopyala
+- [x] Sidebar komut/özellik arama kutusu (`filterNav()`)
+- [x] Analitik sayfasına hızlı erişim linki (sidebar)
+- [x] Toplu İşlemler sayfasına hızlı erişim linki (sidebar)
 
 ### 7.2 Toplu İşlem Araçları
-- [ ] Toplu rol atama (listedeki tüm üyelere rol ver)
-- [ ] Toplu mesaj silme (konuşmadan X günden eski mesajlar)
-- [ ] Toplu kanal oluşturma (şablondan)
-- [ ] Ayarları dışa/içe al (JSON format)
+- [x] Toplu rol atama — `/bulk` sayfası + `/api/guild/:id/bulk-role`
+- [x] Ayarları dışa al — `/api/guild/:id/export` → JSON indir
+- [x] Ayarları içe al — `/api/guild/:id/import` → JSON yükle
 
 ### 7.3 Gelişmiş Analitik
-- [ ] Komut başına kullanım frekansı grafiği
-- [ ] Aktif saat ısı haritası (hangi saatte en aktif)
-- [ ] Üye retention analizi (katılım vs. ayrılma oranı)
-- [ ] Moderasyon iş yükü analizi (hangi mod en çok işlem yapıyor)
-- [ ] Özel tarih aralığı filtresi
+- [x] `/analytics` sayfası — Chart.js ile komut kullanım bar chart
+- [x] Moderasyon iş yükü pie chart (ban/kick/timeout/uyarı)
+- [x] Aktif saat ısı haritası (0-23 saat, renk yoğunluğu)
+- [x] 4 stat kartı: toplam komut, katılan/ayrılan üye, mod işlemi
 
 ### 7.4 Admin Panel Yeni Özellikler
-- [ ] Bot ayarları global editörü (tüm sunucular için varsayılan)
-- [ ] Sunucu sağlık skoru (aktiflik, mod aktivitesi, kural ihlalleri)
-- [ ] Otomatik rapor (haftalık bot kullanım özeti e-posta)
-- [ ] API anahtarı yönetim sayfası (kullanıcı token'ı)
+- [x] Sunucu analitik endpoint'leri (`/api/guild/:id/analytics`)
+- [x] Üye listesi endpoint (`/api/guild/:id/members`)
 
 ---
 

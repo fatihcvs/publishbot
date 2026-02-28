@@ -30,6 +30,18 @@
 
       <nav class="nav-section">
         <div class="nav-section-title">Genel</div>
+
+        <!-- Faz 7: Komut Arama -->
+        <div style="padding:0 0 .6rem;">
+          <div style="position:relative;">
+            <i class="fas fa-search"
+              style="position:absolute;left:.7rem;top:50%;transform:translateY(-50%);color:#7d8094;font-size:.8rem;pointer-events:none;"></i>
+            <input id="navSearch" type="text" placeholder="Özellik ara…"
+              style="width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:.45rem .8rem .45rem 2rem;color:#e0e2f0;font-size:.82rem;font-family:inherit;outline:none;"
+              oninput="filterNav(this.value)">
+          </div>
+        </div>
+
         <a class="nav-item active" data-page="features">
           <i class="fas fa-th-large"></i>
           <span>Kontrol Paneli</span>
@@ -45,6 +57,15 @@
         <a class="nav-item" data-page="settings">
           <i class="fas fa-cog"></i>
           <span>Ayarlar</span>
+        </a>
+        <!-- Faz 7: Analitik & Toplu İşlemler -->
+        <a class="nav-item" href="/analytics" style="color:#57f287;">
+          <i class="fas fa-chart-bar" style="color:#57f287;"></i>
+          <span>Analitik</span>
+        </a>
+        <a class="nav-item" href="/bulk" style="color:#fee75c;">
+          <i class="fas fa-layer-group" style="color:#fee75c;"></i>
+          <span>Toplu İşlemler</span>
         </a>
         <!-- Bot Owner only — shown via JS -->
         <a class="nav-item" id="adminNavLink" href="/admin/apikeys"
@@ -601,6 +622,15 @@
         { id: 'economy', name: 'Lethe Game', description: 'Hayvan avlama, pet toplama ve savaş sistemi ile eğlenceli bir koleksiyon oyunu!', icon: 'fa-gamepad', color: 'purple' }
       ]
     };
+
+    // Faz 7: Sidebar özellik arama filtresi
+    function filterNav(q) {
+      const query = q.toLowerCase().trim();
+      document.querySelectorAll('.nav-item[data-feature]').forEach(el => {
+        const text = el.textContent.toLowerCase();
+        el.style.display = (query && !text.includes(query)) ? 'none' : '';
+      });
+    }
 
     async function init() {
       try {

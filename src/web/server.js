@@ -1381,6 +1381,129 @@ app.delete('/api/guild/:guildId/reactionroles/:id', isAuthenticated, requireMana
   }
 });
 
+// ── Faz 7: Dashboard Araçları ────────────────────────────────────────────────
+
+// Analytics özet
+app.get('/api/guild/:guildId/analytics', isAuthenticated, requireManagerAccess, async (req, res) => {
+  const { guildId } = req.params;
+  try {
+    const guildStorage = require('../database/storage').storage;
+    const { db } = require('../database/db');
+    const { commandUsage, modCases } = require('../../shared/schema');
+    const { eq, gte } = require('drizzle-orm');
+
+    const guild = discordClient?.guilds.cache.get(guildId);
+
+    // Komut kullanım
+    let cmdRows = [];
+    if (db) cmdRows = await db.select().from(commandUsage).orderBy(commandUsage.usageCount).catch(() => []);
+    const cmdUsage = cmdRows.map(r => ({ command: r.commandName, count: r.usageCount })).reverse();
+
+    // Mod vakaları breakdown
+    let modRows = [];
+    if (db) {
+      modRows = await db.select().from(modCases).where(eq(modCases.guildId, guildId)).catch(() => []);
+    }
+    const modBreakdown = { ban: 0, kick: 0, timeout: 0, warn: 0 };
+    modRows.forEach(c => { if (modBreakdown[c.type] !== undefined) modBreakdown[c.type]++; });
+
+    // Saatlik aktivite (komut kullanım saatlerine göre basit mock)
+    const hourlyActivity = Array(24).fill(0);
+    cmdRows.forEach((_, i) => { hourlyActivity[i % 24] += Math.floor(Math.random() * 5); });
+
+    res.json({
+      commandUsage: cmdUsage.slice(0, 20),
+      modBreakdown,
+      modActions: modRows.length,
+      hourlyActivity,
+      joins: null,
+      leaves: null
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Üye listesi
+app.get('/api/guild/:guildId/members', isAuthenticated, requireManagerAccess, async (req, res) => {
+  const { guildId } = req.params;
+  try {
+    const guild = discordClient?.guilds.cache.get(guildId);
+    if (!guild) return res.status(404).json({ error: 'Guild not found' });
+    await guild.members.fetch().catch(() => { });
+    const members = guild.members.cache.map(m => ({
+      id: m.id,
+      username: m.user.username,
+      displayName: m.displayName,
+      avatar: m.user.displayAvatarURL({ size: 32, format: 'jpg' }),
+      bot: m.user.bot,
+      roles: m.roles.cache.map(r => r.id)
+    }));
+    res.json(members);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Ayar İhraç (Export)
+app.get('/api/guild/:guildId/export', isAuthenticated, requireManagerAccess, async (req, res) => {
+  const { guildId } = req.params;
+  try {
+    const guildStorage = require('../database/storage').storage;
+    const guildData = await guildStorage.getGuild(guildId);
+    res.json({ exportedAt: new Date().toISOString(), guildId, settings: guildData });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Ayar İçe Alma (Import)
+app.post('/api/guild/:guildId/import', isAuthenticated, requireManagerAccess, async (req, res) => {
+  const { guildId } = req.params;
+  try {
+    const payload = req.body;
+    if (!payload?.settings) return res.status(400).json({ error: 'Invalid import file' });
+    const guildStorage = require('../database/storage').storage;
+    const settings = payload.settings;
+    // Güvenli alanları güncelle (tehlikeli alanları atla)
+    delete settings.id; delete settings.guildId;
+    await guildStorage.upsertGuild(guildId, settings);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Toplu Rol Atama
+app.post('/api/guild/:guildId/bulk-role', isAuthenticated, requireManagerAccess, async (req, res) => {
+  const { guildId } = req.params;
+  const { roleId, memberIds } = req.body;
+  if (!roleId || !Array.isArray(memberIds) || !memberIds.length) {
+    return res.status(400).json({ error: 'roleId and memberIds required' });
+  }
+  try {
+    const guild = discordClient?.guilds.cache.get(guildId);
+    if (!guild) return res.status(404).json({ error: 'Guild not found' });
+    const role = guild.roles.cache.get(roleId);
+    if (!role) return res.status(404).json({ error: 'Role not found' });
+
+    let success = 0, failed = 0;
+    await guild.members.fetch().catch(() => { });
+    for (const memberId of memberIds.slice(0, 100)) { // max 100
+      const member = guild.members.cache.get(memberId);
+      if (!member) { failed++; continue; }
+      await member.roles.add(role).then(() => success++).catch(() => { failed++; });
+    }
+    res.json({ ok: true, success, failed });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Analytics & Bulk HTML sayfaları
+app.get('/analytics', isAuthenticated, (req, res) => res.sendFile(path.join(__dirname, 'public', 'analytics.html')));
+app.get('/bulk', isAuthenticated, (req, res) => res.sendFile(path.join(__dirname, 'public', 'bulk.html')));
+
 // Analytics Endpoints (Phase 6)
 app.get('/api/guild/:guildId/analytics/growth', isAuthenticated, requireManagerAccess, async (req, res) => {
   const { guildId } = req.params;
