@@ -1849,6 +1849,59 @@ app.get('/lethe-rehber', (req, res) => {
   res.redirect('/lethe-game');
 });
 
+// ── Faz 3: Gelen Webhook Endpoint (Public) ───────────────────────────────────
+app.post('/webhooks/:guildId/:key', express.json(), express.urlencoded({ extended: true }), async (req, res) => {
+  try {
+    const { guildId, key } = req.params;
+    const payload = req.body || {};
+
+    // DB'den receiver'ı al
+    const { db: wdb } = require('../database/db');
+    if (!wdb) return res.status(503).json({ error: 'DB not available' });
+
+    const { webhookReceivers } = require('../../shared/schema');
+    const { eq, and } = require('drizzle-orm');
+    const [receiver] = await wdb.select().from(webhookReceivers)
+      .where(and(eq(webhookReceivers.guildId, guildId), eq(webhookReceivers.key, key), eq(webhookReceivers.enabled, true)));
+
+    if (!receiver) return res.status(404).json({ error: 'Webhook not found' });
+
+    const guild = discordClient?.guilds.cache.get(guildId);
+    if (!guild) return res.status(404).json({ error: 'Bot not in guild' });
+
+    const channel = guild.channels.cache.get(receiver.channelId);
+    if (!channel) return res.status(404).json({ error: 'Channel not found' });
+
+    // GitHub event ayrıştırma
+    const ghEvent = req.headers['x-github-event'];
+    let vars = {
+      title: payload.head_commit?.message || payload.pull_request?.title || payload.issue?.title || payload.zen || JSON.stringify(payload).slice(0, 100),
+      body: payload.pull_request?.body || payload.issue?.body || payload.commits?.map(c => c.message).join(', ') || '',
+      url: payload.compare || payload.pull_request?.html_url || payload.issue?.html_url || payload.repository?.html_url || '',
+      author: payload.pusher?.name || payload.sender?.login || payload.head_commit?.author?.name || 'Unknown',
+      repo: payload.repository?.full_name || payload.repository?.name || ''
+    };
+
+    let text;
+    if (receiver.template) {
+      text = receiver.template.replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? `{${k}}`);
+    } else if (ghEvent) {
+      // Varsayılan GitHub şablon
+      const icons = { push: '📦', pull_request: '🔀', issues: '🐛', issue_comment: '💬', create: '🌿', delete: '🗑️' };
+      const icon = icons[ghEvent] || '🔔';
+      text = `${icon} **GitHub ${ghEvent}** — [${vars.repo}](${vars.url})\n**${vars.title}**\n${vars.body ? vars.body.slice(0, 200) : ''}\n_olarak: ${vars.author}_`;
+    } else {
+      text = `🔔 **Webhook:** ${vars.title}\n${vars.url}`;
+    }
+
+    await channel.send({ content: text.slice(0, 2000) });
+    return res.json({ ok: true });
+  } catch (err) {
+    console.error('[Webhook POST]', err);
+    return res.status(500).json({ error: 'Internal error' });
+  }
+});
+
 // One-time data migration endpoint for production
 // This endpoint imports data from the export file to the production database
 // It only runs once and skips tables that already have data

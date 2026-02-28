@@ -241,10 +241,20 @@ client.on(Events.GuildMemberAdd, async (member) => {
   }
 
   if (logSystem) await logSystem.guildMemberAdd(member, inviterId);
+
+  // Faz 3: IF-THEN otomasyon tetikleyici
+  if (scheduler) {
+    await scheduler.runAutomation('uye_katildi', member.guild, member).catch(() => { });
+  }
 });
 
 client.on(Events.GuildMemberRemove, async (member) => {
   if (logSystem) await logSystem.guildMemberRemove(member);
+
+  // Faz 3: IF-THEN otomasyon tetikleyici
+  if (scheduler) {
+    await scheduler.runAutomation('uye_ayrildi', member.guild, member).catch(() => { });
+  }
 
   // Hoşçakal sistemi
   const guildData = await storage.getGuild(member.guild.id);

@@ -1490,6 +1490,23 @@ class JSONStorage {
       );
     } catch (e) { console.error('[Storage] setGlobalData error:', e); }
   }
+
+  // ── Faz 3: Mesaj Şablonları ───────────────────────────────────────────────
+  async getTemplate(guildId, type) {
+    const g = await this.getGuild(guildId);
+    return g?.modules?.[`template_${type}`] || null;
+  }
+
+  async setTemplate(guildId, type, text) {
+    const g = await this.getGuild(guildId);
+    const modules = g?.modules || {};
+    if (text === null) {
+      delete modules[`template_${type}`];
+    } else {
+      modules[`template_${type}`] = text;
+    }
+    await this.upsertGuild(guildId, { modules });
+  }
 }
 
 const storage = db ? new DatabaseStorage() : new JSONStorage();

@@ -788,6 +788,30 @@ const letheRegions = pgTable('lethe_regions', {
   isEventRegion: boolean('is_event_region').default(false)
 });
 
+// --- FAZ 3: OTOMASYON & WEBHOOK ---
+const automationRules = pgTable('automation_rules', {
+  id: serial('id').primaryKey(),
+  guildId: text('guild_id').notNull(),
+  name: text('name').notNull(),
+  trigger: jsonb('trigger').notNull(),
+  conditions: jsonb('conditions').default([]),
+  actions: jsonb('actions').notNull(),
+  enabled: boolean('enabled').default(true),
+  priority: integer('priority').default(0),
+  createdAt: timestamp('created_at').defaultNow()
+});
+
+const webhookReceivers = pgTable('webhook_receivers', {
+  id: serial('id').primaryKey(),
+  guildId: text('guild_id').notNull(),
+  name: text('name').notNull(),
+  channelId: text('channel_id').notNull(),
+  key: text('key').notNull().unique(),
+  template: text('template'),
+  enabled: boolean('enabled').default(true),
+  createdAt: timestamp('created_at').defaultNow()
+});
+
 module.exports = {
   guilds,
   warnings,
@@ -853,5 +877,8 @@ module.exports = {
   letheClans,
   letheClanMembers,
   letheRegions,
-  userProfiles
+  userProfiles,
+  // Faz 3
+  automationRules,
+  webhookReceivers
 };

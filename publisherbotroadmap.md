@@ -193,30 +193,28 @@
 ## 🚀 Faz 3 — Otomasyon & Akış Yönetimi
 
 ### 3.1 IF-THEN Otomasyon Motoru
-- [ ] Dashboard'dan görsel kural oluşturucu
-- [ ] Tetikleyiciler: Üye katıldı / ayrıldı / seviye atladı / belirli mesaj gönderdi
-- [ ] Aksiyonlar: Rol ver/al, mesaj gönder, kanal kilitle, DM gönder
-- [ ] Koşullar: Rol sahibi mi, hesap yaşı, seviye eşiği
-- [ ] Kural öncelik sırası
+- [x] `!otomasyon ekle <ad> <tetikleyici> <aksiyon>` — kural oluştur
+- [x] Tetikleyiciler: `uye_katildi`, `uye_ayrildi`, `mesaj_iceriyor:<kelime>`
+- [x] Aksiyonlar: `rol_ver`, `rol_al`, `mesaj_gonder`, `dm_gonder`
+- [x] Koşullar: `rol_sahibi_mi`, `hesap_yasi_ustu`
+- [x] Priority sırası + `!otomasyon aç/kapat/sil/liste`
 
 ### 3.2 Gelişmiş Zamanlanmış Mesajlar
-- [ ] Cron expression desteği (`0 9 * * 1` = her Pazartesi 09:00)
-- [ ] Embed destekli zamanlanmış mesaj
-- [ ] Tekrarlayan mesaj (günlük/haftalık/aylık)
-- [ ] Koşullu mesaj (eğer sunucuda X üyeden fazlası varsa gönder)
-- [ ] Dashboard'dan zamanlama takvimi görünümü
+- [x] `--embed` flag — embed formatında zamanlanmış mesaj
+- [x] `--tek <YYYY-MM-DD HH:MM>` — tek seferlik, gönderilince silinir
+- [x] `!zamanlı değiştir <id>` — mesaj düzenleme
 
 ### 3.3 Webhook Yönetim Merkezi
-- [ ] Dashboard'dan webhook oluştur/sil/test et
-- [ ] Gelen webhook payload'larını özelleştir (şablon)
-- [ ] GitHub push/PR/issue → Discord channel
-- [ ] Jira issue → Discord channel
-- [ ] Özel HTTP tetikleyiciler (Zapier alternatifi)
+- [x] `!webhook ekle <ad> #kanal` — unique key ile receiver oluştur
+- [x] `POST /webhooks/:guildId/:key` — public incoming webhook endpoint
+- [x] GitHub push/PR/issue otomatik ayrıştırma + embed
+- [x] `!webhook şablon <ad>` — `{title}` `{body}` `{url}` `{author}` `{repo}` değişkenleri
+- [x] `!webhook liste/sil`
 
 ### 3.4 Olay Tabanlı Mesaj Şablonları
-- [ ] Tüm sistem mesajları (hoş geldin, veda, seviye atlama) dashboard'dan düzenlenebilir
-- [ ] Değişkenler: `{user}`, `{server}`, `{level}`, `{inviter}`, `{count}`
-- [ ] Emoji + görsel destekli şablonlar
+- [x] `!şablon hosgeldin/veda/seviyeatlama <metin>` — sistem mesajı özelleştir
+- [x] Değişkenler: `{user}` `{username}` `{server}` `{level}` `{member_count}` `{inviter}`
+- [x] `!şablon önizle <tür>` — test mesajı ile önizle
 
 ---
 

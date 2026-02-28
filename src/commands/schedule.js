@@ -3,131 +3,146 @@ const { EmbedBuilder, PermissionFlagsBits } = require('discord.js');
 module.exports = {
   name: 'zamanlı',
   aliases: ['schedule', 'zamanli', 'otomesaj', 'autosend'],
-  description: 'Zamanlanmış mesajları yönetir',
+  description: 'Zamanlanmış mesajları yönetir. Embed ve tek seferlik desteği.',
   permissions: [PermissionFlagsBits.ManageGuild],
+
   async execute(message, args, client) {
     const { storage } = require('../database/storage');
-    const subCommand = args[0]?.toLowerCase();
+    const sub = args[0]?.toLowerCase();
 
-    if (subCommand === 'ekle' || subCommand === 'add') {
-      const channel = message.mentions.channels.first();
-      if (!channel) {
-        return message.reply('Kullanım: `!zamanlı ekle #kanal <dakika> <mesaj>`\nÖrnek: `!zamanlı ekle #duyurular 60 Sunucumuza hoş geldiniz!`');
-      }
+    if (sub === 'ekle' || sub === 'add') return this.add(message, args.slice(1), storage);
+    if (sub === 'sil' || sub === 'delete' || sub === 'remove') return this.del(message, args.slice(1), storage);
+    if (sub === 'liste' || sub === 'list') return this.list(message, storage);
+    if (sub === 'toggle' || sub === 'aç' || sub === 'kapat') return this.toggle(message, args, storage);
+    if (sub === 'değiştir' || sub === 'degistir' || sub === 'edit') return this.edit(message, args.slice(1));
+    return this.sendHelp(message);
+  },
 
-      const intervalStr = args[2];
-      const interval = parseInt(intervalStr);
-      
-      if (!interval || interval < 1 || interval > 10080) {
-        return message.reply('Geçerli bir aralık belirtin! (1-10080 dakika arası, max 1 hafta)');
-      }
+  async add(message, args, storage) {
+    const fullText = args.join(' ');
+    const isEmbed = /--embed/i.test(fullText);
+    const tekMatch = fullText.match(/--tek\s+(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2})/);
 
-      const messageContent = args.slice(3).join(' ');
-      if (!messageContent) {
-        return message.reply('Lütfen gönderilecek mesajı belirtin!');
-      }
-
-      try {
-        const scheduled = await storage.addScheduledMessage(
-          message.guild.id,
-          channel.id,
-          messageContent,
-          interval,
-          message.author.id
-        );
-
-        const embed = new EmbedBuilder()
-          .setColor('#00ff00')
-          .setTitle('✅ Zamanlanmış Mesaj Eklendi')
-          .addFields(
-            { name: 'Kanal', value: channel.toString(), inline: true },
-            { name: 'Aralık', value: `${interval} dakika`, inline: true },
-            { name: 'ID', value: `#${scheduled.id}`, inline: true },
-            { name: 'Mesaj', value: messageContent.substring(0, 200) + (messageContent.length > 200 ? '...' : '') }
-          )
-          .setTimestamp();
-
-        return message.reply({ embeds: [embed] });
-      } catch (error) {
-        console.error('Zamanlanmış mesaj ekleme hatası:', error);
-        return message.reply('Mesaj eklenirken bir hata oluştu!');
-      }
+    const channel = message.mentions.channels.first();
+    if (!channel) {
+      return message.reply('❌ Kanal etiketleyin.\nKullanım: `!zamanlı ekle #kanal <dakika> <mesaj> [--embed]`').catch(() => { });
     }
 
-    if (subCommand === 'sil' || subCommand === 'delete' || subCommand === 'remove') {
-      const id = parseInt(args[1]);
-      if (!id) {
-        return message.reply('Kullanım: `!zamanlı sil <id>`');
-      }
+    const clean = fullText
+      .replace(/<#\d+>/, '')
+      .replace(/--embed/i, '')
+      .replace(/--tek\s+[\d\-\s:]+/, '')
+      .trim().split(/\s+/);
 
-      try {
-        await storage.deleteScheduledMessage(id);
-        return message.reply(`✅ Zamanlanmış mesaj #${id} silindi!`);
-      } catch (error) {
-        console.error('Zamanlanmış mesaj silme hatası:', error);
-        return message.reply('Mesaj silinirken bir hata oluştu!');
+    let intervalMinutes = parseInt(clean[0]);
+    let oneShot = null;
+
+    if (tekMatch) {
+      oneShot = new Date(tekMatch[1]);
+      intervalMinutes = 0;
+      if (isNaN(oneShot.getTime()) || oneShot <= new Date()) {
+        return message.reply('❌ Geçerli ve gelecekteki bir tarih girin. Örnek: `2026-03-15 20:00`').catch(() => { });
       }
+    } else if (!intervalMinutes || intervalMinutes < 1 || intervalMinutes > 10080) {
+      return message.reply('❌ Geçerli aralık: 1-10080 dakika (maks 1 hafta).').catch(() => { });
     }
 
-    if (subCommand === 'liste' || subCommand === 'list') {
-      const messages = await storage.getScheduledMessages(message.guild.id);
-      
-      if (messages.length === 0) {
-        return message.reply('Bu sunucuda zamanlanmış mesaj bulunmuyor.');
-      }
+    let msgContent = clean.slice(1).join(' ');
+    if (!msgContent) return message.reply('❌ Mesaj içeriği boş olamaz!').catch(() => { });
+
+    if (isEmbed) {
+      const parts = msgContent.split(' | ');
+      msgContent = JSON.stringify({ __embed: true, title: parts[0], description: parts[1] || '' });
+    }
+
+    try {
+      const scheduled = await storage.addScheduledMessage(
+        message.guild.id,
+        channel.id,
+        msgContent,
+        oneShot ? 0 : intervalMinutes,
+        message.author.id
+      );
 
       const embed = new EmbedBuilder()
+        .setColor('#57F287')
+        .setTitle('✅ Zamanlanmış Mesaj Eklendi')
+        .addFields(
+          { name: 'Kanal', value: channel.toString(), inline: true },
+          { name: oneShot ? 'Tarih' : 'Aralık', value: oneShot ? `<t:${Math.floor(oneShot.getTime() / 1000)}:F>` : `${intervalMinutes} dakika`, inline: true },
+          { name: 'ID', value: `#${scheduled.id}`, inline: true },
+          { name: 'Mesaj', value: isEmbed ? '_(Embed formatında)_' : msgContent.substring(0, 120) }
+        )
+        .setTimestamp();
+      return message.reply({ embeds: [embed] }).catch(() => { });
+    } catch (err) {
+      console.error('[schedule.add]', err);
+      return message.reply('❌ Mesaj eklenirken hata oluştu!').catch(() => { });
+    }
+  },
+
+  async del(message, args, storage) {
+    const id = parseInt(args[0]);
+    if (!id) return message.reply('❌ Kullanım: `!zamanlı sil <id>`').catch(() => { });
+    await storage.deleteScheduledMessage(id).catch(() => { });
+    return message.reply(`✅ Zamanlanmış mesaj #${id} silindi!`).catch(() => { });
+  },
+
+  async list(message, storage) {
+    const messages = await storage.getScheduledMessages(message.guild.id);
+    if (!messages.length) return message.reply('Bu sunucuda zamanlanmış mesaj yok.').catch(() => { });
+    const lines = messages.map(m => {
+      const ch = message.guild.channels.cache.get(m.channelId);
+      const status = m.enabled ? '🟢' : '🔴';
+      let preview = m.message;
+      try { const p = JSON.parse(m.message); if (p.__embed) preview = `[Embed] ${p.title}`; } catch { }
+      return `${status} **#${m.id}** ${ch || '?'} — ${m.intervalMinutes ? `${m.intervalMinutes}dk` : 'Tek seferlik'}\n└ "${preview.substring(0, 60)}"`;
+    });
+    return message.reply({
+      embeds: [new EmbedBuilder()
         .setColor('#5865F2')
         .setTitle('📅 Zamanlanmış Mesajlar')
-        .setDescription(
-          messages.map(m => {
-            const channel = message.guild.channels.cache.get(m.channelId);
-            const status = m.enabled ? '🟢' : '🔴';
-            return `${status} **#${m.id}** - ${channel || 'Bilinmeyen Kanal'}\n└ Her ${m.intervalMinutes} dakikada: "${m.message.substring(0, 50)}${m.message.length > 50 ? '...' : ''}"`;
-          }).join('\n\n')
-        )
-        .setFooter({ text: `Toplam ${messages.length} zamanlanmış mesaj` })
-        .setTimestamp();
+        .setDescription(lines.join('\n\n'))
+        .setTimestamp()]
+    }).catch(() => { });
+  },
 
-      return message.reply({ embeds: [embed] });
-    }
+  async toggle(message, args, storage) {
+    const sub = args[0]?.toLowerCase();
+    const id = parseInt(args[1]);
+    if (!id) return message.reply('❌ Kullanım: `!zamanlı aç/kapat <id>`').catch(() => { });
+    const enable = sub === 'aç' || sub === 'on';
+    await storage.toggleScheduledMessage(id, enable).catch(() => { });
+    return message.reply(`✅ #${id} ${enable ? 'açıldı' : 'kapatıldı'}.`).catch(() => { });
+  },
 
-    if (subCommand === 'toggle' || subCommand === 'aç' || subCommand === 'kapat') {
-      const id = parseInt(args[1]);
-      if (!id) {
-        return message.reply('Kullanım: `!zamanlı toggle <id>`');
-      }
+  async edit(message, args) {
+    const id = parseInt(args[0]);
+    const newMsg = args.slice(1).join(' ');
+    if (!id || !newMsg) return message.reply('❌ Kullanım: `!zamanlı değiştir <id> <yeni mesaj>`').catch(() => { });
+    try {
+      const { db } = require('../database/db');
+      const { scheduledMessages } = require('../../shared/schema');
+      const { eq } = require('drizzle-orm');
+      await db.update(scheduledMessages).set({ message: newMsg }).where(eq(scheduledMessages.id, id));
+      return message.reply(`✅ #${id} güncellendi.`).catch(() => { });
+    } catch { return message.reply('❌ Güncellenemedi.').catch(() => { }); }
+  },
 
-      try {
-        const messages = await storage.getScheduledMessages(message.guild.id);
-        const msg = messages.find(m => m.id === id);
-        
-        if (!msg) {
-          return message.reply('Bu ID ile zamanlanmış mesaj bulunamadı!');
-        }
-
-        await storage.toggleScheduledMessage(id, !msg.enabled);
-        const status = !msg.enabled ? 'açıldı' : 'kapatıldı';
-        return message.reply(`✅ Zamanlanmış mesaj #${id} ${status}!`);
-      } catch (error) {
-        console.error('Toggle hatası:', error);
-        return message.reply('İşlem sırasında bir hata oluştu!');
-      }
-    }
-
-    const embed = new EmbedBuilder()
-      .setColor('#5865F2')
-      .setTitle('📅 Zamanlanmış Mesaj Sistemi')
-      .setDescription('Belirlediğiniz aralıklarla otomatik mesaj gönderin!')
-      .addFields(
-        { name: '!zamanlı ekle #kanal <dakika> <mesaj>', value: 'Yeni zamanlanmış mesaj ekler', inline: false },
-        { name: '!zamanlı sil <id>', value: 'Zamanlanmış mesajı siler', inline: false },
-        { name: '!zamanlı liste', value: 'Tüm zamanlanmış mesajları listeler', inline: false },
-        { name: '!zamanlı toggle <id>', value: 'Mesajı açar/kapatır', inline: false }
-      )
-      .setFooter({ text: 'Minimum 1 dakika, maksimum 10080 dakika (1 hafta)' })
-      .setTimestamp();
-
-    message.reply({ embeds: [embed] });
+  sendHelp(message) {
+    return message.reply({
+      embeds: [new EmbedBuilder()
+        .setColor('#5865F2')
+        .setTitle('📅 Zamanlanmış Mesaj Sistemi')
+        .addFields(
+          { name: 'Ekle (tekrar)', value: '`!zamanlı ekle #kanal <dakika> <mesaj> [--embed]`' },
+          { name: 'Ekle (tek seferlik)', value: '`!zamanlı ekle #kanal 0 <mesaj> --tek 2026-03-15 20:00`' },
+          { name: 'Sil', value: '`!zamanlı sil <id>`' },
+          { name: 'Listele', value: '`!zamanlı liste`' },
+          { name: 'Aç/Kapat', value: '`!zamanlı aç <id>` / `!zamanlı kapat <id>`' },
+          { name: 'Düzenle', value: '`!zamanlı değiştir <id> <yeni mesaj>`' },
+          { name: 'Embed örnek', value: '`!zamanlı ekle #kanal 60 "Başlık | İçerik buraya" --embed`' }
+        )]
+    }).catch(() => { });
   }
 };

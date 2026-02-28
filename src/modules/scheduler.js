@@ -157,10 +157,13 @@ class Scheduler {
       const messages = await this.storage.getPendingScheduledMessages();
 
       for (const msg of messages) {
-        if (!msg.intervalMinutes || msg.intervalMinutes < 1) {
-          console.warn(`Invalid interval for scheduled message ${msg.id}, skipping`);
+        // One-shot: intervalMinutes === 0, gönderilince sil
+        if (msg.intervalMinutes === 0) {
+          await this.sendScheduledMessage(msg);
+          await this.storage.deleteScheduledMessage(msg.id).catch(() => { });
           continue;
         }
+        if (!msg.intervalMinutes || msg.intervalMinutes < 1) continue;
 
         await this.sendScheduledMessage(msg);
 
@@ -177,10 +180,105 @@ class Scheduler {
       const channel = await this.client.channels.fetch(msg.channelId).catch(() => null);
       if (!channel) return;
 
-      await channel.send(msg.message);
+      // Embed JSON formatı kontrolü
+      let parsed = null;
+      try { parsed = JSON.parse(msg.message); } catch { }
+
+      if (parsed?.__embed) {
+        const embed = new EmbedBuilder()
+          .setColor('#5865F2')
+          .setTitle(parsed.title || '')
+          .setTimestamp();
+        if (parsed.description) embed.setDescription(parsed.description);
+        await channel.send({ embeds: [embed] });
+      } else {
+        await channel.send(msg.message);
+      }
     } catch (error) {
       console.error('Send scheduled message error:', error);
     }
+  }
+
+  // ── IF-THEN Otomasyon Motor ────────────────────────────────────────────────
+  async runAutomation(triggerType, guild, member, extra = {}) {
+    try {
+      const { db } = require('../database/db');
+      const { automationRules } = require('../../shared/schema');
+      const { eq, and } = require('drizzle-orm');
+
+      const rules = await db.select().from(automationRules)
+        .where(and(eq(automationRules.guildId, guild.id), eq(automationRules.enabled, true)));
+
+      // Priority sırasına göre sırala (yüksek önce)
+      rules.sort((a, b) => (b.priority || 0) - (a.priority || 0));
+
+      for (const rule of rules) {
+        const trigger = rule.trigger || {};
+        if (trigger.type !== triggerType) continue;
+
+        // Koşul: mesaj_iceriyor
+        if (triggerType === 'mesaj_iceriyor' && trigger.keyword) {
+          if (!extra.content?.toLowerCase().includes(trigger.keyword.toLowerCase())) continue;
+        }
+
+        // Koşul kontrolü (ek conditions varsa)
+        const conditions = Array.isArray(rule.conditions) ? rule.conditions : [];
+        let pass = true;
+        for (const cond of conditions) {
+          if (cond.type === 'rol_sahibi_mi') {
+            if (!member?.roles?.cache?.has(cond.roleId)) { pass = false; break; }
+          } else if (cond.type === 'hesap_yasi_ustu') {
+            const ageDays = (Date.now() - member?.user?.createdTimestamp) / 86400000;
+            if (ageDays < (cond.days || 0)) { pass = false; break; }
+          }
+        }
+        if (!pass) continue;
+
+        // Aksiyonları çalıştır
+        const actions = Array.isArray(rule.actions) ? rule.actions : [];
+        for (const action of actions) {
+          await this._execAction(action, guild, member, extra).catch(e =>
+            console.error(`[Automation] Action hata (rule ${rule.id}):`, e.message)
+          );
+        }
+      }
+    } catch (err) {
+      console.error('[runAutomation] Hata:', err.message);
+    }
+  }
+
+  async _execAction(action, guild, member, extra) {
+    switch (action.type) {
+      case 'rol_ver': {
+        const role = guild.roles.cache.get(action.roleId);
+        if (role && member?.roles) await member.roles.add(role);
+        break;
+      }
+      case 'rol_al': {
+        const role = guild.roles.cache.get(action.roleId);
+        if (role && member?.roles) await member.roles.remove(role);
+        break;
+      }
+      case 'mesaj_gonder': {
+        const ch = guild.channels.cache.get(action.channelId);
+        if (ch) await ch.send(this._renderVars(action.text || '', member, guild));
+        break;
+      }
+      case 'dm_gonder': {
+        if (member?.user) {
+          await member.user.send(this._renderVars(action.text || '', member, guild)).catch(() => { });
+        }
+        break;
+      }
+    }
+  }
+
+  _renderVars(text, member, guild) {
+    return text
+      .replace(/\{user\}/g, member?.toString() || '')
+      .replace(/\{username\}/g, member?.user?.username || '')
+      .replace(/\{server\}/g, guild?.name || '')
+      .replace(/\{member_count\}/g, guild?.memberCount || '');
   }
 
   stop() {
