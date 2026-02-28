@@ -788,7 +788,104 @@ const letheRegions = pgTable('lethe_regions', {
   isEventRegion: boolean('is_event_region').default(false)
 });
 
-// --- FAZ 3: OTOMASYON & WEBHOOK ---
+// --- FAZ 6: TWITCH & RSS ---
+const twitchNotifications = pgTable('twitch_notifications', {
+  id: serial('id').primaryKey(),
+  guildId: text('guild_id').notNull(),
+  channelId: text('channel_id').notNull(),
+  twitchUser: text('twitch_user').notNull(),
+  customMessage: text('custom_message'),
+  enabled: boolean('enabled').default(true),
+  isLive: boolean('is_live').default(false),
+  lastGameId: text('last_game_id'),
+  createdAt: timestamp('created_at').defaultNow()
+});
+
+const rssFeeds = pgTable('rss_feeds', {
+  id: serial('id').primaryKey(),
+  guildId: text('guild_id').notNull(),
+  channelId: text('channel_id').notNull(),
+  url: text('url').notNull(),
+  lastEntryId: text('last_entry_id'),
+  intervalMinutes: integer('interval_minutes').default(15),
+  enabled: boolean('enabled').default(true),
+  createdAt: timestamp('created_at').defaultNow()
+});
+
+module.exports = {
+  guilds,
+  warnings,
+  modCases,
+  customCommands,
+  reactionRoles,
+  giveaways,
+  reminders,
+  afkUsers,
+  userLevels,
+  levelRewards,
+  scheduledMessages,
+  userAchievements,
+  inviteTracking,
+  socialNotifications,
+  userBirthdays,
+  birthdayConfig,
+  userEconomy,
+  economyConfig,
+  shopItems,
+  tickets,
+  ticketConfig,
+  polls,
+  tempVoiceChannels,
+  gameHistory,
+  userInventory,
+  gameItems,
+  activeDuels,
+  dailyStreak,
+  jackpotPool,
+  userStats,
+  commandUsage,
+  lootBoxes,
+  letheAnimals,
+  userAnimals,
+  letheWeapons,
+  letheArmors,
+  letheAccessories,
+  letheConsumables,
+  letheBaits,
+  letheCrates,
+  letheBosses,
+  userLetheInventory,
+  userLetheProfile,
+  letheAchievements,
+  userLetheAchievements,
+  userLetheCollections,
+  letheBattles,
+  letheQuests,
+  userLetheQuests,
+  letheDaily,
+  letheWork,
+  letheEvolutionGems,
+  letheAbilities,
+  letheTrades,
+  letheGifts,
+  letheFriends,
+  letheRaids,
+  letheLeaderboard,
+  letheEvents,
+  letheCommunityGoals,
+  letheEventParticipation,
+  letheClans,
+  letheClanMembers,
+  letheRegions,
+  userProfiles,
+  // Faz 3
+  automationRules,
+  webhookReceivers,
+  // Faz 6
+  twitchNotifications,
+  rssFeeds
+};
+
 const automationRules = pgTable('automation_rules', {
   id: serial('id').primaryKey(),
   guildId: text('guild_id').notNull(),
@@ -878,7 +975,8 @@ module.exports = {
   letheClanMembers,
   letheRegions,
   userProfiles,
-  // Faz 3
   automationRules,
-  webhookReceivers
+  webhookReceivers,
+  twitchNotifications,
+  rssFeeds
 };

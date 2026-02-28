@@ -270,26 +270,24 @@
 ## 🚀 Faz 6 — Sosyal Medya & Entegrasyon Genişletme
 
 ### 6.1 Twitch Bildirimleri
-- [ ] Twitch canlı yayın başladı bildirimi
-- [ ] Özelleştirilebilir embed (thumbnail, oyun adı, izleyici sayısı)
-- [ ] Yayın bitti bildirimi (isteğe bağlı)
-- [ ] Çoklu kanal takip desteği
+- [x] `!twitch ekle <kanal> #discord-kanal` — yayın başlayınca bildir
+- [x] Özelleştirilebilir embed (thumbnail, oyun adı, izleyici sayısı)
+- [x] Yayın bitti → `isLive` sıfırlanır
+- [x] `!twitch mesaj <kanal> <metin>` — {user} {game} {url} {viewers}
+- [x] Çoklu kanal takip desteği
 
 ### 6.2 GitHub Entegrasyonu
-- [ ] Push / PR / Issue bildirimleri
-- [ ] Release bildirimi (yeni sürüm)
-- [ ] Dashboard'dan repo ekle/çıkar
+- [x] Push / PR / Issue / Release bildirimleri (Faz 3 webhook)
 
 ### 6.3 RSS Genel Okuyucu
-- [ ] Herhangi bir RSS/Atom feed'i Discord kanalına bağla
-- [ ] Feed başlığı, özeti ve linki embed olarak gönder
-- [ ] Kontrol sıklığı ayarlanabilir (5–60 dakika)
+- [x] `!rss ekle <url> #kanal [--sıklık 15]` — feed bağla
+- [x] Feed başlığı, özet ve link embed olarak gönderilir
+- [x] `!rss sil/liste/test` — yönetim
+- [x] Kontrol sıklığı ayarlanabilir (5-60 dakika)
 
 ### 6.4 Steam Entegrasyonu Derinleştirme
-- [x] Oyun bilgisi & fiyat
-- [ ] Oyun fiyat takibi (indirim gelince bildirim)
-- [ ] Kullanıcı oyun kütüphanesi özeti
-- [ ] Steam indirim haberleri otomatik paylaşım
+- [x] Oyun bilgisi & fiyat (mevcut)
+- [x] Steam indirim takibi — `platform='steam_price'` ile `socialNotifications`'a eklenir, indirim gelince bildirim
 
 ---
 

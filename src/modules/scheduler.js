@@ -12,8 +12,15 @@ class Scheduler {
     this.intervals.push(setInterval(() => this.checkGiveaways(), 30000));
     this.intervals.push(setInterval(() => this.checkScheduledMessages(), 60000));
     this.intervals.push(setInterval(() => this.checkBirthdays(), 3600000));
-    this.intervals.push(setInterval(() => this.checkPolls(), 60000)); // Added Polls
-    this.intervals.push(setInterval(() => this.checkSocials(), 300000)); // Every 5 minutes
+    this.intervals.push(setInterval(() => this.checkPolls(), 60000));
+    this.intervals.push(setInterval(() => this.checkSocials(), 300000));
+    // Faz 6
+    this.intervals.push(setInterval(() => this.checkTwitch(), 180000));    // 3 dakika
+    this.intervals.push(setInterval(() => this.checkRSSFeeds(), 900000));  // 15 dakika
+    this.intervals.push(setInterval(() => this.checkSteamDeals(), 3600000)); // 1 saat
+    this.twitchToken = null;
+    this.twitchTokenExp = 0;
+    this.rssLastChecked = new Map(); // feedId → timestamp
     this.announcedBirthdays = new Set();
     this.lastBirthdayCheck = null;
     setTimeout(() => this.checkBirthdays(), 10000);
@@ -279,6 +286,187 @@ class Scheduler {
       .replace(/\{username\}/g, member?.user?.username || '')
       .replace(/\{server\}/g, guild?.name || '')
       .replace(/\{member_count\}/g, guild?.memberCount || '');
+  }
+
+
+  // ── Faz 6: Twitch Bildirimleri ────────────────────────────────────────────
+  async _getTwitchToken() {
+    if (this.twitchToken && Date.now() < this.twitchTokenExp) return this.twitchToken;
+    const clientId = process.env.TWITCH_CLIENT_ID;
+    const clientSec = process.env.TWITCH_CLIENT_SECRET;
+    if (!clientId || !clientSec) return null;
+    try {
+      const axios = require('axios');
+      const res = await axios.post(`https://id.twitch.tv/oauth2/token`, null, {
+        params: { client_id: clientId, client_secret: clientSec, grant_type: 'client_credentials' }
+      });
+      this.twitchToken = res.data.access_token;
+      this.twitchTokenExp = Date.now() + (res.data.expires_in - 60) * 1000;
+      return this.twitchToken;
+    } catch { return null; }
+  }
+
+  async checkTwitch() {
+    try {
+      const token = await this._getTwitchToken();
+      if (!token) return;
+
+      const { db } = require('../database/db');
+      if (!db) return;
+      const { twitchNotifications } = require('../../shared/schema');
+      const { eq } = require('drizzle-orm');
+      const axios = require('axios');
+
+      const rows = await db.select().from(twitchNotifications).where(eq(twitchNotifications.enabled, true));
+      if (!rows.length) return;
+
+      const users = rows.map(r => r.twitchUser).join('&login=');
+      const streamRes = await axios.get(`https://api.twitch.tv/helix/streams?login=${users}`, {
+        headers: { 'Client-ID': process.env.TWITCH_CLIENT_ID, Authorization: `Bearer ${token}` }
+      });
+      const liveMap = new Map(streamRes.data.data.map(s => [s.user_login.toLowerCase(), s]));
+
+      const { EmbedBuilder } = require('discord.js');
+      for (const row of rows) {
+        const stream = liveMap.get(row.twitchUser.toLowerCase());
+        const wasLive = row.isLive;
+
+        if (stream && !wasLive) {
+          // Yeni yayın başladı
+          const guild = await this.client.guilds.fetch(row.guildId).catch(() => null);
+          const channel = guild?.channels.cache.get(row.channelId);
+          if (channel) {
+            const msg = (row.customMessage || '🔴 **{user}** yayına başladı! Oyun: **{game}** — {url}')
+              .replace(/{user}/g, stream.user_name)
+              .replace(/{game}/g, stream.game_name || '?')
+              .replace(/{url}/g, `https://twitch.tv/${stream.user_login}`)
+              .replace(/{viewers}/g, stream.viewer_count);
+
+            await channel.send({
+              content: msg, embeds: [new EmbedBuilder()
+                .setColor('#9147FF')
+                .setTitle(`🔴 ${stream.user_name} — ${stream.title || 'Yayın Başladı'}`)
+                .setURL(`https://twitch.tv/${stream.user_login}`)
+                .addFields(
+                  { name: '🎮 Oyun', value: stream.game_name || '?', inline: true },
+                  { name: '👀 İzleyici', value: String(stream.viewer_count), inline: true }
+                )
+                .setImage(stream.thumbnail_url?.replace('{width}', '640').replace('{height}', '360'))
+                .setTimestamp()]
+            }).catch(() => { });
+          }
+          await db.update(twitchNotifications).set({ isLive: true, lastGameId: stream.game_id }).where(eq(twitchNotifications.id, row.id)).catch(() => { });
+        } else if (!stream && wasLive) {
+          // Yayın bitti
+          await db.update(twitchNotifications).set({ isLive: false }).where(eq(twitchNotifications.id, row.id)).catch(() => { });
+        }
+      }
+    } catch (err) {
+      console.error('[checkTwitch]', err.message);
+    }
+  }
+
+  // ── Faz 6: RSS Feed Kontrol ───────────────────────────────────────────────
+  async checkRSSFeeds() {
+    try {
+      const { db } = require('../database/db');
+      if (!db) return;
+      const { rssFeeds } = require('../../shared/schema');
+      const { eq } = require('drizzle-orm');
+      const { fetchLatestEntry } = require('../utils/rssUtils');
+      const { EmbedBuilder } = require('discord.js');
+
+      const feeds = await db.select().from(rssFeeds).where(eq(rssFeeds.enabled, true));
+      const now = Date.now();
+
+      for (const feed of feeds) {
+        const lastCheck = this.rssLastChecked.get(feed.id) || 0;
+        if (now - lastCheck < (feed.intervalMinutes || 15) * 60 * 1000) continue;
+        this.rssLastChecked.set(feed.id, now);
+
+        try {
+          const entry = await fetchLatestEntry(feed.url);
+          if (!entry || entry.id === feed.lastEntryId) continue;
+
+          const guild = await this.client.guilds.fetch(feed.guildId).catch(() => null);
+          const channel = guild?.channels.cache.get(feed.channelId);
+          if (!channel) continue;
+
+          await channel.send({
+            embeds: [new EmbedBuilder()
+              .setColor('#FF6600')
+              .setTitle(`📰 ${entry.title}`)
+              .setURL(entry.link)
+              .setDescription(entry.summary?.replace(/<[^>]+>/g, '').slice(0, 300) || '')
+              .setTimestamp()]
+          }).catch(() => { });
+
+          await db.update(rssFeeds).set({ lastEntryId: entry.id }).where(eq(rssFeeds.id, feed.id)).catch(() => { });
+        } catch (err) {
+          console.error(`[checkRSSFeeds] feed ${feed.id}:`, err.message);
+        }
+      }
+    } catch (err) {
+      console.error('[checkRSSFeeds]', err.message);
+    }
+  }
+
+  // ── Faz 6: Steam İndirim Kontrolü ─────────────────────────────────────────
+  async checkSteamDeals() {
+    try {
+      const { db } = require('../database/db');
+      if (!db) return;
+      const { socialNotifications } = require('../../shared/schema');
+      const { eq } = require('drizzle-orm');
+      const axios = require('axios');
+
+      // steamWatch tipindeki kayıtları al (platform = 'steam_price')
+      const watches = await db.select().from(socialNotifications)
+        .where(eq(socialNotifications.platform, 'steam_price'));
+
+      for (const watch of watches) {
+        try {
+          const res = await axios.get(
+            `https://store.steampowered.com/api/appdetails?appids=${watch.username}&cc=tr&l=tr`,
+            { timeout: 8000 }
+          );
+          const data = res.data?.[watch.username]?.data;
+          if (!data || !data.price_overview) continue;
+
+          const { discount_percent, final_formatted, initial_formatted } = data.price_overview;
+          if (discount_percent <= 0) continue; // İndirim yok
+
+          const lastPostId = watch.lastPostId;
+          const key = `${discount_percent}%_${data.price_overview.final}`;
+          if (lastPostId === key) continue; // Zaten bildirim verildi
+
+          const guild = await this.client.guilds.fetch(watch.guildId).catch(() => null);
+          const channel = guild?.channels.cache.get(watch.channelId);
+          if (!channel) continue;
+
+          const { EmbedBuilder } = require('discord.js');
+          await channel.send({
+            embeds: [new EmbedBuilder()
+              .setColor('#1B2838')
+              .setTitle(`🎮 Steam İndirimi: ${data.name}`)
+              .setURL(`https://store.steampowered.com/app/${watch.username}`)
+              .setThumbnail(data.header_image)
+              .addFields(
+                { name: '💸 Eski Fiyat', value: initial_formatted, inline: true },
+                { name: '✅ Yeni Fiyat', value: final_formatted, inline: true },
+                { name: '🔖 İndirim', value: `%${discount_percent}`, inline: true }
+              )
+              .setTimestamp()]
+          }).catch(() => { });
+
+          await db.update(socialNotifications).set({ lastPostId: key }).where(eq(socialNotifications.id, watch.id)).catch(() => { });
+        } catch (err) {
+          console.error(`[checkSteamDeals] watch ${watch.id}:`, err.message);
+        }
+      }
+    } catch (err) {
+      console.error('[checkSteamDeals]', err.message);
+    }
   }
 
   stop() {
