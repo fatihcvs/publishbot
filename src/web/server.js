@@ -165,7 +165,15 @@ function isAuthenticated(req, res, next) {
 
 function hasManagerAccess(req, guildId) {
   const userGuilds = req.user?.guilds || [];
-  return userGuilds.some(g => g.id === guildId && (parseInt(g.permissions) & 0x20) === 0x20);
+  return userGuilds.some(g => {
+    if (g.id !== guildId) return false;
+    try {
+      const perms = BigInt(g.permissions);
+      const MANAGE_GUILD = BigInt(0x20);
+      const ADMINISTRATOR = BigInt(0x8);
+      return (perms & MANAGE_GUILD) === MANAGE_GUILD || (perms & ADMINISTRATOR) === ADMINISTRATOR;
+    } catch { return false; }
+  });
 }
 
 function requireManagerAccess(req, res, next) {
@@ -1007,9 +1015,14 @@ app.get('/api/guilds', isAuthenticated, (req, res) => {
   const botGuilds = discordClient ? Array.from(discordClient.guilds.cache.keys()) : [];
 
   const managableGuilds = userGuilds.filter(g => {
-    const hasPermission = (parseInt(g.permissions) & 0x20) === 0x20;
     const botInGuild = botGuilds.includes(g.id);
-    return hasPermission && botInGuild;
+    if (!botInGuild) return false;
+    try {
+      const perms = BigInt(g.permissions);
+      const MANAGE_GUILD = BigInt(0x20);
+      const ADMINISTRATOR = BigInt(0x8);
+      return (perms & MANAGE_GUILD) === MANAGE_GUILD || (perms & ADMINISTRATOR) === ADMINISTRATOR;
+    } catch { return false; }
   }).map(g => ({
     id: g.id,
     name: g.name,
