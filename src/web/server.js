@@ -338,6 +338,45 @@ app.post('/api/admin/keys', isBotOwner, (req, res) => {
   }
 });
 
+// ── Faz 8: Premium Yönetimi (Bot Owner Only) ─────────────────────────────────
+
+// Premium sunucuları listele
+app.get('/api/admin/premium', isBotOwner, async (req, res) => {
+  try {
+    const { storage } = require('../database/storage');
+    const guilds = await storage.getPremiumGuilds();
+    const result = guilds.map(g => ({
+      id: g.id,
+      premium: g.premium,
+      premiumPlan: g.premiumPlan,
+      premiumExpiresAt: g.premiumExpiresAt,
+      name: discordClient?.guilds.cache.get(g.id)?.name || g.id
+    }));
+    res.json(result);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// Premium aktif et
+app.post('/api/admin/premium/:guildId', isBotOwner, async (req, res) => {
+  const { guildId } = req.params;
+  const { plan = 'basic', days = null } = req.body;
+  try {
+    const { storage } = require('../database/storage');
+    await storage.setPremiumGuild(guildId, plan, days ? parseInt(days) : null);
+    res.json({ ok: true, guildId, plan, days });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// Premium kaldır
+app.delete('/api/admin/premium/:guildId', isBotOwner, async (req, res) => {
+  const { guildId } = req.params;
+  try {
+    const { storage } = require('../database/storage');
+    await storage.revokePremium(guildId);
+    res.json({ ok: true });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 // POST /api/admin/bot-status — Bot owner only: change bot activity from web dashboard
 app.post('/api/admin/bot-status', isBotOwner, (req, res) => {
   const { text, type } = req.body;

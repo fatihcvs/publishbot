@@ -27,6 +27,10 @@ const guilds = pgTable('guilds', {
   tempVoiceChannel: text('temp_voice_channel'),
   tempVoiceCategory: text('temp_voice_category'),
   modConfig: jsonb('mod_config').default({}),      // Faz 1: Uyarı eşikleri & sona erme
+  // Faz 8: Premium
+  premium: boolean('premium').default(false),
+  premiumPlan: text('premium_plan'),             // 'basic' | 'pro' | 'unlimited'
+  premiumExpiresAt: timestamp('premium_expires_at'),  // null = süresiz
   createdAt: timestamp('created_at').defaultNow()
 });
 

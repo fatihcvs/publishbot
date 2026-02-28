@@ -1608,6 +1608,43 @@ class JSONStorage {
     }
     await this.upsertGuild(guildId, { modules });
   }
+
+  // ── Faz 8: Premium ──────────────────────────────────────────────────────────
+
+  async isPremiumGuild(guildId) {
+    const g = await this.getGuild(guildId);
+    if (!g?.premium) return false;
+    if (g.premiumExpiresAt && new Date(g.premiumExpiresAt) < new Date()) {
+      await this.upsertGuild(guildId, { premium: false, premiumExpiresAt: null }).catch(() => { });
+      return false;
+    }
+    return true;
+  }
+
+  async setPremiumGuild(guildId, plan = 'basic', days = null) {
+    const expiresAt = days ? new Date(Date.now() + days * 86400000) : null;
+    await this.upsertGuild(guildId, {
+      premium: true,
+      premiumPlan: plan,
+      premiumExpiresAt: expiresAt
+    });
+  }
+
+  async revokePremium(guildId) {
+    await this.upsertGuild(guildId, {
+      premium: false,
+      premiumPlan: null,
+      premiumExpiresAt: null
+    });
+  }
+
+  async getPremiumGuilds() {
+    try {
+      const { guilds } = require('../../shared/schema');
+      const { eq } = require('drizzle-orm');
+      return await db.select().from(guilds).where(eq(guilds.premium, true));
+    } catch { return []; }
+  }
 }
 
 const storage = db ? new DatabaseStorage() : new JSONStorage();

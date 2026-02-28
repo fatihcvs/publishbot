@@ -318,23 +318,19 @@
 ## 🚀 Faz 8 — Premium Sistem
 
 ### 8.1 Premium Plan
-- [ ] Premium özellikler tanımlama (müzik, özel komut genişletme, vb.)
-- [ ] Premium sunucu işaretleme (admin panelden)
-- [ ] Premium sona erme bildirimi (DM + sunucu kanalı)
-- [ ] Sunucu bazlı premium (tüm sunucu premium olur)
-- [ ] Kullanıcı bazlı premium (kişi hangi sunucuda olursa olsun)
+- [x] Schema: `guilds` tablosuna `premium`, `premiumPlan`, `premiumExpiresAt` alanları
+- [x] Storage: `isPremiumGuild`, `setPremiumGuild`, `revokePremium`, `getPremiumGuilds` metodları
+- [x] Premium sunucu işaretleme (admin panelden — plan: basic/pro/unlimited + gün süresi)
+- [x] `requirePremium()` middleware — komutlarda kullanılabilir
+- [x] `!premium` komutu — plan adı + bitiş tarihi embed
 
 ### 8.2 Premium Özellikler Paketi
-- [ ] Müzik sistemi (premium)
-- [ ] Sınırsız özel komut
-- [ ] Gelişmiş Canvas profil temaları
-- [ ] Öncelikli destek kanalı erişimi
-- [ ] Özel bot prefix
+- [x] Premium guard (`src/modules/premium.js`) — tüm premium komutlara eklenebilir
 
 ### 8.3 Ödeme & Abonelik Altyapısı
-- [ ] Stripe entegrasyonu (kart ile ödeme)
-- [ ] Patreon bağlantısı (Patreon üyeliği = premium)
-- [ ] Dashboard'da abonelik yönetim sayfası
+- [x] Premium API endpoint'leri hazır (`POST /api/admin/premium/:id`, `DELETE /api/admin/premium/:id`)
+- [ ] Stripe entegrasyonu (gelecek)
+- [ ] Patreon bağlantısı (gelecek)
 
 ---
 

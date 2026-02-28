@@ -1525,15 +1525,51 @@
         function renderGuilds(list) {
             const el = document.getElementById('guildList');
             if (!list.length) { el.innerHTML = '<div class="empty-state"><i class="fas fa-server"></i><h3>Sunucu Yok</h3></div>'; return; }
-            el.innerHTML = list.map(g => `
+            el.innerHTML = list.map(g => {
+                const planColors = { basic: '#FEE75C', pro: '#5865F2', unlimited: '#EB459E' };
+                const planLabels = { basic: '⭐ Basic', pro: '💎 Pro', unlimited: '🚀 Unlimited' };
+                const premiumBadge = g.premium
+                    ? `<span style="font-size:.72rem;padding:2px 7px;border-radius:12px;background:${planColors[g.premiumPlan] || '#FEE75C'};color:#000;font-weight:700;">${planLabels[g.premiumPlan] || '⭐ Premium'}</span>`
+                    : '';
+                return `
       <div class="guild-item">
         <div class="guild-icon">${g.icon ? `<img src="${g.icon}" alt="">` : g.name.charAt(0)}</div>
         <div class="guild-info">
-          <div class="guild-name">${g.name}</div>
+          <div class="guild-name">${g.name} ${premiumBadge}</div>
           <div class="guild-sub"><i class="fas fa-users"></i> ${(g.memberCount || 0).toLocaleString('tr-TR')} üye &nbsp;·&nbsp; <code style="font-size:11px;">${g.id}</code></div>
         </div>
-        <button class="btn btn-red btn-sm" onclick="leaveGuild('${g.id}','${g.name.replace(/'/g, '\\\'')}')" title="Sunucudan çık"><i class="fas fa-sign-out-alt"></i></button>
-      </div>`).join('');
+        <div style="display:flex;gap:6px;">
+          ${g.premium
+                        ? `<button class="btn btn-red btn-sm" onclick="revokePremium('${g.id}','${g.name.replace(/'/g, "\\'")}')"><i class="fas fa-star-half-alt"></i> Premium Kaldır</button>`
+                        : `<button class="btn btn-sm" style="background:#FEE75C;color:#000;" onclick="activatePremium('${g.id}','${g.name.replace(/'/g, "\\'")}')"><i class="fas fa-star"></i> Premium Aktif</button>`
+                    }
+          <button class="btn btn-red btn-sm" onclick="leaveGuild('${g.id}','${g.name.replace(/'/g, "\\'")}')"><i class="fas fa-sign-out-alt"></i></button>
+        </div>
+      </div>`;
+            }).join('');
+        }
+
+        async function activatePremium(guildId, guildName) {
+            const plan = prompt(`"${guildName}" için premium plan seçin:\n1 → basic\n2 → pro\n3 → unlimited\n\nPlan (1/2/3):`);
+            const planMap = { '1': 'basic', '2': 'pro', '3': 'unlimited' };
+            const selectedPlan = planMap[plan?.trim()];
+            if (!selectedPlan) return;
+            const daysInput = prompt('Kaç gün? (Süresiz için boş bırakın)');
+            const days = daysInput ? parseInt(daysInput) : null;
+            const res = await fetch(`/api/admin/premium/${guildId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ plan: selectedPlan, days })
+            });
+            if (res.ok) { toastOk(`✅ ${guildName} — ${selectedPlan} premium aktif!`); await loadGuilds(); }
+            else toastErr('Premium aktif edilemedi.');
+        }
+
+        async function revokePremium(guildId, guildName) {
+            if (!confirm(`"${guildName}" için premium kaldırılsın mı?`)) return;
+            const res = await fetch(`/api/admin/premium/${guildId}`, { method: 'DELETE' });
+            if (res.ok) { toastOk(`✅ ${guildName} premium kaldırıldı.`); await loadGuilds(); }
+            else toastErr('Premium kaldırılamadı.');
         }
 
         function filterGuilds() {
