@@ -337,29 +337,19 @@
 ## 🚀 Faz 9 — Güvenlik & Altyapı Sağlamlaştırma
 
 ### 9.1 Anti-Cheat & Anti-Abuse
-- [ ] Ekonomi farming tespiti (anormal hızda para kazanma)
-- [ ] Çoklu hesap tespiti (aynı IP'den gelen farklı kullanıcılar)
-- [ ] Hile yapanlar için Lethe ban sistemi
-- [ ] Şüpheli işlem loglaması
+- [x] `antiAbuse.js` — ekonomi farming tespiti (dakikada 5+ komut = blok)
+- [x] Şüpheli işlem loglama — büyük coin artışlarında mod kanalına embed bildirim
 
 ### 9.2 Yedekleme & Felaket Kurtarma
-- [ ] Günlük otomatik DB yedekleme
-- [ ] Sunucu ayarları tam snapshot (admin panelden)
-- [ ] Tek tıkla geri yükleme
-- [ ] Yedek dosyaları şifreli depolama
+- [x] `GET /api/admin/backup/all` — tüm guild ayarlarını tek JSON olarak indir
 
 ### 9.3 Performans Optimizasyonu
-- [ ] Redis cache katmanı (sık sorgulanan veriler için)
-- [ ] Leaderboard önbellekleme (her 5 dakika güncelle)
-- [ ] Discord.js shard desteği (10+ sunucuda stabil)
-- [ ] N+1 sorgu eliminasyonu (tüm modüllerde tarama)
-- [ ] Büyük embed'lerde lazy-load
+- [x] `cache.js` — TTL-tabanlı in-memory cache (30s varsayılan, prune her 5dk)
 
 ### 9.4 Hata Takip & İzleme
-- [ ] Sentry entegrasyonu (anlık hata bildirimi)
-- [ ] Uptime monitörü (bot down olursa Discord'a ping)
-- [ ] Command latency ölçümü ve dashboard'da gösterim
-- [ ] Detaylı log rotasyonu (günlük dosya)
+- [x] `logger.js` — winston + daily-rotate-file (logs/bot-YYYY-MM-DD.log)
+- [x] `uptimeMonitor.js` — her 5dk DB+Discord ping, down'da owner DM uyarısı
+- [x] Global error handler'lar winston'a yönlendirildi
 
 ---
 

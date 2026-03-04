@@ -13,14 +13,16 @@ const { SocialNotificationSystem } = require('./modules/socialNotifications');
 const { chat: chatGPT } = require('./modules/chatgpt');
 const letheStorage = require('./lethe/letheStorage');
 const AntiRaidSystem = require('./modules/antiRaid');
+const logger = require('./utils/logger');
+const uptimeMonitor = require('./modules/uptimeMonitor');
 
 // ─── Global error handlers (A5) ─────────────────────────────────────────────
 process.on('uncaughtException', (err) => {
-  console.error('[FATAL] Uncaught Exception:', err);
+  logger.error('[FATAL] Uncaught Exception: ' + err?.message, { stack: err?.stack });
 });
 
 process.on('unhandledRejection', (reason, promise) => {
-  console.error('[FATAL] Unhandled Rejection at:', promise, 'reason:', reason);
+  logger.error('[FATAL] Unhandled Rejection', { reason: String(reason) });
 });
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -654,5 +656,11 @@ if (!token) {
 }
 
 client.login(token);
+
+// Faz 9: Uptime monitor — bot hazır olduktan sonra başlar
+client.once('ready', () => {
+  logger.info(`Bot hazır: ${client.user.tag} (${client.user.id})`);
+  uptimeMonitor.start(client, storage);
+});
 
 module.exports = { client };

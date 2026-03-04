@@ -338,6 +338,23 @@ app.post('/api/admin/keys', isBotOwner, (req, res) => {
   }
 });
 
+// ── Faz 9: Tam Yedekleme ─────────────────────────────────────────────────────
+app.get('/api/admin/backup/all', isBotOwner, async (req, res) => {
+  try {
+    const { storage } = require('../database/storage');
+    const guildIds = discordClient?.guilds.cache.map(g => g.id) || [];
+    const results = {};
+    for (const id of guildIds) {
+      results[id] = await storage.getGuild(id).catch(() => null);
+    }
+    res.json({
+      exportedAt: new Date().toISOString(),
+      guildCount: guildIds.length,
+      guilds: results
+    });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 // ── Faz 8: Premium Yönetimi (Bot Owner Only) ─────────────────────────────────
 
 // Premium sunucuları listele
