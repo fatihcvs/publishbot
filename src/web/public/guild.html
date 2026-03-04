@@ -199,6 +199,24 @@
           <i class="fas fa-gamepad"></i>
           <span>Lethe Game</span>
         </a>
+        <!-- Faz 5: Müzik -->
+        <a class="nav-item" data-feature="music">
+          <i class="fas fa-music"></i>
+          <span>🎵 Müzik</span>
+        </a>
+      </nav>
+
+      <!-- Premium -->
+      <nav class="nav-section">
+        <div class="nav-section-title">Premium</div>
+        <a class="nav-item" data-feature="premium"
+          style="background:linear-gradient(135deg,rgba(254,231,92,0.12),rgba(235,69,158,0.08));border:1px solid rgba(254,231,92,0.25);">
+          <i class="fas fa-star" style="color:#FEE75C;"></i>
+          <span
+            style="background:linear-gradient(90deg,#FEE75C,#eb459e);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;">
+            Premium Durumu
+          </span>
+        </a>
       </nav>
     </aside>
 
@@ -619,7 +637,9 @@
       games: [
         { id: 'giveaway', name: 'Çekiliş', description: 'Sunucunuzda çekilişler düzenleyin ve kazananları otomatik olarak belirleyin.', icon: 'fa-gift', color: 'purple' },
         { id: 'birthday', name: 'Doğum Günü', description: 'Üyelerinizin doğum günlerini kutlayın ve özel roller verin.', icon: 'fa-cake-candles', color: 'pink' },
-        { id: 'economy', name: 'Lethe Game', description: 'Hayvan avlama, pet toplama ve savaş sistemi ile eğlenceli bir koleksiyon oyunu!', icon: 'fa-gamepad', color: 'purple' }
+        { id: 'economy', name: 'Lethe Game', description: 'Hayvan avlama, pet toplama ve savaş sistemi ile eğlenceli bir koleksiyon oyunu!', icon: 'fa-gamepad', color: 'purple' },
+        { id: 'music', name: '🎵 Müzik', description: 'YouTube & Spotify\'dan müzik çal, kuyruk yönet, DJ modu, ses filtreleri ve 24/7 mod!', icon: 'fa-music', color: 'blue', new: true },
+        { id: 'premium', name: '⭐ Premium', description: 'Premium plan durumunu görüntüle. Basic, Pro ve Unlimited planlar mevcut.', icon: 'fa-star', color: 'orange', premium: true }
       ]
     };
 
@@ -1961,6 +1981,80 @@
             <button class="btn btn-primary" onclick="saveHelpSettings()">Kaydet</button>
           `;
           break;
+
+
+        case 'music':
+          document.getElementById('modalTitle').textContent = '🎵 Müzik Sistemi';
+          bodyContent = `
+            <h4 style="margin:0 0 12px;font-size:14px;color:#5865F2;">🎵 Müzik Ayarları</h4>
+            <div class="form-group">
+              <label class="form-label">DJ Rolü</label>
+              <select class="form-select" id="musicDjRole">
+                <option value="">Herkese Açık (DJ Rol Yok)</option>
+                ${(guildData.roles || []).filter(r => r.name !== '@everyone').map(r => `<option value="${r.id}">${r.name}</option>`).join('')}
+              </select>
+              <small style="color:var(--text-muted);margin-top:4px;display:block;">Bu rol olmadan müzik komutları çalışmaz.</small>
+            </div>
+            <div class="form-group" style="display:flex;justify-content:space-between;align-items:center;">
+              <div>
+                <label class="form-label" style="margin:0;">24/7 Mod</label>
+                <small style="color:var(--text-muted);display:block;">Bot ses kanalında sürekli kalır.</small>
+              </div>
+              <div class="toggle-switch" id="music247Toggle" onclick="this.classList.toggle('active')"></div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Varsayılan Ses Seviyesi</label>
+              <input type="range" min="0" max="200" value="100" id="musicVolume" class="form-input" style="accent-color:#5865F2;">
+              <div style="text-align:right;font-size:.8rem;color:var(--text-muted);">%<span id="musicVolumeVal">100</span></div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Komutlar</label>
+              <div style="display:flex;flex-wrap:wrap;gap:6px;">
+                ${['!çal', '!dur', '!devam', '!atla', '!sıra', '!loop', '!karıştır', '!ses', '!durdur', '!247', '!filtre', '!lirik'].map(c =>
+            `<code style="background:rgba(88,101,242,.15);border:1px solid rgba(88,101,242,.25);border-radius:5px;padding:2px 7px;font-size:.8rem;">${c}</code>`
+          ).join('')}
+              </div>
+            </div>
+            <script>
+              document.getElementById('musicVolume').oninput = function(){document.getElementById('musicVolumeVal').textContent=this.value}
+            <\/script>
+          `;
+          footerContent = `
+            <button class="btn btn-outline" onclick="window.closeModal()">Kapat</button>
+          `;
+          break;
+
+        case 'premium': {
+          const hasPremium = guildData.settings?.premium;
+          const plan = guildData.settings?.premiumPlan || 'basic';
+          const exp = guildData.settings?.premiumExpiresAt;
+          const planColors = { basic: '#FEE75C', pro: '#5865F2', unlimited: '#EB459E' };
+          const planLabels = { basic: '⭐ Basic', pro: '💎 Pro', unlimited: '🚀 Unlimited' };
+          document.getElementById('modalTitle').textContent = '⭐ Premium Durumu';
+          bodyContent = hasPremium ? `
+            <div style="text-align:center;padding:1.5rem 0;">
+              <div style="font-size:3rem;margin-bottom:.5rem;">✨</div>
+              <div style="font-size:1.3rem;font-weight:700;background:linear-gradient(90deg,${planColors[plan]},#eb459e);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;">${planLabels[plan]}</div>
+              <div style="color:var(--text-muted);margin-top:.4rem;font-size:.9rem;">${exp ? 'Bitiş: ' + new Date(exp).toLocaleDateString('tr-TR') : '♾️ Süresiz'}</div>
+            </div>
+            <div style="background:rgba(255,255,255,.04);border-radius:10px;padding:1rem;margin-top:.5rem;">
+              <div style="font-size:.85rem;font-weight:600;margin-bottom:.6rem;">✅ Aktif Özellikler</div>
+              ${['Müzik sistemi (YouTube & Spotify)', 'Gelişmiş analitik dashboard', 'Toplu işlem araçları', 'Twitch bildirim limiti yüksek', 'Öncelikli destek'].map(f => `<div style="font-size:.82rem;color:var(--text-secondary);padding:3px 0;">• ${f}</div>`).join('')}
+            </div>
+          ` : `
+            <div style="text-align:center;padding:1.5rem 0;">
+              <div style="font-size:3rem;margin-bottom:.5rem;">🔒</div>
+              <div style="font-size:1.1rem;font-weight:600;color:var(--text-primary);">Bu sunucuda Premium aktif değil</div>
+              <div style="color:var(--text-muted);margin-top:.4rem;font-size:.85rem;">Premium için bot sahibiyle iletişime geçin.</div>
+            </div>
+            <div style="background:rgba(255,255,255,.04);border-radius:10px;padding:1rem;margin-top:.5rem;">
+              <div style="font-size:.85rem;font-weight:600;margin-bottom:.6rem;">⭐ Premium Planlar</div>
+              ${[['⭐ Basic', '#FEE75C', 'Müzik + Analitik'], ['💎 Pro', '#5865F2', 'Basic + Toplu rol + Sınırsız komut'], ['🚀 Unlimited', '#EB459E', 'Tüm özellikler + Öncelikli destek']].map(([l, c, d]) => `<div style="display:flex;align-items:center;gap:8px;padding:5px 0;"><span style="font-weight:700;color:${c};">${l}</span><span style="font-size:.8rem;color:var(--text-muted);">${d}</span></div>`).join('')}
+            </div>
+          `;
+          footerContent = `<button class="btn btn-outline" onclick="window.closeModal()">Kapat</button>`;
+          break;
+        }
 
         default:
           bodyContent = `
