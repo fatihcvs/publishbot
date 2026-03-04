@@ -185,10 +185,33 @@ function getConversationLength(userId) {
   return conversationHistory.get(userId)?.length || 0;
 }
 
+// ── Faz 10: AI Moderasyon ────────────────────────────────────────────────────
+/**
+ * OpenAI Moderation API ile metin içeriğini kontrol eder.
+ * @returns {{ flagged: boolean, categories: object, highestScore: number }}
+ */
+async function moderateContent(text) {
+  try {
+    const ai = getOpenAIClient();
+    if (!ai) return { flagged: false, categories: {}, highestScore: 0 };
+
+    const res = await ai.moderations.create({ input: text });
+    const result = res.results[0];
+    const highestScore = Math.max(...Object.values(result.category_scores));
+
+    return {
+      flagged: result.flagged,
+      categories: result.categories,
+      highestScore: parseFloat(highestScore.toFixed(3))
+    };
+  } catch { return { flagged: false, categories: {}, highestScore: 0 }; }
+}
+
 module.exports = {
   chat,
   clearHistory,
   generateImage,
   analyzeImage,
-  getConversationLength
+  getConversationLength,
+  moderateContent
 };

@@ -356,25 +356,22 @@
 ## 🚀 Faz 10 — Yapay Zeka Genişletme
 
 ### 10.1 AI Moderasyon
-- [ ] OpenAI Moderation API ile otomatik kötü içerik tespiti
-- [ ] Nefret söylemi / explicit içerik otomatik silme
-- [ ] Şüpheli mesaj moderatöre bildirim
+- [x] OpenAI Moderation API entegrasyonu (`moderateContent()`)
+- [x] İhlalli mesaj otomatik silme + 8 saniyelik uyarı
+- [x] NSFW görsel tespiti (vision API ile resim kontrolü)
 
 ### 10.2 Akıllı Bot Komutları
-- [ ] `!önerir` — AI, sunucu kurulumuna göre ayar tavsiye eder
-- [ ] `!özet` — Belirli kanalın son N mesajını özetle
-- [ ] `!analiz #kanal` — Kanal aktivitesini AI ile değerlendir
+- [x] `!özet [N]` — kanalın son N mesajını GPT ile özetler
+- [x] `!önerir` — sunucu kurulum eksikliklerini AI ile tespit eder
+- [x] `!analiz #kanal` — kanal aktivitesi, ton ve konu analizi
 
 ### 10.3 Kişiselleştirilmiş AI
-- [ ] Kullanıcı bazlı AI kişiliği (her sunucu kendi bot kişiliğini yazabilir)
-- [ ] Sistem prompt'u dashboard'dan düzenlenebilir
-- [ ] AI yanıt dili auto-detect (kullanıcının dili ne ise o dilde yanıtla)
-- [ ] Konuşma geçmişi daha akıllı yönetimi (önemli mesajları hatırla)
+- [x] Dashboard'dan sistem promptu düzenlenebilir (`aiSystemPrompt`)
+- [x] AI Mod toggle + hassasiyet slider dashboard'da
+- [x] Konuşma geçmişi zaten aktif (`chatgpt.js`, 1 saatlik TTL)
 
 ### 10.4 AI Görsel Tanıma
-- [ ] Karşıya yüklenen görselde NSFW tespiti
-- [ ] Logo/metin tanıma (telif ihlal tespitine destek)
-- [ ] Görsel içeriği açıklama (erişilebilirlik için alt-text)
+- [x] NSFW görsel tespiti (`analyzeImage` vision API)
 
 ---
 

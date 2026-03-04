@@ -542,6 +542,44 @@ client.on(Events.MessageCreate, async (message) => {
     return;
   }
 
+  // ── Faz 10: AI Moderasyon & NSFW Görsel Tespiti ──────────────────────────
+  try {
+    const { moderateContent, analyzeImage } = require('./modules/chatgpt');
+    const guildCfg = await storage.getGuild(message.guild.id).catch(() => null);
+
+    // Metin moderasyonu
+    if (guildCfg?.aiModerationEnabled && message.content.length > 3) {
+      const modResult = await moderateContent(message.content);
+      const threshold = guildCfg.aiModThreshold ?? 0.7;
+      if (modResult.flagged || modResult.highestScore >= threshold) {
+        await message.delete().catch(() => { });
+        const warn = await message.channel.send(
+          `⚠️ ${message.author}, mesajın AI moderasyon kurallarını ihlal ettiği için silindi.`
+        ).catch(() => null);
+        setTimeout(() => warn?.delete().catch(() => { }), 8000);
+        return;
+      }
+    }
+
+    // NSFW görsel tespiti
+    if (guildCfg?.aiModerationEnabled && message.attachments.size > 0) {
+      for (const att of message.attachments.values()) {
+        if (!att.contentType?.startsWith('image/')) continue;
+        const result = await analyzeImage(att.url,
+          'Is this image NSFW, sexually explicit, or violent? Answer with only YES or NO.');
+        if (result.success && result.analysis?.trim().toUpperCase().startsWith('YES')) {
+          await message.delete().catch(() => { });
+          const warn = await message.channel.send(
+            `⚠️ ${message.author}, bu görsel uygunsuz içerik olarak tespit edildi ve silindi.`
+          ).catch(() => null);
+          setTimeout(() => warn?.delete().catch(() => { }), 8000);
+          return;
+        }
+      }
+    }
+  } catch { /* AI mod hata durumunda sessizce geç */ }
+  // ─────────────────────────────────────────────────────────────────────────
+
   // AFK check
   const mentionedUsers = message.mentions.users;
   for (const [userId, user] of mentionedUsers) {

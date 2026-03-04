@@ -206,6 +206,17 @@
         </a>
       </nav>
 
+      <!-- AI / Yapay Zeka -->
+      <nav class="nav-section">
+        <div class="nav-section-title">Yapay Zeka</div>
+        <a class="nav-item" data-feature="ai">
+          <i class="fas fa-robot" style="color:#a78bfa;"></i>
+          <span
+            style="background:linear-gradient(90deg,#a78bfa,#60a5fa);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;">🤖
+            AI Sistemi</span>
+        </a>
+      </nav>
+
       <!-- Premium -->
       <nav class="nav-section">
         <div class="nav-section-title">Premium</div>
@@ -1983,6 +1994,52 @@
           break;
 
 
+        case 'ai':
+          document.getElementById('modalTitle').textContent = '🤖 Yapay Zeka Sistemi';
+          bodyContent = `
+            <h4 style="margin:0 0 12px;font-size:14px;color:#a78bfa;">🤖 AI Kişiselleştirme</h4>
+            <div class="form-group">
+              <label class="form-label">Sistem Promptu</label>
+              <textarea class="form-textarea" id="aiSystemPrompt" rows="5"
+                placeholder="Sen yardımsever bir Discord botusun. Sunucu kurallarına uy. Emoji kullanabilirsin."
+                style="font-family:monospace;font-size:.85rem;">${settings.aiSystemPrompt || ''}</textarea>
+              <small style="color:var(--text-muted);margin-top:4px;display:block;">Bot AI olarak yanıt verirken bu promptu kullanır.</small>
+            </div>
+            <div class="form-group" style="display:flex;justify-content:space-between;align-items:center;">
+              <div>
+                <label class="form-label" style="margin:0;">AI Moderasyon</label>
+                <small style="color:var(--text-muted);display:block;">Mesajlar OpenAI Moderation API'ye gönderilir, ihlal tespit edilirse silinir.</small>
+              </div>
+              <div class="toggle-switch ${settings.aiModerationEnabled ? 'active' : ''}" id="aiModToggle" onclick="this.classList.toggle('active')"></div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">AI Mod Hassasiyeti</label>
+              <input type="range" min="0" max="10" value="${Math.round((settings.aiModThreshold || 0.7) * 10)}" id="aiModThreshold" class="form-input" style="accent-color:#a78bfa;">
+              <div style="display:flex;justify-content:space-between;font-size:.78rem;color:var(--text-muted);">
+                <span>Gevşek</span><span>Sıkı</span>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">AI Komutları</label>
+              <div style="display:flex;flex-wrap:wrap;gap:6px;">
+                ${[
+              ['!özet [N]', 'Kanalın son N mesajını özetler'],
+              ['!önerir', 'Sunucu kurulum tavsiyesi'],
+              ['!analiz #k', 'Kanal aktivitesi analizi']
+            ].map(([cmd, desc]) => `
+                  <div style="background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.2);border-radius:8px;padding:6px 10px;">
+                    <code style="color:#a78bfa;font-size:.82rem;">${cmd}</code>
+                    <div style="font-size:.75rem;color:var(--text-muted);">${desc}</div>
+                  </div>`).join('')}
+              </div>
+            </div>
+          `;
+          footerContent = `
+            <button class="btn btn-outline" onclick="window.closeModal()">Kapat</button>
+            <button class="btn btn-primary" onclick="saveAISettings()">Kaydet</button>
+          `;
+          break;
+
         case 'music':
           document.getElementById('modalTitle').textContent = '🎵 Müzik Sistemi';
           bodyContent = `
@@ -2723,6 +2780,33 @@
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') window.closeModal();
     });
+
+    // ── Faz 10: AI Ayarlarını Kaydet ─────────────────────────────────────────
+    async function saveAISettings() {
+      const prompt = document.getElementById('aiSystemPrompt')?.value || '';
+      const aiModOn = document.getElementById('aiModToggle')?.classList.contains('active') || false;
+      const threshold = (parseInt(document.getElementById('aiModThreshold')?.value || 7) / 10).toFixed(1);
+
+      const newSettings = {
+        aiSystemPrompt: prompt,
+        aiModerationEnabled: aiModOn,
+        aiModThreshold: parseFloat(threshold)
+      };
+
+      try {
+        const res = await fetch(`/api/guild/${guildId}/settings`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newSettings)
+        });
+        if (res.ok) {
+          settings = { ...settings, ...newSettings };
+          showToast('✅ AI ayarları kaydedildi!', 'success');
+          window.closeModal();
+        } else { showToast('AI ayarları kaydedilemedi', 'error'); }
+      } catch { showToast('Bir hata oluştu', 'error'); }
+    }
+    // ─────────────────────────────────────────────────────────────────────────
 
     init();
   </script>
