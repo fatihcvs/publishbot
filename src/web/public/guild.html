@@ -736,7 +736,12 @@
     function renderFeatureCards(containerId, featureList) {
       const container = document.getElementById(containerId);
       container.innerHTML = featureList.map(feature => {
-        const isActive = modules[feature.id] === true;
+        // Özel isActive hesabı: ai, music, premium için modules yerine settings bakılır
+        let isActive;
+        if (feature.id === 'ai') isActive = settings.aiModerationEnabled === true;
+        else if (feature.id === 'music') isActive = true; // Müzik her zaman kullanılabilir
+        else if (feature.id === 'premium') isActive = settings.premium === true;
+        else isActive = modules[feature.id] === true;
         const iconClass = feature.iconType === 'fab' ? 'fab' : 'fas';
 
         const badges = [];

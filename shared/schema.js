@@ -816,80 +816,8 @@ const rssFeeds = pgTable('rss_feeds', {
   createdAt: timestamp('created_at').defaultNow()
 });
 
-module.exports = {
-  guilds,
-  warnings,
-  modCases,
-  customCommands,
-  reactionRoles,
-  giveaways,
-  reminders,
-  afkUsers,
-  userLevels,
-  levelRewards,
-  scheduledMessages,
-  userAchievements,
-  inviteTracking,
-  socialNotifications,
-  userBirthdays,
-  birthdayConfig,
-  userEconomy,
-  economyConfig,
-  shopItems,
-  tickets,
-  ticketConfig,
-  polls,
-  tempVoiceChannels,
-  gameHistory,
-  userInventory,
-  gameItems,
-  activeDuels,
-  dailyStreak,
-  jackpotPool,
-  userStats,
-  commandUsage,
-  lootBoxes,
-  letheAnimals,
-  userAnimals,
-  letheWeapons,
-  letheArmors,
-  letheAccessories,
-  letheConsumables,
-  letheBaits,
-  letheCrates,
-  letheBosses,
-  userLetheInventory,
-  userLetheProfile,
-  letheAchievements,
-  userLetheAchievements,
-  userLetheCollections,
-  letheBattles,
-  letheQuests,
-  userLetheQuests,
-  letheDaily,
-  letheWork,
-  letheEvolutionGems,
-  letheAbilities,
-  letheTrades,
-  letheGifts,
-  letheFriends,
-  letheRaids,
-  letheLeaderboard,
-  letheEvents,
-  letheCommunityGoals,
-  letheEventParticipation,
-  letheClans,
-  letheClanMembers,
-  letheRegions,
-  userProfiles,
-  // Faz 3
-  automationRules,
-  webhookReceivers,
-  // Faz 6
-  twitchNotifications,
-  rssFeeds
-};
 
+// ── Faz 3: Otomasyon & Webhook ──────────────────────────────────────────────
 const automationRules = pgTable('automation_rules', {
   id: serial('id').primaryKey(),
   guildId: text('guild_id').notNull(),
@@ -912,6 +840,7 @@ const webhookReceivers = pgTable('webhook_receivers', {
   enabled: boolean('enabled').default(true),
   createdAt: timestamp('created_at').defaultNow()
 });
+
 
 module.exports = {
   guilds,
