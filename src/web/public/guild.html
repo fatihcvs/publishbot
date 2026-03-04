@@ -1070,9 +1070,13 @@
       const allFeatures = [...features.basic, ...features.management, ...features.tools, ...features.social, ...features.games];
       const feature = allFeatures.find(f => f.id === featureId);
 
-      if (!feature) return;
+      // Özel paneller (ai, music, premium) features dizisinde olmayabilir — erken çıkma
+      const standaloneFeatures = ['ai', 'music', 'premium'];
+      if (!feature && !standaloneFeatures.includes(featureId)) return;
 
-      document.getElementById('modalTitle').textContent = feature.name + ' Ayarları';
+      document.getElementById('modalTitle').textContent = feature
+        ? feature.name + ' Ayarları'
+        : featureId.charAt(0).toUpperCase() + featureId.slice(1) + ' Ayarları';
 
       let bodyContent = '';
       let footerContent = '';

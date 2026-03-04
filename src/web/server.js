@@ -1111,7 +1111,17 @@ app.get('/api/guild/:guildId', isAuthenticated, requireManagerAccess, async (req
         .filter(r => r.id !== guild.id)
         .map(r => ({ id: r.id, name: r.name, color: r.hexColor }))
         .sort((a, b) => b.position - a.position),
-      settings: guildData
+      // Premium alanları üst seviyede de gönder (dashboard kolaylığı için)
+      premium: guildData.premium || false,
+      premiumPlan: guildData.premiumPlan || null,
+      premiumExpiresAt: guildData.premiumExpiresAt || null,
+      settings: {
+        ...guildData,
+        // Açıkça settings içine de koy
+        premium: guildData.premium || false,
+        premiumPlan: guildData.premiumPlan || null,
+        premiumExpiresAt: guildData.premiumExpiresAt || null,
+      }
     });
   } catch (err) {
     console.error(`[/api/guild/${guildId}] Hata:`, err);
